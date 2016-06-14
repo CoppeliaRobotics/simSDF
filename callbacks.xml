@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="callbacks.xsl"?>
+
+<plugin name="SDF" author="federico.ferri.it@gmail.com">
+    <description>API functions for SDF input/output.</description>
+    <command name="import">
+        <description>Import a SDF file into the current scene.</description>
+        <params>
+            <param name="fileName" type="string">
+                <description>SDF file path</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+</plugin>
