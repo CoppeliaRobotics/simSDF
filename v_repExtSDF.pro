@@ -73,6 +73,7 @@ HEADERS += \
     tinyxml2.h \
     UIFunctions.h \
     UIProxy.h \
+    ImportOptions.h \
     SDFDialog.h \
     v_repExtSDF.h
 
@@ -83,6 +84,7 @@ SOURCES += \
     tinyxml2.cpp \
     UIFunctions.cpp \
     UIProxy.cpp \
+    ImportOptions.cpp \
     SDFDialog.cpp \
     v_repExtSDF.cpp
 

@@ -29,8 +29,12 @@
 
 #include "v_repExtSDF.h"
 #include "debug.h"
-#include "v_repLib.h"
 #include "SDFDialog.h"
+#include "tinyxml2.h"
+#include "stubs.h"
+#include "UIFunctions.h"
+#include "UIProxy.h"
+#include "v_repLib.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -38,11 +42,8 @@
 #include <string>
 #include <vector>
 #include <map>
-
 #include <boost/algorithm/string/predicate.hpp>
-
 #include <QThread>
-
 #ifdef _WIN32
     #ifdef QT_COMPIL
         #include <direct.h>
@@ -60,25 +61,18 @@
 #define strConCat(x, y, z)    CONCAT(x, y, z)
 
 #define PLUGIN_NAME "SDF"
-
-#define PLUGIN_VERSION 9    // 1 until 20/1/2013 (1 was a very early beta)
-                            // 2 until 10/1/2014 (V-REP3.0.5)
-                            // 3: new lock
-                            // 4: since V-REP 3.1.2
-                            // 5: since after V-REP 3.1.3
-                            // 6: since V-REP 3.2.2
-                            // 7: since V-REP 3.2.2 rev2
-                            // 8: since V-REP 3.3.0 (headless mode detect)
-                            // 9: since V-REP 3.3.1 (Using stacks to exchange data with scripts)
+#define VREP_COMPATIBILITY 9    // 1 until 20/1/2013 (1 was a very early beta)
+                                // 2 until 10/1/2014 (V-REP3.0.5)
+                                // 3: new lock
+                                // 4: since V-REP 3.1.2
+                                // 5: since after V-REP 3.1.3
+                                // 6: since V-REP 3.2.2
+                                // 7: since V-REP 3.2.2 rev2
+                                // 8: since V-REP 3.3.0 (headless mode detect)
+                                // 9: since V-REP 3.3.1 (Using stacks to exchange data with scripts)
 
 LIBRARY vrepLib; // the V-REP library that we will dynamically load and bind
 SDFDialog *sdfDialog = NULL;
-
-#include "tinyxml2.h"
-
-#include "stubs.h"
-#include "UIFunctions.h"
-#include "UIProxy.h"
 
 using namespace tinyxml2;
 
@@ -90,10 +84,15 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
         throw std::string("xml load error");
 
     XMLElement *root = xmldoc.FirstChildElement();
-    std::cout << "XML root: <" << root->Name() << ">" << std::endl;
-    for(XMLElement *e = root->FirstChildElement(); e; e = e->NextSiblingElement())
+    if(!root)
+        throw std::string("xml internal error: cannot get root element");
+
+    if(strcmp(root->Name(), "sdf"))
+        throw std::string("root element is not sdf");
+
+    for(XMLElement *e = root->FirstChildElement("light"); e; e = e->NextSiblingElement("light"))
     {
-        std::cout << "child: <" << e->Name() << ">" << std::endl;
+        std::cout << "light element: " << e << std::endl;
     }
 }
 
@@ -165,7 +164,7 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer, int reservedInt)
 
     UIProxy::getInstance(); // construct UIProxy here (UI thread)
 
-    return(PLUGIN_VERSION); // initialization went fine, we return the version number of this plugin (can be queried with simGetModuleName)
+    return VREP_COMPATIBILITY; // initialization went fine, we return the V-REP compatibility version
 }
 
 VREP_DLLEXPORT void v_repEnd()

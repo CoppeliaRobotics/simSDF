@@ -1,18 +1,9 @@
 #include "SDFDialog.h"
+#include "debug.h"
+#include "UIProxy.h"
 #include "ui_SDFDialog.h"
 #include "v_repLib.h"
 #include <string>
-
-bool SDFDialog::hideCollisionLinks=true;
-bool SDFDialog::hideJoints=true;
-bool SDFDialog::convexDecompose=true;
-bool SDFDialog::showConvexDecompositionDlg=false;
-bool SDFDialog::createVisualIfNone=true;
-bool SDFDialog::centerModel=true;
-bool SDFDialog::prepareModel=true;
-bool SDFDialog::noSelfCollision=true;
-bool SDFDialog::positionCtrl=true;
-bool SDFDialog::simulationStopped=true;
 
 SDFDialog::SDFDialog(QWidget *parent) :
 	QDialog(parent,Qt::Tool),
@@ -29,26 +20,26 @@ SDFDialog::~SDFDialog()
 
 void SDFDialog::refresh()
 { // Called from the UI thread
-	ui->qqAlternateMasks->setEnabled(simulationStopped);
-	ui->qqCenterModel->setEnabled(simulationStopped);
-	ui->qqCollisionLinksHidden->setEnabled(simulationStopped);
-	ui->qqConvexDecompose->setEnabled(simulationStopped);
-	ui->qqConvexDecomposeDlg->setEnabled(simulationStopped&&convexDecompose);
-	ui->qqCreateVisualLinks->setEnabled(simulationStopped);
-	ui->qqImport->setEnabled(simulationStopped);
-	ui->qqJointsHidden->setEnabled(simulationStopped);
-	ui->qqModelDefinition->setEnabled(simulationStopped);
-	ui->qqPositionCtrl->setEnabled(simulationStopped);
+	ui->qqAlternateMasks->setEnabled(options.simulationStopped);
+	ui->qqCenterModel->setEnabled(options.simulationStopped);
+	ui->qqCollisionLinksHidden->setEnabled(options.simulationStopped);
+	ui->qqConvexDecompose->setEnabled(options.simulationStopped);
+	ui->qqConvexDecomposeDlg->setEnabled(options.simulationStopped&&options.convexDecompose);
+	ui->qqCreateVisualLinks->setEnabled(options.simulationStopped);
+	ui->qqImport->setEnabled(options.simulationStopped);
+	ui->qqJointsHidden->setEnabled(options.simulationStopped);
+	ui->qqModelDefinition->setEnabled(options.simulationStopped);
+	ui->qqPositionCtrl->setEnabled(options.simulationStopped);
 
-	ui->qqAlternateMasks->setChecked(!noSelfCollision);
-	ui->qqCenterModel->setChecked(centerModel);
-	ui->qqCollisionLinksHidden->setChecked(hideCollisionLinks);
-	ui->qqConvexDecompose->setChecked(convexDecompose);
-	ui->qqConvexDecomposeDlg->setChecked(showConvexDecompositionDlg);
-	ui->qqCreateVisualLinks->setChecked(createVisualIfNone);
-	ui->qqJointsHidden->setChecked(hideJoints);
-	ui->qqModelDefinition->setChecked(prepareModel);
-	ui->qqPositionCtrl->setChecked(positionCtrl);
+	ui->qqAlternateMasks->setChecked(!options.noSelfCollision);
+	ui->qqCenterModel->setChecked(options.centerModel);
+	ui->qqCollisionLinksHidden->setChecked(options.hideCollisionLinks);
+	ui->qqConvexDecompose->setChecked(options.convexDecompose);
+	ui->qqConvexDecomposeDlg->setChecked(options.showConvexDecompositionDlg);
+	ui->qqCreateVisualLinks->setChecked(options.createVisualIfNone);
+	ui->qqJointsHidden->setChecked(options.hideJoints);
+	ui->qqModelDefinition->setChecked(options.prepareModel);
+	ui->qqPositionCtrl->setChecked(options.positionCtrl);
 }
 
 void SDFDialog::makeVisible(bool visible)
@@ -94,64 +85,71 @@ void SDFDialog::on_qqImport_clicked()
 	//cmd.boolParams.push_back(noSelfCollision);
 	//cmd.boolParams.push_back(positionCtrl);
 	//addCommand(cmd);
+    simChar* pathAndFile = simFileDialog(sim_filedlg_type_load, "SDF PLUGIN LOADER", "", "", "SDF Files", "sdf");
+    if(pathAndFile != NULL)
+    {
+        std::string strPathAndFile(pathAndFile);
+        simReleaseBuffer(pathAndFile);
+        UIProxy::getInstance()->import(strPathAndFile.c_str(), &options);
+    }
 }
 
 void SDFDialog::on_qqCollisionLinksHidden_clicked()
 { // Called from the UI thread
-	hideCollisionLinks=!hideCollisionLinks;
+	options.hideCollisionLinks=!options.hideCollisionLinks;
 	refresh();
 }
 
 void SDFDialog::on_qqJointsHidden_clicked()
 { // Called from the UI thread
-	hideJoints=!hideJoints;
+	options.hideJoints=!options.hideJoints;
 	refresh();
 }
 
 void SDFDialog::on_qqConvexDecompose_clicked()
 { // Called from the UI thread
-	convexDecompose=!convexDecompose;
+	options.convexDecompose=!options.convexDecompose;
 	refresh();
 }
 
 void SDFDialog::on_qqConvexDecomposeDlg_clicked()
 { // Called from the UI thread
-	showConvexDecompositionDlg=!showConvexDecompositionDlg;
+	options.showConvexDecompositionDlg=!options.showConvexDecompositionDlg;
 	refresh();
 }
 
 void SDFDialog::on_qqCreateVisualLinks_clicked()
 { // Called from the UI thread
-	createVisualIfNone=!createVisualIfNone;
+	options.createVisualIfNone=!options.createVisualIfNone;
 	refresh();
 }
 
 void SDFDialog::on_qqCenterModel_clicked()
 { // Called from the UI thread
-	centerModel=!centerModel;
+	options.centerModel=!options.centerModel;
 	refresh();
 }
 
 void SDFDialog::on_qqModelDefinition_clicked()
 { // Called from the UI thread
-	prepareModel=!prepareModel;
+	options.prepareModel=!options.prepareModel;
 	refresh();
 }
 
 void SDFDialog::on_qqAlternateMasks_clicked()
 { // Called from the UI thread
-	noSelfCollision=!noSelfCollision;
+	options.noSelfCollision=!options.noSelfCollision;
 	refresh();
 }
 
 void SDFDialog::on_qqPositionCtrl_clicked()
 { // Called from the UI thread
-	positionCtrl=!positionCtrl;
+	options.positionCtrl=!options.positionCtrl;
 	refresh();
 }
 
 void SDFDialog::setSimulationStopped(bool stopped)
 {
-	simulationStopped=stopped;
+	options.simulationStopped=stopped;
 }
 

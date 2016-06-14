@@ -7,6 +7,8 @@
 #include <QString>
 #include <QWidget>
 
+#include "ImportOptions.h"
+
 class UIProxy : public QObject
 {
     Q_OBJECT
@@ -25,10 +27,10 @@ private:
 public slots:
 
 private slots:
-    //void onEvent(void *foo);
+    void onError(const char *msg);
 
 signals:
-    //void mySignal(void *bar);
+    void import(const char *filename, const ImportOptions *options);
 };
 
 #endif // UIPROXY_H_INCLUDED

@@ -3,6 +3,8 @@
 
 #include <QDialog>
 
+#include "ImportOptions.h"
+
 namespace Ui {
     class SDFDialog;
 }
@@ -27,16 +29,7 @@ public:
 	void setSimulationStopped(bool stopped);
 
 private:
-	static bool hideCollisionLinks;
-	static bool hideJoints;
-	static bool convexDecompose;
-	static bool showConvexDecompositionDlg;
-	static bool createVisualIfNone;
-	static bool centerModel;
-	static bool prepareModel;
-	static bool noSelfCollision;
-	static bool positionCtrl;
-	static bool simulationStopped;
+    ImportOptions options;
 
 private slots:
 	void on_qqImport_clicked();

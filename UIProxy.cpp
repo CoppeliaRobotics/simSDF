@@ -15,6 +15,7 @@
 #include <QGroupBox>
 #include <QComboBox>
 #include <QDialog>
+#include <QMessageBox>
 
 #include "stubs.h"
 
@@ -38,9 +39,9 @@ UIProxy * UIProxy::getInstance(QObject *parent)
     {
         UIProxy::instance = new UIProxy(parent);
 
-        DBG << "UIProxy constructed in thread " << QThread::currentThreadId() << std::endl;
-
         uiThread();
+
+        DBG << "UIProxy constructed in thread " << QThread::currentThreadId() << std::endl;
     }
     return UIProxy::instance;
 }
@@ -51,7 +52,9 @@ void UIProxy::destroyInstance()
         delete UIProxy::instance;
 }
 
-//void UIProxy::onEvent(void *foo)
-//{
-//}
+void UIProxy::onError(const char *msg)
+{
+    QWidget *mainWindow = (QWidget*)simGetMainWindow(1);
+    QMessageBox::warning(mainWindow, "SDF Plugin", msg, QMessageBox::Ok);
+}
 

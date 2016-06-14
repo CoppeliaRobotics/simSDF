@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QString>
 
+#include "ImportOptions.h"
+
 class UIFunctions : public QObject
 {
     Q_OBJECT
@@ -22,10 +24,10 @@ private:
 public slots:
 
 private slots:
-    //void onEvent(void *foo);
+    void onImport(const char *fileName, const ImportOptions *options);
 
 signals:
-    //void mySignal(void *bar);
+    void error(const char *msg);
 };
 
 #endif // UIFUNCTIONS_H_INCLUDED

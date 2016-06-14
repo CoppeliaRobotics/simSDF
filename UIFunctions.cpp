@@ -18,8 +18,8 @@ UIFunctions::UIFunctions(QObject *parent)
     // connect signals/slots from UIProxy to UIFunctions and vice-versa
 
     UIProxy *uiproxy = UIProxy::getInstance();
-    //connect(this, SIGNAL(create(Proxy*)), uiproxy, SLOT(onCreate(Proxy*)), Qt::BlockingQueuedConnection);
-    //connect(uiproxy, SIGNAL(buttonClick(Widget*)), this, SLOT(onButtonClick(Widget*)));
+    connect(this, SIGNAL(error(const char*)), uiproxy, SLOT(onError(const char*)), Qt::BlockingQueuedConnection);
+    connect(uiproxy, SIGNAL(import(const char *,const ImportOptions*)), this, SLOT(onImport(const char *,const ImportOptions*)));
 }
 
 UIFunctions::~UIFunctions()
@@ -33,9 +33,9 @@ UIFunctions * UIFunctions::getInstance(QObject *parent)
     {
         UIFunctions::instance = new UIFunctions(parent);
 
-        DBG << "UIFunctions constructed in thread " << QThread::currentThreadId() << std::endl;
-
         simThread();
+
+        DBG << "UIFunctions constructed in thread " << QThread::currentThreadId() << std::endl;
     }
     return UIFunctions::instance;
 }
@@ -46,7 +46,18 @@ void UIFunctions::destroyInstance()
         delete UIFunctions::instance;
 }
 
-//void UIFunctions::onEvent(void *foo)
-//{
-//}
+void UIFunctions::onImport(const char *fileName, const ImportOptions *options)
+{
+    import_in in_args;
+    in_args.fileName = std::string(fileName);
+    import_out out_args;
+    try
+    {
+        import(NULL, "<SDF import button>", &in_args, &out_args);
+    }
+    catch(std::string &ex)
+    {
+        emit error(ex.c_str());
+    }
+}
 
