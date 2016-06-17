@@ -664,6 +664,31 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "gripper", grippers);
 }
 
+void Road::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Scene::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Physics::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void State::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Population::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
 void World::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -706,7 +731,7 @@ void World::Atmosphere::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    const char *atmosphereTypes = {"adiabatic"};
+    const char *atmosphereTypes[] = {"adiabatic"};
     type = getSubValOneOf(e, "type", atmosphereTypes, sizeof(atmosphereTypes)/sizeof(atmosphereTypes[0]));
     temperature = getSubValDouble(e, "temperature", false, true);
     pressure = getSubValDouble(e, "pressure", false, true);

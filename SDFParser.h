@@ -553,6 +553,31 @@ struct Model : public Parser
     virtual void parse(XMLElement *e, const char *tagName = "model");
 };
 
+struct Road : public Parser
+{
+    virtual void parse(XMLElement *e, const char *tagName = "road");
+};
+
+struct Scene : public Parser
+{
+    virtual void parse(XMLElement *e, const char *tagName = "scene");
+};
+
+struct Physics : public Parser
+{
+    virtual void parse(XMLElement *e, const char *tagName = "physics");
+};
+
+struct State : public Parser
+{
+    virtual void parse(XMLElement *e, const char *tagName = "state");
+};
+
+struct Population : public Parser
+{
+    virtual void parse(XMLElement *e, const char *tagName = "population");
+};
+
 struct World : public Parser
 {
     std::string name;
