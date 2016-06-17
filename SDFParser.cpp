@@ -233,6 +233,10 @@ void Model::parse(XMLElement *e, const char *tagName)
     enableWind = getSubValBool(e, "enable_wind", false, true, true);
     frame.parseSub(e, "frame", true);
     pose.parseSub(e, "pose", true);
+    parseMany(e, "link", links);
+    parseMany(e, "joint", joints);
+    parseMany(e, "plugin", plugins);
+    parseMany(e, "gripper", grippers);
 }
 
 void World::parse(XMLElement *e, const char *tagName)
@@ -246,6 +250,17 @@ void World::parse(XMLElement *e, const char *tagName)
     gravity.parseSub(e, "gravity");
     magneticField.parseSub(e, "magnetic_field");
     atmosphere.parseSub(e, "atmosphere");
+    gui.parseSub(e, "gui");
+    physics.parseSub(e, "physics");
+    scene.parseSub(e, "scene");
+    parseMany(e, "light", lights);
+    parseMany(e, "model", models);
+    parseMany(e, "actor", actors);
+    parseMany(e, "plugin", plugins);
+    parseMany(e, "road", roads);
+    sphericalCoordinates.parseSub(e, "spherical_coordinates");
+    parseMany(e, "state", states);
+    parseMany(e, "population", populations);
 }
 
 void World::Audio::parse(XMLElement *e, const char *tagName)
@@ -280,6 +295,7 @@ void World::GUI::parse(XMLElement *e, const char *tagName)
 
     fullScreen = getSubValBool(e, "full_screen", false, true, false);
     camera.parseSub(e, "camera", true);
+    parseMany(e, "plugin", plugins);
 }
 
 void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
@@ -288,6 +304,35 @@ void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
 
     name = getSubValStr(e, "name", false, true, "user_camera");
     viewController = getSubValStr(e, "view_controller", false, true, "");
+    const char *projectionTypes[] = {"orthographic", "perspective"};
+    projectionType = getSubValOneOf(e, "projection_type", projectionTypes, sizeof(projectionTypes)/sizeof(projectionTypes[0]), false, true, "perspective");
+    trackVisual.parseSub(e, "track_visual", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+}
+
+void World::GUI::Camera::TrackVisual::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+    
+    name = getSubValStr(e, "name", false, true);
+    minDist = getSubValDouble(e, "min_dist", false, true);
+    maxDist = getSubValDouble(e, "max_dist", false, true);
+    static_ = getSubValBool(e, "static", false, true);
+    useModelFrame = getSubValBool(e, "use_model_frame", false, true);
+    xyz.parseSub(e, "xyz", true);
+    inheritYaw = getSubValBool(e, "inherit_yaw", false, true);
+}
+
+void World::SphericalCoordinates::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    surfaceModel = getSubValStr(e, "surface_model");
+    latitudeDeg = getSubValDouble(e, "latitude_deg");
+    longitudeDeg = getSubValDouble(e, "longitude_deg");
+    elevation = getSubValDouble(e, "elevation");
+    headingDeg = getSubValDouble(e, "heading_deg");
 }
 
 void Actor::parse(XMLElement *e, const char *tagName)

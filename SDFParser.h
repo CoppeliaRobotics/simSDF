@@ -473,6 +473,15 @@ struct World : public Parser
             std::string projectionType;
             struct TrackVisual : public Parser
             {
+                std::string name;
+                double minDist;
+                double maxDist;
+                bool static_;
+                bool useModelFrame;
+                Vector xyz;
+                bool inheritYaw;
+
+                virtual void parse(XMLElement *e, const char *tagName = "track_visual");
             } trackVisual;
             Frame frame;
             Pose pose;
