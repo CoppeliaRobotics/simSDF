@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+    <world name="foo">
+        <gravity>0 0 -9.81</gravity>
+    </world>
+    <world name="bar">
+        <gravity><x>0</x><y>0</y><z>9.81</z></gravity>
+    </world>
+</sdf>

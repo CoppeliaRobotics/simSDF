@@ -71,6 +71,7 @@ HEADERS += \
     ../include/v_repLib.h \
     stubs.h \
     tinyxml2.h \
+    SDFParser.h \
     UIFunctions.h \
     UIProxy.h \
     ImportOptions.h \
@@ -82,6 +83,7 @@ SOURCES += \
     ../common/v_repLib.cpp \
     stubs.cpp \
     tinyxml2.cpp \
+    SDFParser.cpp \
     UIFunctions.cpp \
     UIProxy.cpp \
     ImportOptions.cpp \

@@ -31,6 +31,7 @@
 #include "debug.h"
 #include "SDFDialog.h"
 #include "tinyxml2.h"
+#include "SDFParser.h"
 #include "stubs.h"
 #include "UIFunctions.h"
 #include "UIProxy.h"
@@ -82,17 +83,18 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
     XMLError err = xmldoc.LoadFile(in->fileName.c_str());
     if(err != XML_NO_ERROR)
         throw std::string("xml load error");
-
     XMLElement *root = xmldoc.FirstChildElement();
     if(!root)
         throw std::string("xml internal error: cannot get root element");
-
-    if(strcmp(root->Name(), "sdf"))
-        throw std::string("root element is not sdf");
-
-    for(XMLElement *e = root->FirstChildElement("light"); e; e = e->NextSiblingElement("light"))
+    SDF sdf;
+    sdf.parse(root);
+    std::cout << "parsed SDF" << std::endl;
+    std::cout << "  version=" << sdf.version << std::endl;
+    std::cout << "  world count=" << sdf.worlds.size() << std::endl;
+    for(size_t i = 0; i < sdf.worlds.size(); i++)
     {
-        std::cout << "light element: " << e << std::endl;
+        std::cout << "  world[" << i << "].name=" << sdf.worlds[i]->name << std::endl;
+        std::cout << "  world[" << i << "].gravity=(" << sdf.worlds[i]->gravity.x << ", " << sdf.worlds[i]->gravity.y << ", " << sdf.worlds[i]->gravity.z << ")" << std::endl;
     }
 }
 
