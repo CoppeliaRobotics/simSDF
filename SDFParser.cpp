@@ -220,6 +220,431 @@ void Vector::parse(XMLElement *e, const char *tagName)
     }
 }
 
+void Orientation::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    try
+    {
+        roll = getSubValDouble(e, "roll");
+        pitch = getSubValDouble(e, "pitch");
+        yaw = getSubValDouble(e, "yaw");
+    }
+    catch(std::string& ex)
+    {
+        // a orientation can be parsed also as a space delimited list
+        std::string text = e->GetText();
+        std::vector<std::string> tokens;
+        boost::split(tokens, text, boost::is_any_of(" "));
+        if(tokens.size() != 3)
+            throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
+        roll = boost::lexical_cast<double>(tokens[0]);
+        pitch = boost::lexical_cast<double>(tokens[1]);
+        yaw = boost::lexical_cast<double>(tokens[2]);
+    }
+}
+
+void Pose::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    try
+    {
+        position.parseSub(e, "position");
+        orientation.parseSub(e, "orientation");
+    }
+    catch(std::string& ex)
+    {
+        // a pose can be parsed also as a space delimited list
+        std::string text = e->GetText();
+        std::vector<std::string> tokens;
+        boost::split(tokens, text, boost::is_any_of(" "));
+        if(tokens.size() != 6)
+            throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
+        position.x = boost::lexical_cast<double>(tokens[0]);
+        position.y = boost::lexical_cast<double>(tokens[1]);
+        position.z = boost::lexical_cast<double>(tokens[2]);
+        orientation.roll = boost::lexical_cast<double>(tokens[3]);
+        orientation.pitch = boost::lexical_cast<double>(tokens[4]);
+        orientation.yaw = boost::lexical_cast<double>(tokens[5]);
+    }
+}
+
+void Include::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    uri = getSubValStr(e, "uri");
+    pose.parseSub(e, "pose", true);
+    name = getSubValStr(e, "name", false, true);
+    dynamic = !getSubValBool(e, "static", false, true);
+}
+
+void Plugin::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getSubValStr(e, "name");
+    fileName = getSubValStr(e, "filename");
+}
+
+void Frame::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getSubValStr(e, "name");
+    pose.parseSub(e, "pose");
+}
+
+void NoiseModel::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    mean = getSubValDouble(e, "mean");
+    stdDev = getSubValDouble(e, "stddev");
+    biasMean = getSubValDouble(e, "bias_mean");
+    biasStdDev = getSubValDouble(e, "bias_stddev");
+    precision = getSubValDouble(e, "precision");
+}
+
+void Altimeter::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    verticalPosition.parseSub(e, "vertical_position");
+    verticalVelocity.parseSub(e, "vertical_velocity");
+}
+
+void Altimeter::VerticalPosition::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
+}
+
+void Altimeter::VerticalVelocity::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
+}
+
+void Image::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    width = getSubValDouble(e, "width");
+    width = getSubValDouble(e, "height");
+    format = getSubValStr(e, "format");
+}
+
+void Clip::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    near = getSubValDouble(e, "near");
+    far = getSubValDouble(e, "far");
+}
+
+void Camera::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    horizontalFOV = getSubValDouble(e, "horizontal_fov");
+    image.parseSub(e, "image");
+    clip.parseSub(e, "clip");
+    save.parseSub(e, "save");
+    depthCamera.parseSub(e, "depth_camera");
+    noise.parseSub(e, "noise");
+    distortion.parseSub(e, "distortion");
+    lens.parseSub(e, "lens");
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+}
+
+void Camera::Save::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    enabled = getAttrBool(e, "enabled");
+    path = getSubValStr(e, "path");
+}
+
+void Camera::DepthCamera::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    output = getSubValStr(e, "output");
+}
+
+void Camera::Distortion::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    k1 = getSubValDouble(e, "k1");
+    k2 = getSubValDouble(e, "k2");
+    k3 = getSubValDouble(e, "k3");
+    p1 = getSubValDouble(e, "p1");
+    p2 = getSubValDouble(e, "p2");
+    center.parseSub(e, "center");
+}
+
+void Camera::Distortion::Center::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    x = getSubValDouble(e, "x");
+    y = getSubValDouble(e, "y");
+}
+
+void Camera::Lens::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    type = getSubValStr(e, "type");
+    scaleToHFOV = getSubValBool(e, "scale_to_hfov");
+    customFunction.parseSub(e, "custom_function", true);
+    cutoffAngle = getSubValDouble(e, "cutoffAngle", false, true);
+    envTextureSize = getSubValDouble(e, "envTextureSize", false, true);
+}
+
+void Camera::Lens::CustomFunction::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    c1 = getSubValDouble(e, "c1", false, true);
+    c2 = getSubValDouble(e, "c2", false, true);
+    c3 = getSubValDouble(e, "c3", false, true);
+    f = getSubValDouble(e, "f", false, true);
+    fun = getSubValStr(e, "fun");
+}
+
+void Contact::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void GPS::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void GPS::PositionSensing::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void GPS::PositionSensing::Horizontal::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void GPS::PositionSensing::Vertical::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void GPS::VelocitySensing::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void GPS::VelocitySensing::Horizontal::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void GPS::VelocitySensing::Vertical::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::AngularVelocity::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::AngularVelocity::X::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::AngularVelocity::Y::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::AngularVelocity::Z::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::LinearAcceleration::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::LinearAcceleration::X::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::LinearAcceleration::Y::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void IMU::LinearAcceleration::Z::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void LogicalCamera::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Magnetometer::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Magnetometer::X::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Magnetometer::Y::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Magnetometer::Z::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void LaserScanResolution::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Ray::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Ray::Scan::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Ray::Range::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void RFIDTag::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void RFID::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Sonar::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Transceiver::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void ForceTorque::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void LinkInertial::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void LinkInertial::InertiaMatrix::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void LinkCollision::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void LinkVisual::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Sensor::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Projector::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void AudioSource::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void AudioSink::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Battery::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Link::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Link::VelocityDecay::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Joint::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Gripper::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void Gripper::GraspCheck::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
 void Model::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
