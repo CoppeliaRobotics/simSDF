@@ -28,7 +28,7 @@ struct Parser
     bool getSubValBool(XMLElement *e, const char *name, bool many = false, bool optional = false, bool defaultValue = false);
 
     virtual void parse(XMLElement *e, const char *tagName = 0);
-    virtual void parseSub(XMLElement *e, const char *subElementName);
+    virtual void parseSub(XMLElement *e, const char *subElementName, bool optional = false);
 };
 
 struct World;
@@ -417,6 +417,51 @@ struct World : public Parser
     Vector gravity;
 
     virtual void parse(XMLElement *e, const char *tagName = "world");
+};
+
+struct Actor : public Parser
+{
+    std::string name;
+
+    virtual void parse(XMLElement *e, const char *tagName = "actor");
+};
+
+struct Color : public Parser
+{
+    double r, g, b, a;
+
+    virtual void parse(XMLElement *e, const char *tagName = "color");
+};
+
+struct Light : public Parser
+{
+    std::string name;
+    std::string type;
+    bool castShadows;
+    Color diffuse;
+    Color specular;
+    struct Attenuation : public Parser
+    {
+        double range;
+        double linear;
+        double constant;
+        double quadratic;
+
+        virtual void parse(XMLElement *e, const char *tagName = "attenuation");
+    } attenuation;
+    Vector direction;
+    struct Spot : public Parser
+    {
+        double innerAngle;
+        double outerAngle;
+        double fallOff;
+
+        virtual void parse(XMLElement *e, const char *tagName = "spot");
+    } spot;
+    Frame frame;
+    Pose pose;
+
+    virtual void parse(XMLElement *e, const char *tagName = "light");
 };
 
 #endif // SDFPARSER_H_INCLUDED

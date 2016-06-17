@@ -171,11 +171,16 @@ void Parser::parse(XMLElement *e, const char *tagName)
         throw (boost::format("element %s not recognized") % elemNameStr).str();
 }
 
-void Parser::parseSub(XMLElement *e, const char *subElementName)
+void Parser::parseSub(XMLElement *e, const char *subElementName, bool optional)
 {
     e = e->FirstChildElement(subElementName);
     if(!e)
-        throw (boost::format("sub element %s not found") % subElementName).str();
+    {
+        if(optional)
+            return;
+        else
+            throw (boost::format("sub element %s not found") % subElementName).str();
+    }
     parse(e, subElementName);
 }
 
@@ -191,6 +196,27 @@ void SDF::parse(XMLElement *e, const char *tagName)
         World *world = new World;
         world->parse(e1);
         worlds.push_back(world);
+    }
+
+    for(XMLElement *e1 = e->FirstChildElement("model"); e1; e1 = e1->NextSiblingElement("model"))
+    {
+        Model *model = new Model;
+        model->parse(e1);
+        models.push_back(model);
+    }
+
+    for(XMLElement *e1 = e->FirstChildElement("actor"); e1; e1 = e1->NextSiblingElement("actor"))
+    {
+        Actor *actor = new Actor;
+        actor->parse(e1);
+        actors.push_back(actor);
+    }
+
+    for(XMLElement *e1 = e->FirstChildElement("light"); e1; e1 = e1->NextSiblingElement("light"))
+    {
+        Light *light = new Light;
+        light->parse(e1);
+        lights.push_back(light);
     }
 }
 
@@ -220,7 +246,78 @@ void Vector::parse(XMLElement *e, const char *tagName)
 
 void World::parse(XMLElement *e, const char *tagName)
 {
+    Parser::parse(e, tagName);
+
     name = getAttrStr(e, "name");
     gravity.parseSub(e, "gravity");
+}
+
+void Actor::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+}
+
+void Color::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    try
+    {
+        r = getSubValDouble(e, "r");
+        g = getSubValDouble(e, "g");
+        b = getSubValDouble(e, "b");
+        a = getSubValDouble(e, "a");
+    }
+    catch(std::string& ex)
+    {
+        // a color can be parsed also as a space delimited list
+        std::string text = e->GetText();
+        std::vector<std::string> tokens;
+        boost::split(tokens, text, boost::is_any_of(" "));
+        if(tokens.size() != 4)
+            throw (boost::format("invalid color length: %d") % tokens.size()).str();
+        r = boost::lexical_cast<double>(tokens[0]);
+        g = boost::lexical_cast<double>(tokens[1]);
+        b = boost::lexical_cast<double>(tokens[2]);
+        a = boost::lexical_cast<double>(tokens[3]);
+    }
+}
+
+void Light::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    const char *lightTypes[] = {"point", "directional", "spot"};
+    type = getAttrOneOf(e, "type", lightTypes, sizeof(lightTypes)/sizeof(lightTypes[0]));
+    castShadows = getSubValBool(e, "cast_shadows", false, true, true);
+    diffuse.parseSub(e, "diffuse");
+    specular.parseSub(e, "specular");
+    attenuation.parseSub(e, "attenuation", true);
+    direction.parseSub(e, "direction");
+    spot.parseSub(e, "spot", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+}
+
+void Light::Attenuation::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    range = getSubValDouble(e, "range");
+    linear = getSubValDouble(e, "linear", false, true, 1.0);
+    constant = getSubValDouble(e, "constant", false, true, 0.0);
+    quadratic = getSubValDouble(e, "quadratic", false, true, 0.0);
+}
+
+void Light::Spot::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    innerAngle = getSubValDouble(e, "inner_angle");
+    outerAngle = getSubValDouble(e, "outer_angle");
+    fallOff = getSubValDouble(e, "falloff");
 }
 
