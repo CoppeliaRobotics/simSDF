@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <boost/format.hpp>
 
 #include "tinyxml2.h"
 
@@ -26,6 +27,20 @@ struct Parser
     double getSubValDouble(XMLElement *e, const char *name, bool many = false, bool optional = false, double defaultValue = 0.0);
     std::string getSubValOneOf(XMLElement *e, const char *name, const char **validValues, int numValues, bool many = false, bool optional = false, std::string defaultValue = "");
     bool getSubValBool(XMLElement *e, const char *name, bool many = false, bool optional = false, bool defaultValue = false);
+
+    template<typename T>
+    void parseMany(XMLElement *parent, const char *tagName, std::vector<T*>& vec, bool atLeastOne = false)
+    {
+        if(atLeastOne && !parent->FirstChildElement(tagName))
+            throw (boost::format("element %s must have at least one %s child element") % parent->Name() % tagName).str();
+
+        for(XMLElement *e = parent->FirstChildElement(tagName); e; e = e->NextSiblingElement(tagName))
+        {
+            T *t = new T;
+            t->parse(e);
+            vec.push_back(t);
+        }
+    }
 
     virtual void parse(XMLElement *e, const char *tagName = 0);
     virtual void parseSub(XMLElement *e, const char *subElementName, bool optional = false);
@@ -388,33 +403,105 @@ struct Joint : public Parser
     std::string name;
 };
 
+struct Gripper : public Parser
+{
+    std::string name;
+    struct GraspCheck : public Parser
+    {
+        int detachSteps;
+        int attachSteps;
+        int minContactCount;
+    } graspCheck;
+    std::string gripperLink;
+    std::string palmLink;
+};
+
 struct Model : public Parser
 {
+    std::string name;
     bool dynamic;
     bool selfCollide;
     bool allowAutoDisable;
     std::vector<Include*> includes;
     std::vector<Model*> submodels;
+    bool enableWind;
     Frame frame;
     Pose pose;
     std::vector<Link*> links;
     std::vector<Joint*> joints;
     std::vector<Plugin*> plugins;
+    std::vector<Gripper*> grippers;
+
+    virtual void parse(XMLElement *e, const char *tagName = "model");
 };
 
 struct World : public Parser
 {
     std::string name;
-    struct Audio
+    struct Audio : public Parser
     {
         std::string device;
+
+        virtual void parse(XMLElement *e, const char *tagName = "audio");
     } audio;
-    struct Wind
+    struct Wind : public Parser
     {
         double linearVelocity;
+
+        virtual void parse(XMLElement *e, const char *tagName = "wind");
     } wind;
     std::vector<Include*> includes;
     Vector gravity;
+    Vector magneticField;
+    struct Atmosphere : public Parser
+    {
+        std::string type;
+        double temperature;
+        double pressure;
+        double massDensity;
+        double temperatureGradient;
+
+        virtual void parse(XMLElement *e, const char *tagName = "atmosphere");
+    } atmosphere;
+    struct GUI : public Parser
+    {
+        bool fullScreen;
+        struct Camera : public Parser
+        {
+            std::string name;
+            std::string viewController;
+            std::string projectionType;
+            struct TrackVisual : public Parser
+            {
+            } trackVisual;
+            Frame frame;
+            Pose pose;
+
+            virtual void parse(XMLElement *e, const char *tagName = "camera");
+        } camera;
+        std::vector<Plugin*> plugins;
+
+        virtual void parse(XMLElement *e, const char *tagName = "gui");
+    } gui;
+    Physics physics;
+    Scene scene;
+    std::vector<Light*> lights;
+    std::vector<Model*> models;
+    std::vector<Actor*> actors;
+    std::vector<Plugin*> plugins;
+    std::vector<Road*> roads;
+    struct SphericalCoordinates : public Parser
+    {
+        std::string surfaceModel;
+        double latitudeDeg;
+        double longitudeDeg;
+        double elevation;
+        double headingDeg;
+
+        virtual void parse(XMLElement *e, const char *tagName = "spherical_coordinates");
+    } sphericalCoordinates;
+    std::vector<State*> states;
+    std::vector<Population*> populations;
 
     virtual void parse(XMLElement *e, const char *tagName = "world");
 };
@@ -422,6 +509,7 @@ struct World : public Parser
 struct Actor : public Parser
 {
     std::string name;
+    // incomplete
 
     virtual void parse(XMLElement *e, const char *tagName = "actor");
 };

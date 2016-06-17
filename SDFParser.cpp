@@ -190,34 +190,10 @@ void SDF::parse(XMLElement *e, const char *tagName)
 
     static const char *supportedVersions[] = {"1.1", "1.2", "1.3", "1.4", "1.5", "1.6"}; // TODO: verify this
     version = getAttrOneOf(e, "version", supportedVersions, sizeof(supportedVersions)/sizeof(supportedVersions[0]));
-
-    for(XMLElement *e1 = e->FirstChildElement("world"); e1; e1 = e1->NextSiblingElement("world"))
-    {
-        World *world = new World;
-        world->parse(e1);
-        worlds.push_back(world);
-    }
-
-    for(XMLElement *e1 = e->FirstChildElement("model"); e1; e1 = e1->NextSiblingElement("model"))
-    {
-        Model *model = new Model;
-        model->parse(e1);
-        models.push_back(model);
-    }
-
-    for(XMLElement *e1 = e->FirstChildElement("actor"); e1; e1 = e1->NextSiblingElement("actor"))
-    {
-        Actor *actor = new Actor;
-        actor->parse(e1);
-        actors.push_back(actor);
-    }
-
-    for(XMLElement *e1 = e->FirstChildElement("light"); e1; e1 = e1->NextSiblingElement("light"))
-    {
-        Light *light = new Light;
-        light->parse(e1);
-        lights.push_back(light);
-    }
+    parseMany(e, "world", worlds);
+    parseMany(e, "model", models);
+    parseMany(e, "actor", actors);
+    parseMany(e, "light", lights);
 }
 
 void Vector::parse(XMLElement *e, const char *tagName)
@@ -244,12 +220,74 @@ void Vector::parse(XMLElement *e, const char *tagName)
     }
 }
 
+void Model::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    dynamic = !getSubValBool(e, "static", false, true, true);
+    selfCollide = getSubValBool(e, "self_collide", false, true, true);
+    allowAutoDisable = getSubValBool(e, "allow_auto_disable", false, true, true);
+    parseMany(e, "include", includes);
+    parseMany(e, "model", submodels);
+    enableWind = getSubValBool(e, "enable_wind", false, true, true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+}
+
 void World::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
+    audio.parseSub(e, "audio", true);
+    wind.parseSub(e, "wind", true);
+    parseMany(e, "include", includes);
     gravity.parseSub(e, "gravity");
+    magneticField.parseSub(e, "magnetic_field");
+    atmosphere.parseSub(e, "atmosphere");
+}
+
+void World::Audio::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    device = getSubValStr(e, "device");
+}
+
+void World::Wind::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    linearVelocity = getSubValDouble(e, "linear_velocity");
+}
+
+void World::Atmosphere::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    const char *atmosphereTypes = {"adiabatic"};
+    type = getSubValOneOf(e, "type", atmosphereTypes, sizeof(atmosphereTypes)/sizeof(atmosphereTypes[0]));
+    temperature = getSubValDouble(e, "temperature", false, true);
+    pressure = getSubValDouble(e, "pressure", false, true);
+    massDensity = getSubValDouble(e, "mass_density", false, true);
+    temperatureGradient = getSubValDouble(e, "temperature_gradient", false, true);
+}
+
+void World::GUI::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    fullScreen = getSubValBool(e, "full_screen", false, true, false);
+    camera.parseSub(e, "camera", true);
+}
+
+void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getSubValStr(e, "name", false, true, "user_camera");
+    viewController = getSubValStr(e, "view_controller", false, true, "");
 }
 
 void Actor::parse(XMLElement *e, const char *tagName)
