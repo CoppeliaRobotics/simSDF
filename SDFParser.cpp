@@ -992,42 +992,42 @@ void Geometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    empty.parseSub(e, "empty", true);
-    box.parseSub(e, "box", true);
-    cylinder.parseSub(e, "cylinder", true);
-    heightmap.parseSub(e, "heightmap", true);
-    image.parseSub(e, "image", true);
-    mesh.parseSub(e, "mesh", true);
-    plane.parseSub(e, "plane", true);
-    polyline.parseSub(e, "polyline", true);
-    sphere.parseSub(e, "sphere", true);
+    empty = parseOpt<EmptyGeometry>(e, "empty");
+    box = parseOpt<BoxGeometry>(e, "box");
+    cylinder = parseOpt<CylinderGeometry>(e, "cylinder");
+    heightmap = parseOpt<HeightMapGeometry>(e, "heightmap");
+    image = parseOpt<ImageGeometry>(e, "image");
+    mesh = parseOpt<MeshGeometry>(e, "mesh");
+    plane = parseOpt<PlaneGeometry>(e, "plane");
+    polyline = parseOpt<PolylineGeometry>(e, "polyline");
+    sphere = parseOpt<SphereGeometry>(e, "sphere");
 }
 
 Geometry::~Geometry()
 {
 }
 
-void Geometry::Empty::parse(XMLElement *e, const char *tagName)
+void EmptyGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 }
 
-Geometry::Empty::~Empty()
+EmptyGeometry::~EmptyGeometry()
 {
 }
 
-void Geometry::Box::parse(XMLElement *e, const char *tagName)
+void BoxGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     size.parseSub(e, "size");
 }
 
-Geometry::Box::~Box()
+BoxGeometry::~BoxGeometry()
 {
 }
 
-void Geometry::Cylinder::parse(XMLElement *e, const char *tagName)
+void CylinderGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1035,11 +1035,11 @@ void Geometry::Cylinder::parse(XMLElement *e, const char *tagName)
     length = getSubValDouble(e, "length");
 }
 
-Geometry::Cylinder::~Cylinder()
+CylinderGeometry::~CylinderGeometry()
 {
 }
 
-void Geometry::HeightMap::parse(XMLElement *e, const char *tagName)
+void HeightMapGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1053,11 +1053,11 @@ void Geometry::HeightMap::parse(XMLElement *e, const char *tagName)
     useTerrainPaging = getSubValBool(e, "use_terrain_paging", true);
 }
 
-Geometry::HeightMap::~HeightMap()
+HeightMapGeometry::~HeightMapGeometry()
 {
 }
 
-void Geometry::Image::parse(XMLElement *e, const char *tagName)
+void ImageGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1068,11 +1068,11 @@ void Geometry::Image::parse(XMLElement *e, const char *tagName)
     granularity = getSubValDouble(e, "granularity");
 }
 
-Geometry::Image::~Image()
+ImageGeometry::~ImageGeometry()
 {
 }
 
-void Geometry::Mesh::parse(XMLElement *e, const char *tagName)
+void MeshGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1081,11 +1081,11 @@ void Geometry::Mesh::parse(XMLElement *e, const char *tagName)
     scale = getSubValDouble(e, "scale");
 }
 
-Geometry::Mesh::~Mesh()
+MeshGeometry::~MeshGeometry()
 {
 }
 
-void Geometry::Mesh::SubMesh::parse(XMLElement *e, const char *tagName)
+void MeshGeometry::SubMesh::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1093,11 +1093,11 @@ void Geometry::Mesh::SubMesh::parse(XMLElement *e, const char *tagName)
     center = getSubValBool(e, "center", true);
 }
 
-Geometry::Mesh::SubMesh::~SubMesh()
+MeshGeometry::SubMesh::~SubMesh()
 {
 }
 
-void Geometry::Plane::parse(XMLElement *e, const char *tagName)
+void PlaneGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1105,11 +1105,11 @@ void Geometry::Plane::parse(XMLElement *e, const char *tagName)
     size.parseSub(e, "size");
 }
 
-Geometry::Plane::~Plane()
+PlaneGeometry::~PlaneGeometry()
 {
 }
 
-void Geometry::Polyline::parse(XMLElement *e, const char *tagName)
+void PolylineGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1119,18 +1119,18 @@ void Geometry::Polyline::parse(XMLElement *e, const char *tagName)
     height = getSubValDouble(e, "height");
 }
 
-Geometry::Polyline::~Polyline()
+PolylineGeometry::~PolylineGeometry()
 {
 }
 
-void Geometry::Sphere::parse(XMLElement *e, const char *tagName)
+void SphereGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     radius = getSubValDouble(e, "radius");
 }
 
-Geometry::Sphere::~Sphere()
+SphereGeometry::~SphereGeometry()
 {
 }
 

@@ -42,6 +42,21 @@ struct Parser
         }
     }
 
+    template<typename T>
+    T* parseOpt(XMLElement *parent, const char *tagName)
+    {
+        XMLElement *e = parent->FirstChildElement(tagName);
+
+        if(!e) return NULL;
+
+        if(e->NextSiblingElement(tagName))
+            throw (boost::format("element %s found multiple times") % tagName).str();
+
+        T *t = new T;
+        t->parse(e);
+        return t;
+    }
+
     virtual void parse(XMLElement *e, const char *tagName = 0);
     virtual void parseSub(XMLElement *e, const char *subElementName, bool optional = false);
 };
@@ -521,90 +536,108 @@ struct TextureBlend : public Parser
     virtual ~TextureBlend();
 };
 
+struct EmptyGeometry : public Parser
+{
+    virtual void parse(XMLElement *e, const char *tagName = "empty");
+    virtual ~EmptyGeometry();
+};
+
+struct BoxGeometry : public Parser
+{
+    Vector size;
+
+    virtual void parse(XMLElement *e, const char *tagName = "box");
+    virtual ~BoxGeometry();
+};
+
+struct CylinderGeometry : public Parser
+{
+    double radius;
+    double length;
+
+    virtual void parse(XMLElement *e, const char *tagName = "cylinder");
+    virtual ~CylinderGeometry();
+};
+
+struct HeightMapGeometry : public Parser
+{
+    std::string uri;
+    Vector size;
+    Vector pos;
+    std::vector<Texture*> textures;
+    std::vector<TextureBlend*> blends;
+    bool useTerrainPaging;
+
+    virtual void parse(XMLElement *e, const char *tagName = "heightmap");
+    virtual ~HeightMapGeometry();
+};
+
+struct ImageGeometry : public Parser
+{
+    std::string uri;
+    double scale;
+    double threshold;
+    double height;
+    double granularity;
+
+    virtual void parse(XMLElement *e, const char *tagName = "image");
+    virtual ~ImageGeometry();
+};
+
+struct MeshGeometry : public Parser
+{
+    std::string uri;
+    struct SubMesh : public Parser
+    {
+        std::string name;
+        bool center;
+
+        virtual void parse(XMLElement *e, const char *tagName = "submesh");
+        virtual ~SubMesh();
+    } submesh;
+    double scale;
+
+    virtual void parse(XMLElement *e, const char *tagName = "mesh");
+    virtual ~MeshGeometry();
+};
+
+struct PlaneGeometry : public Parser
+{
+    Vector normal;
+    Vector size;
+
+    virtual void parse(XMLElement *e, const char *tagName = "plane");
+    virtual ~PlaneGeometry();
+};
+
+struct PolylineGeometry : public Parser
+{
+    std::vector<Vector*> points;
+    double height;
+
+    virtual void parse(XMLElement *e, const char *tagName = "polyline");
+    virtual ~PolylineGeometry();
+};
+
+struct SphereGeometry : public Parser
+{
+    double radius;
+
+    virtual void parse(XMLElement *e, const char *tagName = "sphere");
+    virtual ~SphereGeometry();
+};
+
 struct Geometry : public Parser
 {
-    struct Empty : public Parser
-    {
-        virtual void parse(XMLElement *e, const char *tagName = "empty");
-        virtual ~Empty();
-    } empty;
-    struct Box : public Parser
-    {
-        Vector size;
-
-        virtual void parse(XMLElement *e, const char *tagName = "box");
-        virtual ~Box();
-    } box;
-    struct Cylinder : public Parser
-    {
-        double radius;
-        double length;
-
-        virtual void parse(XMLElement *e, const char *tagName = "cylinder");
-        virtual ~Cylinder();
-    } cylinder;
-    struct HeightMap : public Parser
-    {
-        std::string uri;
-        Vector size;
-        Vector pos;
-        std::vector<Texture*> textures;
-        std::vector<TextureBlend*> blends;
-        bool useTerrainPaging;
-
-        virtual void parse(XMLElement *e, const char *tagName = "heightmap");
-        virtual ~HeightMap();
-    } heightmap;
-    struct Image : public Parser
-    {
-        std::string uri;
-        double scale;
-        double threshold;
-        double height;
-        double granularity;
-
-        virtual void parse(XMLElement *e, const char *tagName = "image");
-        virtual ~Image();
-    } image;
-    struct Mesh : public Parser
-    {
-        std::string uri;
-        struct SubMesh : public Parser
-        {
-            std::string name;
-            bool center;
-
-            virtual void parse(XMLElement *e, const char *tagName = "submesh");
-            virtual ~SubMesh();
-        } submesh;
-        double scale;
-
-        virtual void parse(XMLElement *e, const char *tagName = "mesh");
-        virtual ~Mesh();
-    } mesh;
-    struct Plane : public Parser
-    {
-        Vector normal;
-        Vector size;
-
-        virtual void parse(XMLElement *e, const char *tagName = "plane");
-        virtual ~Plane();
-    } plane;
-    struct Polyline : public Parser
-    {
-        std::vector<Vector*> points;
-        double height;
-
-        virtual void parse(XMLElement *e, const char *tagName = "polyline");
-        virtual ~Polyline();
-    } polyline;
-    struct Sphere : public Parser
-    {
-        double radius;
-
-        virtual void parse(XMLElement *e, const char *tagName = "sphere");
-        virtual ~Sphere();
-    } sphere;
+    EmptyGeometry *empty;
+    BoxGeometry *box;
+    CylinderGeometry *cylinder;
+    HeightMapGeometry *heightmap;
+    ImageGeometry *image;
+    MeshGeometry *mesh;
+    PlaneGeometry *plane;
+    PolylineGeometry *polyline;
+    SphereGeometry *sphere;
 
     virtual void parse(XMLElement *e, const char *tagName = "geometry");
     virtual ~Geometry();
