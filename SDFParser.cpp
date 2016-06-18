@@ -6,6 +6,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/foreach.hpp>
 
+#define arraysize(X) (sizeof((X))/sizeof((X)[0]))
+
 bool Parser::isOneOf(std::string s, const char **validValues, int numValues, std::string *validValuesStr)
 {
     bool isValid = false;
@@ -189,7 +191,7 @@ void SDF::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     static const char *supportedVersions[] = {"1.1", "1.2", "1.3", "1.4", "1.5", "1.6"}; // TODO: verify this
-    version = getAttrOneOf(e, "version", supportedVersions, sizeof(supportedVersions)/sizeof(supportedVersions[0]));
+    version = getAttrOneOf(e, "version", supportedVersions, arraysize(supportedVersions));
     parseMany(e, "world", worlds);
     parseMany(e, "model", models);
     parseMany(e, "actor", actors);
@@ -731,7 +733,7 @@ void Scene::Fog::parse(XMLElement *e, const char *tagName)
 
     color.parseSub(e, "color", true);
     const char *fogTypes[] = {"constant", "linear", "quadratic"};
-    type = getSubValOneOf(e, "type", fogTypes, sizeof(fogTypes)/sizeof(fogTypes[0]), true, "constant");
+    type = getSubValOneOf(e, "type", fogTypes, arraysize(fogTypes), true, "constant");
     start = getSubValDouble(e, "start", true);
     end = getSubValDouble(e, "end", true);
     density = getSubValDouble(e, "density", true);
@@ -744,7 +746,7 @@ void Physics::parse(XMLElement *e, const char *tagName)
     name = getAttrStr(e, "name", true);
     default_ = getAttrBool(e, "default", true, false);
     const char *validTypes = {"ode", "bullet", "simbody", "rtql8"};
-    type = getAttrOneOf(e, "type", validTypes, sizeof(validTypes)/sizeof(validTypes[0]), true, "ode");
+    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes), true, "ode");
     maxStepSize = getSubValDouble(e, "max_step_size");
     realTimeFactor = getSubValDouble(e, "real_time_factor");
     realTimeUpdateRate = getSubValDouble(e, "real_time_update_rate");
@@ -792,7 +794,7 @@ void Physics::Bullet::Solver::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     const char *validTypes[] = {"sequential_impulse"};
-    type = getSubValOneOf(e, "type", validTypes, sizeof(validTypes)/sizeof(validTypes[0]));
+    type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
     minStepSize = getSubValDouble(e, "min_step_size", true);
     iters = getSubValInt(e, "iters");
     sor = getSubValDouble(e, "sor");
@@ -822,7 +824,7 @@ void Physics::ODE::Solver::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     const char *validTypes[] = {"world", "quick"};
-    type = getSubValOneOf(e, "type", validTypes, sizeof(validTypes)/sizeof(validTypes[0]));
+    type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
     minStepSize = getSubValDouble(e, "min_step_size", true);
     iters = getSubValInt(e, "iters");
     preconIters = getSubValInt(e, "precon_iters", true);
@@ -961,7 +963,7 @@ void World::Atmosphere::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     const char *atmosphereTypes[] = {"adiabatic"};
-    type = getSubValOneOf(e, "type", atmosphereTypes, sizeof(atmosphereTypes)/sizeof(atmosphereTypes[0]));
+    type = getSubValOneOf(e, "type", atmosphereTypes, arraysize(atmosphereTypes));
     temperature = getSubValDouble(e, "temperature", true);
     pressure = getSubValDouble(e, "pressure", true);
     massDensity = getSubValDouble(e, "mass_density", true);
@@ -984,7 +986,7 @@ void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
     name = getSubValStr(e, "name", true, "user_camera");
     viewController = getSubValStr(e, "view_controller", true, "");
     const char *projectionTypes[] = {"orthographic", "perspective"};
-    projectionType = getSubValOneOf(e, "projection_type", projectionTypes, sizeof(projectionTypes)/sizeof(projectionTypes[0]), true, "perspective");
+    projectionType = getSubValOneOf(e, "projection_type", projectionTypes, arraysize(projectionTypes), true, "perspective");
     trackVisual.parseSub(e, "track_visual", true);
     frame.parseSub(e, "frame", true);
     pose.parseSub(e, "pose", true);
@@ -1053,7 +1055,7 @@ void Light::parse(XMLElement *e, const char *tagName)
 
     name = getAttrStr(e, "name");
     const char *lightTypes[] = {"point", "directional", "spot"};
-    type = getAttrOneOf(e, "type", lightTypes, sizeof(lightTypes)/sizeof(lightTypes[0]));
+    type = getAttrOneOf(e, "type", lightTypes, arraysize(lightTypes));
     castShadows = getSubValBool(e, "cast_shadows", true, true);
     diffuse.parseSub(e, "diffuse");
     specular.parseSub(e, "specular");
