@@ -504,7 +504,9 @@ struct LinkInertial : public Parser
 
 struct Geometry : public Parser
 {
-}
+    virtual void parse(XMLElement *e, const char *tagName = "geometry");
+    virtual ~Geometry();
+};
 
 struct LinkCollision : public Parser
 {
@@ -629,11 +631,19 @@ struct LinkCollision : public Parser
     virtual ~LinkCollision();
 };
 
+struct URI : public Parser
+{
+    std::string uri;
+
+    virtual void parse(XMLElement *e, const char *tagName = "uri");
+    virtual ~URI();
+};
+
 struct Material : public Parser
 {
     struct Script : public Parser
     {
-        std::vector<std::string> uris;
+        std::vector<URI*> uris;
         std::string name;
 
         virtual void parse(XMLElement *e, const char *tagName = "script");
@@ -645,7 +655,7 @@ struct Material : public Parser
         std::string normalMap;
 
         virtual void parse(XMLElement *e, const char *tagName = "shader");
-        virtual ~Script();
+        virtual ~Shader();
     } shader;
     bool lighting;
     Color ambient;
@@ -724,6 +734,14 @@ struct Projector : public Parser
     virtual ~Projector();
 };
 
+struct ContactCollision : public Parser
+{
+    std::string name;
+
+    virtual void parse(XMLElement *e, const char *tagName = "collision");
+    virtual ~ContactCollision();
+};
+
 struct AudioSource : public Parser
 {
     std::string uri;
@@ -731,7 +749,7 @@ struct AudioSource : public Parser
     double gain;
     struct Contact : public Parser
     {
-        std::vector<std::string> collisions;
+        std::vector<ContactCollision*> collisions;
 
         virtual void parse(XMLElement *e, const char *tagName = "contact");
         virtual ~Contact();
@@ -839,7 +857,7 @@ struct Joint : public Parser
             bool mustBeLoopJoint;
 
             virtual void parse(XMLElement *e, const char *tagName = "simbody");
-            virtual ~Joint();
+            virtual ~Simbody();
         } simbody;
         struct ODE : public Parser
         {
@@ -858,7 +876,7 @@ struct Joint : public Parser
                 double erp;
                 
                 virtual void parse(XMLElement *e, const char *tagName = "limit");
-                virtual ~Joint();
+                virtual ~Limit();
             } limit;
             struct Suspension : public Parser
             {
@@ -866,16 +884,16 @@ struct Joint : public Parser
                 double erp;
                 
                 virtual void parse(XMLElement *e, const char *tagName = "suspension");
-                virtual ~Joint();
+                virtual ~Suspension();
             } suspension;
             
             virtual void parse(XMLElement *e, const char *tagName = "ode");
-            virtual ~Joint();
+            virtual ~ODE();
         } ode;
         bool provideFeedback;
 
         virtual void parse(XMLElement *e, const char *tagName = "physics");
-        virtual ~Joint();
+        virtual ~Physics();
     } physics;
     Frame frame;
     Pose pose;
@@ -1130,6 +1148,14 @@ struct LightState : public Parser
     virtual ~LightState();
 };
 
+struct ModelRef : public Parser
+{
+    std::string name;
+
+    virtual void parse(XMLElement *e, const char *tagName = "name");
+    virtual ~ModelRef();
+};
+
 struct State : public Parser
 {
     std::string worldName;
@@ -1146,7 +1172,7 @@ struct State : public Parser
     } insertions;
     struct Deletions : public Parser
     {
-        std::vector<std::string> names;
+        std::vector<ModelRef*> names;
 
         virtual void parse(XMLElement *e, const char *tagName = "deletions");
         virtual ~Deletions();

@@ -767,7 +767,7 @@ void LogicalCamera::parse(XMLElement *e, const char *tagName)
     near = getSubValDouble(e, "near");
     far = getSubValDouble(e, "far");
     aspectRatio = getSubValDouble(e, "aspect_ratio");
-    horizontalFov = getSubValDouble(e, "horizontal_fov");
+    horizontalFOV = getSubValDouble(e, "horizontal_fov");
 }
 
 LogicalCamera::~LogicalCamera()
@@ -963,6 +963,15 @@ LinkInertial::InertiaMatrix::~InertiaMatrix()
 {
 }
 
+void Geometry::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+Geometry::~Geometry()
+{
+}
+
 void LinkCollision::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -1027,7 +1036,7 @@ void LinkCollision::Surface::Friction::Torsional::parse(XMLElement *e, const cha
     usePatchRadius = getSubValBool(e, "use_patch_radius", true);
     patchRadius = getSubValDouble(e, "patch_radius", true);
     surfaceRadius = getSubValDouble(e, "surface_radius", true);
-    ude-parseSub(e, "ode", true);
+    ode.parseSub(e, "ode", true);
 }
 
 LinkCollision::Surface::Friction::Torsional::~Torsional()
@@ -1145,7 +1154,18 @@ void LinkCollision::Surface::SoftContact::Dart::parse(XMLElement *e, const char 
     fleshMassFraction = getSubValDouble(e, "flesh_mass_fraction");
 }
 
-LinkCollision::Surface::SoftContact::~Dart()
+LinkCollision::Surface::SoftContact::Dart::~Dart()
+{
+}
+
+void URI::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    uri = e->GetText();
+}
+
+URI::~URI()
 {
 }
 
@@ -1176,6 +1196,7 @@ void Material::Script::parse(XMLElement *e, const char *tagName)
 
 Material::Script::~Script()
 {
+    deletevec(URI, uris);
 }
 
 void Material::Shader::parse(XMLElement *e, const char *tagName)
@@ -1216,7 +1237,7 @@ void LinkVisual::Meta::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    later = getSubValStr(e, "layer", true);
+    layer = getSubValStr(e, "layer", true);
 }
 
 LinkVisual::Meta::~Meta()
@@ -1278,6 +1299,17 @@ Projector::~Projector()
 {
 }
 
+void ContactCollision::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = e->GetText();
+}
+
+ContactCollision::~ContactCollision()
+{
+}
+
 void AudioSource::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -1304,6 +1336,7 @@ void AudioSource::Contact::parse(XMLElement *e, const char *tagName)
 
 AudioSource::Contact::~Contact()
 {
+    deletevec(ContactCollision, collisions);
 }
 
 void AudioSink::parse(XMLElement *e, const char *tagName)
@@ -1456,7 +1489,7 @@ void Joint::Physics::Simbody::parse(XMLElement *e, const char *tagName)
     mustBeLoopJoint = getSubValBool(e, "must_be_loop_joint", true);
 }
 
-Joint::Physics::Simbody::~Symbody()
+Joint::Physics::Simbody::~Simbody()
 {
 }
 
@@ -1849,6 +1882,17 @@ LightState::~LightState()
 {
 }
 
+void ModelRef::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = e->GetText();
+}
+
+ModelRef::~ModelRef()
+{
+}
+
 void State::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -1883,10 +1927,13 @@ State::Insertions::~Insertions()
 void State::Deletions::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    parseMany(e, "name", names);
 }
 
 State::Deletions::~Deletions()
 {
+    deletevec(ModelRef, names);
 }
 
 void Population::parse(XMLElement *e, const char *tagName)
