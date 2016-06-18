@@ -963,12 +963,174 @@ LinkInertial::InertiaMatrix::~InertiaMatrix()
 {
 }
 
+void Texture::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    size = getSubValDouble(e, "size");
+    diffuse = getSubValStr(e, "diffuse");
+    normal = getSubValStr(e, "normal");
+}
+
+Texture::~Texture()
+{
+}
+
+void TextureBlend::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    minHeight = getSubValDouble(e, "min_height");
+    fadeDist = getSubValDouble(e, "fade_dist");
+}
+
+TextureBlend::~TextureBlend()
+{
+}
+
 void Geometry::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    empty.parseSub(e, "empty", true);
+    box.parseSub(e, "box", true);
+    cylinder.parseSub(e, "cylinder", true);
+    heightmap.parseSub(e, "heightmap", true);
+    image.parseSub(e, "image", true);
+    mesh.parseSub(e, "mesh", true);
+    plane.parseSub(e, "plane", true);
+    polyline.parseSub(e, "polyline", true);
+    sphere.parseSub(e, "sphere", true);
+}
+
+Geometry::~Geometry()
+{
+}
+
+void Geometry::Empty::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 }
 
-Geometry::~Geometry()
+Geometry::Empty::~Empty()
+{
+}
+
+void Geometry::Box::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    size.parseSub(e, "size");
+}
+
+Geometry::Box::~Box()
+{
+}
+
+void Geometry::Cylinder::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    radius = getSubValDouble(e, "radius");
+    length = getSubValDouble(e, "length");
+}
+
+Geometry::Cylinder::~Cylinder()
+{
+}
+
+void Geometry::HeightMap::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    uri = getSubValStr(e, "uri");
+    size.parseSub(e, "size", true);
+    pos.parseSub(e, "pos", true);
+    parseMany(e, "texture", textures);
+    parseMany(e, "blend", blends);
+    if(textures.size() - 1 != blends.size())
+        throw std::string("number of blends must be equal to the number of textures minus one");
+    useTerrainPaging = getSubValBool(e, "use_terrain_paging", true);
+}
+
+Geometry::HeightMap::~HeightMap()
+{
+}
+
+void Geometry::Image::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    uri = getSubValStr(e, "uri");
+    scale = getSubValDouble(e, "scale");
+    threshold = getSubValDouble(e, "threshold");
+    height = getSubValDouble(e, "height");
+    granularity = getSubValDouble(e, "granularity");
+}
+
+Geometry::Image::~Image()
+{
+}
+
+void Geometry::Mesh::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    uri = getSubValStr(e, "uri");
+    submesh.parseSub(e, "submesh", true);
+    scale = getSubValDouble(e, "scale");
+}
+
+Geometry::Mesh::~Mesh()
+{
+}
+
+void Geometry::Mesh::SubMesh::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getSubValStr(e, "name");
+    center = getSubValBool(e, "center", true);
+}
+
+Geometry::Mesh::SubMesh::~SubMesh()
+{
+}
+
+void Geometry::Plane::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    normal.parseSub(e, "normal");
+    size.parseSub(e, "size");
+}
+
+Geometry::Plane::~Plane()
+{
+}
+
+void Geometry::Polyline::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parseMany(e, "point", points);
+    if(points.size() == 0)
+        throw std::string("polyline must have at least one point");
+    height = getSubValDouble(e, "height");
+}
+
+Geometry::Polyline::~Polyline()
+{
+}
+
+void Geometry::Sphere::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    radius = getSubValDouble(e, "radius");
+}
+
+Geometry::Sphere::~Sphere()
 {
 }
 
