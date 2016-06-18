@@ -504,6 +504,15 @@ struct LinkInertial : public Parser
 
 struct LinkCollision : public Parser
 {
+    std::string name;
+    double laserRetro;
+    int maxContacts;
+    Frame frame;
+    Pose pose;
+    Geometry geometry;
+    struct Surface
+    {
+    } surface;
     virtual void parse(XMLElement *e, const char *tagName = "link_collision");
     virtual ~LinkCollision();
 };
@@ -528,6 +537,16 @@ struct Sensor : public Parser
     Altimeter altimeter;
     Camera camera;
     Contact contact;
+    GPS gps;
+    IMU imu;
+    LogicalCamera logicalCamera;
+    Magnetometer magnetometer;
+    Ray ray;
+    RFIDTag rfidTag;
+    RFID rfid;
+    Sonar sonar;
+    Transceiver transceiver;
+    ForceTorque forceTorque;
 
     virtual void parse(XMLElement *e, const char *tagName = "sensor");
     virtual ~Sensor();
@@ -535,12 +554,35 @@ struct Sensor : public Parser
 
 struct Projector : public Parser
 {
+    std::string name;
+    std::string texture;
+    double fov;
+    double nearClip;
+    double farClip;
+    Frame frame;
+    Pose pose;
+    std::vector<Plugin*> plugins;
+
     virtual void parse(XMLElement *e, const char *tagName = "projector");
     virtual ~Projector();
 };
 
 struct AudioSource : public Parser
 {
+    std::string uri;
+    double pitch;
+    double gain;
+    struct Contact : public Parser
+    {
+        std::vector<std::string> collisions;
+
+        virtual void parse(XMLElement *e, const char *tagName = "contact");
+        virtual ~Contact();
+    } contact;
+    bool loop;
+    Frame frame;
+    Pose pose;
+
     virtual void parse(XMLElement *e, const char *tagName = "audio_source");
     virtual ~AudioSource();
 };
@@ -553,6 +595,9 @@ struct AudioSink : public Parser
 
 struct Battery : public Parser
 {
+    std::string name;
+    double voltage;
+
     virtual void parse(XMLElement *e, const char *tagName = "battery");
     virtual ~Battery();
 };
@@ -576,21 +621,108 @@ struct Link : public Parser
     Frame frame;
     Pose pose;
     LinkInertial inertial;
-    LinkCollision collision;
-    LinkVisual visual;
+    std::vector<LinkCollision*> collisions;
+    std::vector<LinkVisual*> visuals;
     Sensor sensor;
     Projector projector;
-    AudioSource audioSource;
-    AudioSink audioSink;
-    Battery battery;
+    std::vector<AudioSource*> audioSources;
+    std::vector<AudioSink*> audioSinks;
+    std::vector<Battery*> batteries;
 
     virtual void parse(XMLElement *e, const char *tagName = "link");
     virtual ~Link();
 };
 
+struct Axis : public Parser
+{
+    Vector xyz;
+    bool useParentModelFrame;
+    struct Dynamics : public Parser
+    {
+        double damping;
+        double friction;
+        double springReference;
+        double springStiffness;
+
+        virtual void parse(XMLElement *e, const char *tagName = "dynamics");
+        virtual ~Dynamics();
+    } dynamics;
+    struct Limit : public Parser
+    {
+        double lower;
+        double upper;
+        double effort;
+        double velocity;
+        double stiffness;
+        double dissipation;
+
+        virtual void parse(XMLElement *e, const char *tagName = "limit");
+        virtual ~Limit();
+    } limit;
+
+    virtual void parse(XMLElement *e, const char *tagName = "axis");
+    virtual ~Axis();
+};
+
 struct Joint : public Parser
 {
     std::string name;
+    std::string type;
+    std::string parent;
+    std::string child;
+    double gearboxRatio;
+    std::string gearboxReferenceBody;
+    double threadPitch;
+    Axis axis;
+    Axis axis2;
+    struct Physics : public Parser
+    {
+        struct Simbody : public Parser
+        {
+            bool mustBeLoopJoint;
+
+            virtual void parse(XMLElement *e, const char *tagName = "simbody");
+            virtual ~Joint();
+        } simbody;
+        struct ODE : public Parser
+        {
+            bool provideFeedback;
+            bool cfmDamping;
+            bool implicitSpringDamper;
+            double fudgeFactor;
+            double cfm;
+            double erp;
+            double bounce;
+            double maxForce;
+            double velocity;
+            struct Limit : public Parser
+            {
+                double cfm;
+                double erp;
+                
+                virtual void parse(XMLElement *e, const char *tagName = "limit");
+                virtual ~Joint();
+            } limit;
+            struct Suspension : public Parser
+            {
+                double cfm;
+                double erp;
+                
+                virtual void parse(XMLElement *e, const char *tagName = "suspension");
+                virtual ~Joint();
+            } suspension;
+            
+            virtual void parse(XMLElement *e, const char *tagName = "ode");
+            virtual ~Joint();
+        } ode;
+        bool provideFeedback;
+
+        virtual void parse(XMLElement *e, const char *tagName = "physics");
+        virtual ~Joint();
+    } physics;
+    Frame frame;
+    Pose pose;
+    Sensor sensor;
 
     virtual void parse(XMLElement *e, const char *tagName = "joint");
     virtual ~Joint();

@@ -566,6 +566,9 @@ Camera::Lens::CustomFunction::~CustomFunction()
 void Contact::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    collision = getSubValStr(e, "collision");
+    topic = getSubValStr(e, "topic");
 }
 
 Contact::~Contact()
@@ -575,6 +578,9 @@ Contact::~Contact()
 void GPS::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    positionSensing.parseSub(e, "position_sensing", true);
+    velocitySensing.parseSub(e, "velocity_sensing", true);
 }
 
 GPS::~GPS()
@@ -584,6 +590,9 @@ GPS::~GPS()
 void GPS::PositionSensing::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    horizontal.parseSub(e, "horizontal", true);
+    vertical.parseSub(e, "vertical", true);
 }
 
 GPS::PositionSensing::~PositionSensing()
@@ -593,6 +602,8 @@ GPS::PositionSensing::~PositionSensing()
 void GPS::PositionSensing::Horizontal::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 GPS::PositionSensing::Horizontal::~Horizontal()
@@ -602,6 +613,8 @@ GPS::PositionSensing::Horizontal::~Horizontal()
 void GPS::PositionSensing::Vertical::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 GPS::PositionSensing::Vertical::~Vertical()
@@ -611,6 +624,9 @@ GPS::PositionSensing::Vertical::~Vertical()
 void GPS::VelocitySensing::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    horizontal.parseSub(e, "horizontal", true);
+    vertical.parseSub(e, "vertical", true);
 }
 
 GPS::VelocitySensing::~VelocitySensing()
@@ -620,6 +636,8 @@ GPS::VelocitySensing::~VelocitySensing()
 void GPS::VelocitySensing::Horizontal::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 GPS::VelocitySensing::Horizontal::~Horizontal()
@@ -629,6 +647,8 @@ GPS::VelocitySensing::Horizontal::~Horizontal()
 void GPS::VelocitySensing::Vertical::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 GPS::VelocitySensing::Vertical::~Vertical()
@@ -638,6 +658,10 @@ GPS::VelocitySensing::Vertical::~Vertical()
 void IMU::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    topic = getSubValStr(e, "topic", true);
+    angularVelocity.parseSub(e, "angular_velocity", true);
+    linearAcceleration.parseSub(e, "linear_acceleration", true);
 }
 
 IMU::~IMU()
@@ -647,6 +671,10 @@ IMU::~IMU()
 void IMU::AngularVelocity::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    x.parseSub(e, "x", true);
+    y.parseSub(e, "y", true);
+    z.parseSub(e, "z", true);
 }
 
 IMU::AngularVelocity::~AngularVelocity()
@@ -656,6 +684,8 @@ IMU::AngularVelocity::~AngularVelocity()
 void IMU::AngularVelocity::X::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 IMU::AngularVelocity::X::~X()
@@ -665,6 +695,8 @@ IMU::AngularVelocity::X::~X()
 void IMU::AngularVelocity::Y::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 IMU::AngularVelocity::Y::~Y()
@@ -674,6 +706,8 @@ IMU::AngularVelocity::Y::~Y()
 void IMU::AngularVelocity::Z::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 IMU::AngularVelocity::Z::~Z()
@@ -683,6 +717,10 @@ IMU::AngularVelocity::Z::~Z()
 void IMU::LinearAcceleration::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    x.parseSub(e, "x", true);
+    y.parseSub(e, "y", true);
+    z.parseSub(e, "z", true);
 }
 
 IMU::LinearAcceleration::~LinearAcceleration()
@@ -692,6 +730,8 @@ IMU::LinearAcceleration::~LinearAcceleration()
 void IMU::LinearAcceleration::X::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 IMU::LinearAcceleration::X::~X()
@@ -701,6 +741,8 @@ IMU::LinearAcceleration::X::~X()
 void IMU::LinearAcceleration::Y::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 IMU::LinearAcceleration::Y::~Y()
@@ -710,6 +752,8 @@ IMU::LinearAcceleration::Y::~Y()
 void IMU::LinearAcceleration::Z::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 IMU::LinearAcceleration::Z::~Z()
@@ -719,6 +763,11 @@ IMU::LinearAcceleration::Z::~Z()
 void LogicalCamera::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    near = getSubValDouble(e, "near");
+    far = getSubValDouble(e, "far");
+    aspectRatio = getSubValDouble(e, "aspect_ratio");
+    horizontalFov = getSubValDouble(e, "horizontal_fov");
 }
 
 LogicalCamera::~LogicalCamera()
@@ -728,6 +777,10 @@ LogicalCamera::~LogicalCamera()
 void Magnetometer::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    x.parseSub(e, "x", true);
+    y.parseSub(e, "y", true);
+    z.parseSub(e, "z", true);
 }
 
 Magnetometer::~Magnetometer()
@@ -737,6 +790,8 @@ Magnetometer::~Magnetometer()
 void Magnetometer::X::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 Magnetometer::X::~X()
@@ -746,6 +801,8 @@ Magnetometer::X::~X()
 void Magnetometer::Y::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 Magnetometer::Y::~Y()
@@ -755,6 +812,8 @@ Magnetometer::Y::~Y()
 void Magnetometer::Z::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    noise.parseSub(e, "noise");
 }
 
 Magnetometer::Z::~Z()
@@ -764,6 +823,11 @@ Magnetometer::Z::~Z()
 void LaserScanResolution::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    samples = getSubValInt(e, "samples");
+    resolution = getSubValDouble(e, "resolution");
+    minAngle = getSubValDouble(e, "min_angle");
+    maxAngle = getSubValDouble(e, "max_angle");
 }
 
 LaserScanResolution::~LaserScanResolution()
@@ -773,6 +837,10 @@ LaserScanResolution::~LaserScanResolution()
 void Ray::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    scan.parseSub(e, "scan");
+    range.parseSub(e, "range");
+    noise.parseSub(e, "noise", true);
 }
 
 Ray::~Ray()
@@ -782,6 +850,9 @@ Ray::~Ray()
 void Ray::Scan::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    horizontal.parseSub(e, "horizontal");
+    vertical.parseSub(e, "vertical", true);
 }
 
 Ray::Scan::~Scan()
@@ -791,6 +862,10 @@ Ray::Scan::~Scan()
 void Ray::Range::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    min = getSubValDouble(e, "min");
+    max = getSubValDouble(e, "max");
+    resolution = getSubValDouble(e, "resolution", true);
 }
 
 Ray::Range::~Range()
@@ -818,6 +893,10 @@ RFID::~RFID()
 void Sonar::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    min = getSubValDouble(e, "min");
+    max = getSubValDouble(e, "max");
+    radius = getSubValDouble(e, "radius");
 }
 
 Sonar::~Sonar()
@@ -827,6 +906,14 @@ Sonar::~Sonar()
 void Transceiver::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    essid = getSubValStr(e, "essid", true);
+    frequency = getSubValDouble(e, "frequency", true);
+    minFrequency = getSubValDouble(e, "min_frequency", true);
+    maxFrequency = getSubValDouble(e, "max_frequency", true);
+    gain = getSubValDouble(e, "gain");
+    power = getSubValDouble(e, "power");
+    sensitivity = getSubValDouble(e, "sensitivity", true);
 }
 
 Transceiver::~Transceiver()
@@ -836,6 +923,10 @@ Transceiver::~Transceiver()
 void ForceTorque::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    frame = getSubValStr(e, "frame", true);
+    static const char *measureDirectionValues[] = {"parent_to_child", "child_to_parent"};
+    measureDirection = getSubValOneOf(e, "frame", measureDirectionValues, arraysize(measureDirectionValues), true);
 }
 
 ForceTorque::~ForceTorque()
@@ -845,6 +936,11 @@ ForceTorque::~ForceTorque()
 void LinkInertial::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    mass = getSubValDouble(e, "mass", true);
+    inertia.parseSub(e, "inertia", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
 }
 
 LinkInertial::~LinkInertial()
@@ -854,6 +950,13 @@ LinkInertial::~LinkInertial()
 void LinkInertial::InertiaMatrix::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    ixx = getSubValDouble(e, "ixx");
+    ixy = getSubValDouble(e, "ixy");
+    ixz = getSubValDouble(e, "ixz");
+    iyy = getSubValDouble(e, "iyy");
+    iyz = getSubValDouble(e, "iyz");
+    izz = getSubValDouble(e, "izz");
 }
 
 LinkInertial::InertiaMatrix::~InertiaMatrix()
@@ -881,6 +984,33 @@ LinkVisual::~LinkVisual()
 void Sensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    static const char *validTypes[] = {"altimeter", "camera", "contact", "depth", "force_torque", "gps", "gpu_ray", "imu", "logical_camera", "magnetometer", "multicamera", "ray", "rfid", "rfidtag", "sonar", "wireless_receiver", "wireless_transmitter"};
+    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
+    alwaysOn = getSubValBool(e, "always_on", true);
+    updateRate = getSubValDouble(e, "update_rate", true);
+    visualize = getSubValBool(e, "visualize", true);
+    topic = getSubValStr(e, "topic", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+    parseMany(e, "plugin", plugins);
+    altimeter.parseSub(e, "altimeter", true);
+    camera.parseSub(e, "camera", true);
+    contact.parseSub(e, "contact", true);
+    altimeter.parseSub(e, "altimeter", true);
+    camera.parseSub(e, "camera", true);
+    contact.parseSub(e, "contact", true);
+    gps.parseSub(e, "gps", true);
+    imu.parseSub(e, "imu", true);
+    logicalCamera.parseSub(e, "logical_camera", true);
+    magnetometer.parseSub(e, "magnetometer", true);
+    ray.parseSub(e, "ray", true);
+    rfidTag.parseSub(e, "rfidtag", true);
+    rfid.parseSub(e, "rfid", true);
+    sonar.parseSub(e, "sonar", true);
+    transceiver.parseSub(e, "transceiver", true);
+    forceTorque.parseSub(e, "force_torque", true);
 }
 
 Sensor::~Sensor()
@@ -891,6 +1021,15 @@ Sensor::~Sensor()
 void Projector::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name", true, "__default__");
+    texture = getSubValStr(e, "texture");
+    fov = getSubValDouble(e, "fov", true);
+    nearClip = getSubValDouble(e, "near_clip", true);
+    farClip = getSubValDouble(e, "far_clip", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+    parseMany(e, "plugin", plugins);
 }
 
 Projector::~Projector()
@@ -900,9 +1039,28 @@ Projector::~Projector()
 void AudioSource::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    uri = getSubValStr(e, "uri");
+    pitch = getSubValDouble(e, "pitch", true);
+    gain = getSubValDouble(e, "gain", true);
+    contact.parseSub(e, "contact", true);
+    loop = getSubValBool(e, "loop", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
 }
 
 AudioSource::~AudioSource()
+{
+}
+
+void AudioSource::Contact::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parseMany(e, "collision", collisions);
+}
+
+AudioSource::Contact::~Contact()
 {
 }
 
@@ -918,6 +1076,9 @@ AudioSink::~AudioSink()
 void Battery::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    voltage = getSubValDouble(e, "voltage");
 }
 
 Battery::~Battery()
@@ -927,10 +1088,33 @@ Battery::~Battery()
 void Link::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    gravity = getSubValBool(e, "gravity", true);
+    enableWind = getSubValBool(e, "enable_wind", true);
+    selfCollide = getSubValBool(e, "self_collide", true);
+    kinematic = getSubValBool(e, "kinematic", true);
+    mustBeBaseLink = getSubValBool(e, "must_be_base_link", true);
+    velocityDecay.parseSub(e, "velocity_decay", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+    inertial.parseSub(e, "inertial", true);
+    parseMany(e, "collision", collisions);
+    parseMany(e, "visual", visuals);
+    sensor.parseSub(e, "sensor", true);
+    projector.parseSub(e, "projector", true);
+    parseMany(e, "audio_source", audioSources);
+    parseMany(e, "audio_sink", audioSinks);
+    parseMany(e, "battery", batteries);
 }
 
 Link::~Link()
 {
+    deletevec(LinkCollision, collisions);
+    deletevec(LinkVisual, visuals);
+    deletevec(AudioSource, audioSources);
+    deletevec(AudioSink, audioSinks);
+    deletevec(Battery, batteries);
 }
 
 void Link::VelocityDecay::parse(XMLElement *e, const char *tagName)
@@ -942,12 +1126,140 @@ Link::VelocityDecay::~VelocityDecay()
 {
 }
 
+void Axis::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    xyz.parseSub(e, "xyz");
+    useParentModelFrame = getSubValBool(e, "use_parent_model_frame");
+    dynamics.parseSub(e, "dynamics", true);
+    limit.parseSub(e, "limit");
+}
+
+Axis::~Axis()
+{
+}
+
+void Axis::Dynamics::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    damping = getSubValDouble(e, "damping", true);
+    friction = getSubValDouble(e, "friction", true);
+    springReference = getSubValDouble(e, "spring_reference");
+    springStiffness = getSubValDouble(e, "spring_stiffness");
+}
+
+Axis::Dynamics::~Dynamics()
+{
+}
+
+void Axis::Limit::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    lower = getSubValDouble(e, "lower");
+    upper = getSubValDouble(e, "upper");
+    effort = getSubValDouble(e, "effort", true);
+    velocity = getSubValDouble(e, "velocity", true);
+    stiffness = getSubValDouble(e, "stiffness", true);
+    dissipation = getSubValDouble(e, "dissipation", true);
+}
+
+Axis::Limit::~Limit()
+{
+}
+
 void Joint::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    static const char *validTypes[] = {"revolute", "gearbox", "revolute2", "prismatic", "ball", "screw", "universal", "fixed"};
+    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
+    parent = getSubValStr(e, "parent");
+    child = getSubValStr(e, "child");
+    gearboxRatio = getSubValDouble(e, "gearbox_ratio", true);
+    gearboxReferenceBody = getSubValStr(e, "gearbox_reference_body", true);
+    threadPitch = getSubValDouble(e, "thread_pitch", true);
+    axis.parseSub(e, "axis", true);
+    axis2.parseSub(e, "axis2", true);
+    physics.parseSub(e, "physics", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+    sensor.parseSub(e, "sensor", true);
 }
 
 Joint::~Joint()
+{
+}
+
+void Joint::Physics::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    simbody.parseSub(e, "simbody", true);
+    ode.parseSub(e, "ode", true);
+    provideFeedback = getSubValBool(e, "provide_feedback", true);
+}
+
+Joint::Physics::~Physics()
+{
+}
+
+void Joint::Physics::Simbody::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    mustBeLoopJoint = getSubValBool(e, "must_be_loop_joint", true);
+}
+
+Joint::Physics::Simbody::~Symbody()
+{
+}
+
+void Joint::Physics::ODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    provideFeedback = getSubValBool(e, "provide_feedback", true);
+    cfmDamping = getSubValBool(e, "cfm_damping", true);
+    implicitSpringDamper = getSubValBool(e, "implicit_spring_damper", true);
+    fudgeFactor = getSubValDouble(e, "fudge_factor", true);
+    cfm = getSubValDouble(e, "cfm", true);
+    erp = getSubValDouble(e, "erp", true);
+    bounce = getSubValDouble(e, "bounce", true);
+    maxForce = getSubValDouble(e, "max_force", true);
+    velocity = getSubValDouble(e, "velocity", true);
+    limit.parseSub(e, "limit", true);
+    suspension.parseSub(e, "suspension", true);
+}
+
+Joint::Physics::ODE::~ODE()
+{
+}
+
+void Joint::Physics::ODE::Limit::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    cfm = getSubValDouble(e, "cfm", true);
+    erp = getSubValDouble(e, "erp", true);
+}
+
+Joint::Physics::ODE::Limit::~Limit()
+{
+}
+
+void Joint::Physics::ODE::Suspension::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    cfm = getSubValDouble(e, "cfm", true);
+    erp = getSubValDouble(e, "erp", true);
+}
+
+Joint::Physics::ODE::Suspension::~Suspension()
 {
 }
 
@@ -1058,7 +1370,7 @@ void Scene::Fog::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     color.parseSub(e, "color", true);
-    const char *fogTypes[] = {"constant", "linear", "quadratic"};
+    static const char *fogTypes[] = {"constant", "linear", "quadratic"};
     type = getSubValOneOf(e, "type", fogTypes, arraysize(fogTypes), true, "constant");
     start = getSubValDouble(e, "start", true);
     end = getSubValDouble(e, "end", true);
@@ -1075,7 +1387,7 @@ void Physics::parse(XMLElement *e, const char *tagName)
 
     name = getAttrStr(e, "name", true);
     default_ = getAttrBool(e, "default", true, false);
-    const char *validTypes[] = {"ode", "bullet", "simbody", "rtql8"};
+    static const char *validTypes[] = {"ode", "bullet", "simbody", "rtql8"};
     type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes), true, "ode");
     maxStepSize = getSubValDouble(e, "max_step_size");
     realTimeFactor = getSubValDouble(e, "real_time_factor");
@@ -1139,7 +1451,7 @@ void Physics::Bullet::Solver::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    const char *validTypes[] = {"sequential_impulse"};
+    static const char *validTypes[] = {"sequential_impulse"};
     type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
     minStepSize = getSubValDouble(e, "min_step_size", true);
     iters = getSubValInt(e, "iters");
@@ -1181,7 +1493,7 @@ void Physics::ODE::Solver::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    const char *validTypes[] = {"world", "quick"};
+    static const char *validTypes[] = {"world", "quick"};
     type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
     minStepSize = getSubValDouble(e, "min_step_size", true);
     iters = getSubValInt(e, "iters");
@@ -1406,7 +1718,7 @@ void World::Atmosphere::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    const char *atmosphereTypes[] = {"adiabatic"};
+    static const char *atmosphereTypes[] = {"adiabatic"};
     type = getSubValOneOf(e, "type", atmosphereTypes, arraysize(atmosphereTypes));
     temperature = getSubValDouble(e, "temperature", true);
     pressure = getSubValDouble(e, "pressure", true);
@@ -1438,7 +1750,7 @@ void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
 
     name = getSubValStr(e, "name", true, "user_camera");
     viewController = getSubValStr(e, "view_controller", true, "");
-    const char *projectionTypes[] = {"orthographic", "perspective"};
+    static const char *projectionTypes[] = {"orthographic", "perspective"};
     projectionType = getSubValOneOf(e, "projection_type", projectionTypes, arraysize(projectionTypes), true, "perspective");
     trackVisual.parseSub(e, "track_visual", true);
     frame.parseSub(e, "frame", true);
@@ -1497,7 +1809,7 @@ void Light::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
-    const char *lightTypes[] = {"point", "directional", "spot"};
+    static const char *lightTypes[] = {"point", "directional", "spot"};
     type = getAttrOneOf(e, "type", lightTypes, arraysize(lightTypes));
     castShadows = getSubValBool(e, "cast_shadows", true, true);
     diffuse.parseSub(e, "diffuse");
