@@ -60,6 +60,7 @@ struct SDF : public Parser
     std::vector<Light*> lights;
 
     virtual void parse(XMLElement *e, const char *tagName = "sdf");
+    ~SDF();
 };
 
 struct Vector : public Parser
@@ -466,6 +467,7 @@ struct Sensor : public Parser
     Contact contact;
 
     virtual void parse(XMLElement *e, const char *tagName = "sensor");
+    ~Sensor();
 };
 
 struct Projector : public Parser
@@ -558,6 +560,7 @@ struct Model : public Parser
     std::vector<Gripper*> grippers;
 
     virtual void parse(XMLElement *e, const char *tagName = "model");
+    ~Model();
 };
 
 struct Road : public Parser
@@ -702,6 +705,7 @@ struct JointState : public Parser
     std::vector<JointStateField*> fields;
 
     virtual void parse(XMLElement *e, const char *tagName = "joint");
+    ~JointState();
 };
 
 struct CollisionState : public Parser
@@ -721,6 +725,7 @@ struct LinkState : public Parser
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "link");
+    ~LinkState();
 };
 
 struct ModelState : public Parser
@@ -734,6 +739,7 @@ struct ModelState : public Parser
     std::vector<LinkState*> links;
 
     virtual void parse(XMLElement *e, const char *tagName = "model");
+    ~ModelState();
 };
 
 struct LightState : public Parser
@@ -757,6 +763,7 @@ struct State : public Parser
         std::vector<Model*> models;
 
         virtual void parse(XMLElement *e, const char *tagName = "insertions");
+        ~Insertions();
     } insertions;
     struct Deletions : public Parser
     {
@@ -768,6 +775,7 @@ struct State : public Parser
     std::vector<LightState*> lightstates;
 
     virtual void parse(XMLElement *e, const char *tagName = "state");
+    ~State();
 };
 
 struct Population : public Parser
@@ -831,6 +839,7 @@ struct World : public Parser
         std::vector<Plugin*> plugins;
 
         virtual void parse(XMLElement *e, const char *tagName = "gui");
+        ~GUI();
     } gui;
     Physics physics;
     Scene scene;
@@ -853,6 +862,7 @@ struct World : public Parser
     std::vector<Population*> populations;
 
     virtual void parse(XMLElement *e, const char *tagName = "world");
+    ~World();
 };
 
 struct Actor : public Parser

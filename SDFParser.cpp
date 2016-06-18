@@ -7,6 +7,7 @@
 #include <boost/foreach.hpp>
 
 #define arraysize(X) (sizeof((X))/sizeof((X)[0]))
+#define deletevec(T,X) BOOST_FOREACH(T *x, X) delete x
 
 bool Parser::isOneOf(std::string s, const char **validValues, int numValues, std::string *validValuesStr)
 {
@@ -196,6 +197,14 @@ void SDF::parse(XMLElement *e, const char *tagName)
     parseMany(e, "model", models);
     parseMany(e, "actor", actors);
     parseMany(e, "light", lights);
+}
+
+SDF::~SDF()
+{
+    deletevec(World, worlds);
+    deletevec(Model, models);
+    deletevec(Actor, actors);
+    deletevec(Light, lights);
 }
 
 void Vector::parse(XMLElement *e, const char *tagName)
@@ -624,6 +633,11 @@ void Sensor::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 }
 
+Sensor::~Sensor()
+{
+    deletevec(Plugin, plugins);
+}
+
 void Projector::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -686,6 +700,16 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "joint", joints);
     parseMany(e, "plugin", plugins);
     parseMany(e, "gripper", grippers);
+}
+
+Model::~Model()
+{
+    deletevec(Include, includes);
+    deletevec(Model, submodels);
+    deletevec(Link, links);
+    deletevec(Joint, joints);
+    deletevec(Plugin, plugins);
+    deletevec(Gripper, grippers);
 }
 
 void Road::parse(XMLElement *e, const char *tagName)
@@ -858,6 +882,11 @@ void JointState::parse(XMLElement *e, const char *tagName)
     parseMany(e, "angle", fields);
 }
 
+JointState::~JointState()
+{
+    deletevec(JointStateField, fields);
+}
+
 void CollisionState::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -878,6 +907,11 @@ void LinkState::parse(XMLElement *e, const char *tagName)
     pose.parseSub(e, "pose", true);
 }
 
+LinkState::~LinkState()
+{
+    deletevec(CollisionState, collisions);
+}
+
 void ModelState::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -889,6 +923,13 @@ void ModelState::parse(XMLElement *e, const char *tagName)
     frame.parseSub(e, "frame", true);
     pose.parseSub(e, "pose", true);
     parseMany(e, "link", links);
+}
+
+ModelState::~ModelState()
+{
+    deletevec(JointState, joints);
+    deletevec(ModelState, submodelstates);
+    deletevec(LinkState, links);
 }
 
 void LightState::parse(XMLElement *e, const char *tagName)
@@ -913,6 +954,27 @@ void State::parse(XMLElement *e, const char *tagName)
     deletions.parseSub(e, "deletions", true);
     parseMany(e, "model", modelstates);
     parseMany(e, "light", lightstates);
+}
+
+State::~State()
+{
+    deletevec(ModelState, modelstates);
+    deletevec(LightState, lightstates);
+}
+
+void State::Insertions::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void State::Insertions::~Insertions()
+{
+    deletevec(Model, models);
+}
+
+void State::Deletions::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
 }
 
 void Population::parse(XMLElement *e, const char *tagName)
@@ -942,6 +1004,18 @@ void World::parse(XMLElement *e, const char *tagName)
     sphericalCoordinates.parseSub(e, "spherical_coordinates");
     parseMany(e, "state", states);
     parseMany(e, "population", populations);
+}
+
+World::~World()
+{
+    deletevec(Include, includes);
+    deletevec(Light, lights);
+    deletevec(Model, models);
+    deletevec(Actor, actors);
+    deletevec(Plugin, plugins);
+    deletevec(Road, roads);
+    deletevec(State, states);
+    deletevec(Population, populations);
 }
 
 void World::Audio::parse(XMLElement *e, const char *tagName)
@@ -977,6 +1051,11 @@ void World::GUI::parse(XMLElement *e, const char *tagName)
     fullScreen = getSubValBool(e, "full_screen", true, false);
     camera.parseSub(e, "camera", true);
     parseMany(e, "plugin", plugins);
+}
+
+World::GUI::~GUI()
+{
+    deletevec(Plugin, plugins);
 }
 
 void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
