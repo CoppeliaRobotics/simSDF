@@ -966,18 +966,260 @@ LinkInertial::InertiaMatrix::~InertiaMatrix()
 void LinkCollision::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    laserRetro = getSubValDouble(e, "laser_retro", true);
+    maxContacts = getSubValInt(e, "max_contacts", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+    geometry.parseSub(e, "geometry");
+    surface.parseSub(e, "surface", true);
 }
 
 LinkCollision::~LinkCollision()
 {
 }
 
+void LinkCollision::Surface::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    bounce.parseSub(e, "bounce", true);
+    friction.parseSub(e, "friction", true);
+    contact.parseSub(e, "contact", true);
+    softContact.parseSub(e, "soft_contact", true);
+}
+
+LinkCollision::Surface::~Surface()
+{
+}
+
+void LinkCollision::Surface::Bounce::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    restitutionCoefficient = getSubValDouble(e, "restitution_coefficient", true);
+    threshold = getSubValDouble(e, "threshold", true);
+}
+
+LinkCollision::Surface::Bounce::~Bounce()
+{
+}
+
+void LinkCollision::Surface::Friction::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    torsional.parseSub(e, "torsional", true);
+    ode.parseSub(e, "ode", true);
+    bullet.parseSub(e, "bullet", true);
+}
+
+LinkCollision::Surface::Friction::~Friction()
+{
+}
+
+void LinkCollision::Surface::Friction::Torsional::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    coefficient = getSubValDouble(e, "coefficient", true);
+    usePatchRadius = getSubValBool(e, "use_patch_radius", true);
+    patchRadius = getSubValDouble(e, "patch_radius", true);
+    surfaceRadius = getSubValDouble(e, "surface_radius", true);
+    ude-parseSub(e, "ode", true);
+}
+
+LinkCollision::Surface::Friction::Torsional::~Torsional()
+{
+}
+
+void LinkCollision::Surface::Friction::Torsional::ODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    slip = getSubValDouble(e, "slip", true);
+}
+
+LinkCollision::Surface::Friction::Torsional::ODE::~ODE()
+{
+}
+
+void LinkCollision::Surface::Friction::ODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    mu = getSubValDouble(e, "mu", true);
+    mu2 = getSubValDouble(e, "mu2", true);
+    fdir1 = getSubValDouble(e, "fdir1", true);
+    slip1 = getSubValDouble(e, "slip1", true);
+    slip2 = getSubValDouble(e, "slip2", true);
+}
+
+LinkCollision::Surface::Friction::ODE::~ODE()
+{
+}
+
+void LinkCollision::Surface::Friction::Bullet::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    friction = getSubValDouble(e, "friction", true);
+    friction2 = getSubValDouble(e, "friction2", true);
+    fdir1 = getSubValDouble(e, "fdir1", true);
+    rollingFriction = getSubValDouble(e, "rolling_friction", true);
+}
+
+LinkCollision::Surface::Friction::Bullet::~Bullet()
+{
+}
+
+void LinkCollision::Surface::Contact::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    collideWithoutContact = getSubValBool(e, "collide_without_contact", true);
+    collideWithoutContactBitmask = getSubValInt(e, "collide_without_contact_bitmask", true);
+    collideBitmask = getSubValInt(e, "collide_bitmask", true);
+    poissonsRatio = getSubValDouble(e, "poissons_ratio", true);
+    elasticModulus = getSubValDouble(e, "elasticModulus", true);
+    ode.parseSub(e, "ode", true);
+    bullet.parseSub(e, "bullet", true);
+}
+
+LinkCollision::Surface::Contact::~Contact()
+{
+}
+
+void LinkCollision::Surface::Contact::ODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    softCFM = getSubValDouble(e, "soft_cfm", true);
+    softERP = getSubValDouble(e, "soft_erp", true);
+    kp = getSubValDouble(e, "kp", true);
+    kd = getSubValDouble(e, "kd", true);
+    maxVel = getSubValDouble(e, "max_vel", true);
+    minDepth = getSubValDouble(e, "min_depth", true);
+}
+
+LinkCollision::Surface::Contact::ODE::~ODE()
+{
+}
+
+void LinkCollision::Surface::Contact::Bullet::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    softCFM = getSubValDouble(e, "soft_cfm", true);
+    softERP = getSubValDouble(e, "soft_erp", true);
+    kp = getSubValDouble(e, "kp", true);
+    kd = getSubValDouble(e, "kd", true);
+    splitImpulse = getSubValDouble(e, "split_impulse", true);
+    splitImpulsePenetrationThreshold = getSubValDouble(e, "split_impulse_penetration_threshold", true);
+    minDepth = getSubValDouble(e, "min_depth", true);
+}
+
+LinkCollision::Surface::Contact::Bullet::~Bullet()
+{
+}
+
+void LinkCollision::Surface::SoftContact::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    dart.parseSub(e, "dart", true);
+}
+
+LinkCollision::Surface::SoftContact::~SoftContact()
+{
+}
+
+void LinkCollision::Surface::SoftContact::Dart::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    boneAttachment = getSubValDouble(e, "bone_attachment");
+    stiffness = getSubValDouble(e, "stiffness");
+    damping = getSubValDouble(e, "damping");
+    fleshMassFraction = getSubValDouble(e, "flesh_mass_fraction");
+}
+
+LinkCollision::Surface::SoftContact::~Dart()
+{
+}
+
+void Material::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    script.parseSub(e, "script", true);
+    shader.parseSub(e, "shader", true);
+    lighting = getSubValBool(e, "lighting", true);
+    ambient.parseSub(e, "ambient", true);
+    diffuse.parseSub(e, "diffuse", true);
+    specular.parseSub(e, "specular", true);
+    emissive.parseSub(e, "emissive", true);
+}
+
+Material::~Material()
+{
+}
+
+void Material::Script::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parseMany(e, "uri", uris);
+    name = getSubValStr(e, "name");
+}
+
+Material::Script::~Script()
+{
+}
+
+void Material::Shader::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    static const char *validTypes[] = {"vertex", "pixel", "normal_map_objectspace", "normal_map_tangentspace"};
+    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
+    normalMap = getSubValStr(e, "normal_map");
+}
+
+Material::Shader::~Shader()
+{
+}
+
 void LinkVisual::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    castShadows = getSubValBool(e, "cast_shadows", true);
+    laserRetro = getSubValDouble(e, "laser_retro", true);
+    transparency = getSubValDouble(e, "transparency", true);
+    meta.parseSub(e, "meta", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+    material.parseSub(e, "material", true);
+    geometry.parseSub(e, "geometry");
+    parseMany(e, "plugin", plugins);
 }
 
 LinkVisual::~LinkVisual()
+{
+    deletevec(Plugin, plugins);
+}
+
+void LinkVisual::Meta::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    later = getSubValStr(e, "layer", true);
+}
+
+LinkVisual::Meta::~Meta()
 {
 }
 

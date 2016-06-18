@@ -502,6 +502,10 @@ struct LinkInertial : public Parser
     virtual ~LinkInertial();
 };
 
+struct Geometry : public Parser
+{
+}
+
 struct LinkCollision : public Parser
 {
     std::string name;
@@ -510,16 +514,169 @@ struct LinkCollision : public Parser
     Frame frame;
     Pose pose;
     Geometry geometry;
-    struct Surface
+    struct Surface : public Parser
     {
+        struct Bounce : public Parser
+        {
+            double restitutionCoefficient;
+            double threshold;
+
+            virtual void parse(XMLElement *e, const char *tagName = "bounce");
+            virtual ~Bounce();
+        } bounce;
+        struct Friction : public Parser
+        {
+            struct Torsional : public Parser
+            {
+                double coefficient;
+                bool usePatchRadius;
+                double patchRadius;
+                double surfaceRadius;
+                struct ODE : public Parser
+                {
+                    double slip;
+                    
+                    virtual void parse(XMLElement *e, const char *tagName = "ode");
+                    virtual ~ODE();
+                } ode;
+
+                virtual void parse(XMLElement *e, const char *tagName = "torsional");
+                virtual ~Torsional();
+            } torsional;
+            struct ODE : public Parser
+            {
+                double mu;
+                double mu2;
+                double fdir1;
+                double slip1;
+                double slip2;
+
+                virtual void parse(XMLElement *e, const char *tagName = "ode");
+                virtual ~ODE();
+            } ode;
+            struct Bullet : public Parser
+            {
+                double friction;
+                double friction2;
+                double fdir1;
+                double rollingFriction;
+
+                virtual void parse(XMLElement *e, const char *tagName = "bullet");
+                virtual ~Bullet();
+            } bullet;
+
+            virtual void parse(XMLElement *e, const char *tagName = "friction");
+            virtual ~Friction();
+        } friction;
+        struct Contact : public Parser
+        {
+            bool collideWithoutContact;
+            int collideWithoutContactBitmask;
+            int collideBitmask;
+            double poissonsRatio;
+            double elasticModulus;
+            struct ODE : public Parser
+            {
+                double softCFM;
+                double softERP;
+                double kp;
+                double kd;
+                double maxVel;
+                double minDepth;
+
+                virtual void parse(XMLElement *e, const char *tagName = "ode");
+                virtual ~ODE();
+            } ode;
+            struct Bullet : public Parser
+            {
+                double softCFM;
+                double softERP;
+                double kp;
+                double kd;
+                double splitImpulse;
+                double splitImpulsePenetrationThreshold;
+                double minDepth;
+
+                virtual void parse(XMLElement *e, const char *tagName = "bullet");
+                virtual ~Bullet();
+            } bullet;
+
+            virtual void parse(XMLElement *e, const char *tagName = "contact");
+            virtual ~Contact();
+        } contact;
+        struct SoftContact : public Parser
+        {
+            struct Dart : public Parser
+            {
+                double boneAttachment;
+                double stiffness;
+                double damping;
+                double fleshMassFraction;
+
+                virtual void parse(XMLElement *e, const char *tagName = "dart");
+                virtual ~Dart();
+            } dart;
+
+            virtual void parse(XMLElement *e, const char *tagName = "soft_contact");
+            virtual ~SoftContact();
+        } softContact;
+
+        virtual void parse(XMLElement *e, const char *tagName = "surface");
+        virtual ~Surface();
     } surface;
-    virtual void parse(XMLElement *e, const char *tagName = "link_collision");
+
+    virtual void parse(XMLElement *e, const char *tagName = "collision");
     virtual ~LinkCollision();
+};
+
+struct Material : public Parser
+{
+    struct Script : public Parser
+    {
+        std::vector<std::string> uris;
+        std::string name;
+
+        virtual void parse(XMLElement *e, const char *tagName = "script");
+        virtual ~Script();
+    } script;
+    struct Shader : public Parser
+    {
+        std::string type;
+        std::string normalMap;
+
+        virtual void parse(XMLElement *e, const char *tagName = "shader");
+        virtual ~Script();
+    } shader;
+    bool lighting;
+    Color ambient;
+    Color diffuse;
+    Color specular;
+    Color emissive;
+
+    virtual void parse(XMLElement *e, const char *tagName = "material");
+    virtual ~Material();
 };
 
 struct LinkVisual : public Parser
 {
-    virtual void parse(XMLElement *e, const char *tagName = "link_visual");
+    std::string name;
+    bool castShadows;
+    double laserRetro;
+    double transparency;
+    struct Meta : public Parser
+    {
+        std::string layer;
+
+        virtual void parse(XMLElement *e, const char *tagName = "meta");
+        virtual ~Meta();
+    } meta;
+    Frame frame;
+    Pose pose;
+    Material material;
+    Geometry geometry;
+    std::vector<Plugin*> plugins;
+
+    virtual void parse(XMLElement *e, const char *tagName = "visual");
     virtual ~LinkVisual();
 };
 
