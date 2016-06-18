@@ -992,15 +992,29 @@ void Geometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
+    int count = 0;
     empty = parseOpt<EmptyGeometry>(e, "empty");
+    if(empty) count++;
     box = parseOpt<BoxGeometry>(e, "box");
+    if(box) count++;
     cylinder = parseOpt<CylinderGeometry>(e, "cylinder");
+    if(cylinder) count++;
     heightmap = parseOpt<HeightMapGeometry>(e, "heightmap");
+    if(heightmap) count++;
     image = parseOpt<ImageGeometry>(e, "image");
+    if(image) count++;
     mesh = parseOpt<MeshGeometry>(e, "mesh");
+    if(mesh) count++;
     plane = parseOpt<PlaneGeometry>(e, "plane");
+    if(plane) count++;
     polyline = parseOpt<PolylineGeometry>(e, "polyline");
+    if(polyline) count++;
     sphere = parseOpt<SphereGeometry>(e, "sphere");
+    if(sphere) count++;
+    if(count < 1)
+        throw std::string("a geometry must be specified");
+    if(count > 1)
+        throw std::string("more than one geometry has been specified");
 }
 
 Geometry::~Geometry()
