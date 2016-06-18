@@ -69,6 +69,13 @@ struct Vector : public Parser
     virtual void parse(XMLElement *e, const char *tagName = "vector");
 };
 
+struct Time : public Parser
+{
+    long seconds, nanoseconds;
+
+    virtual void parse(XMLElement *e, const char *tagName = "time");
+};
+
 struct Orientation : public Parser
 {
     double roll, pitch, yaw;
@@ -560,16 +567,206 @@ struct Road : public Parser
 
 struct Scene : public Parser
 {
+    Color ambient;
+    Color background;
+    struct Sky : public Parser
+    {
+        double time;
+        double sunrise;
+        double sunset;
+        struct Clouds : public Parser
+        {
+            double speed;
+            Vector direction;
+            double humidity;
+            double meanSize;
+            Color ambient;
+
+            virtual void parse(XMLElement *e, const char *tagName = "clouds");
+        } clouds;
+
+        virtual void parse(XMLElement *e, const char *tagName = "sky");
+    } sky;
+    bool shadows;
+    struct Fog : public Parser
+    {
+        Color color;
+        std::string type;
+        double start;
+        double end;
+        double density;
+
+        virtual void parse(XMLElement *e, const char *tagName = "fog");
+    } fog;
+    bool grid;
+    bool originVisual;
+
     virtual void parse(XMLElement *e, const char *tagName = "scene");
 };
 
 struct Physics : public Parser
 {
+    std::string name;
+    bool default_;
+    std::string type;
+    double maxStepSize;
+    double realTimeFactor;
+    double realTimeUpdateRate;
+    int maxContacts;
+    struct Simbody : public Parser
+    {
+        double minStepSize;
+        double accuracy;
+        double maxTransientVelocity;
+        struct Contact : public Parser
+        {
+            double stiffness;
+            double dissipation;
+            double plasticCoefRestitution;
+            double plasticImpactVelocity;
+            double staticFriction;
+            double dynamicFriction;
+            double viscousFriction;
+            double overrideImpactCaptureVelocity;
+            double overrideStictionTransitionVelocity;
+
+            virtual void parse(XMLElement *e, const char *tagName = "contact");
+        } contact;
+
+        virtual void parse(XMLElement *e, const char *tagName = "simbody");
+    } simbody;
+    struct Bullet : public Parser
+    {
+        struct Solver : public Parser
+        {
+            std::string type;
+            double minStepSize;
+            int iters;
+            double sor;
+
+            virtual void parse(XMLElement *e, const char *tagName = "solver");
+        } solver;
+        struct Constraints : public Parser
+        {
+            double cfm;
+            double erp;
+            double contactSurfaceLayer;
+            double splitImpulse;
+            double splitImpulsePenetrationThreshold;
+
+            virtual void parse(XMLElement *e, const char *tagName = "constraints");
+        } constraints;
+
+        virtual void parse(XMLElement *e, const char *tagName = "bullet");
+    } bullet;
+    struct ODE : public Parser
+    {
+        struct Solver : public Parser
+        {
+            std::string type;
+            double minStepSize;
+            int iters;
+            int preconIters;
+            double sor;
+            bool useDynamicMOIRescaling;
+
+            virtual void parse(XMLElement *e, const char *tagName = "solver");
+        } solver;
+        struct Constraints : public Parser
+        {
+            double cfm;
+            double erp;
+            double contactMaxCorrectingVel;
+            double contactSurfaceLayer;
+
+            virtual void parse(XMLElement *e, const char *tagName = "constraints");
+        } constraints;
+
+        virtual void parse(XMLElement *e, const char *tagName = "ode");
+    } ode;
+
     virtual void parse(XMLElement *e, const char *tagName = "physics");
+};
+
+struct JointStateField : public Parser
+{
+    double angle;
+    unsigned int axis;
+
+    virtual void parse(XMLElement *e, const char *tagName = "angle");
+};
+
+struct JointState : public Parser
+{
+    std::string name;
+    std::vector<JointStateField*> fields;
+
+    virtual void parse(XMLElement *e, const char *tagName = "joint");
+};
+
+struct CollisionState : public Parser
+{
+    std::string name;
+    virtual void parse(XMLElement *e, const char *tagName = "collision");
+};
+
+struct LinkState : public Parser
+{
+    std::string name;
+    Pose velocity;
+    Pose acceleration;
+    Pose wrench;
+    std::vector<CollisionState*> collisions;
+    Frame frame;
+    Pose pose;
+
+    virtual void parse(XMLElement *e, const char *tagName = "link");
+};
+
+struct ModelState : public Parser
+{
+    std::string name;
+    std::vector<JointState*> joints;
+    std::vector<ModelState*> submodelstates;
+    Vector scale;
+    Frame frame;
+    Pose pose;
+    std::vector<LinkState*> links;
+
+    virtual void parse(XMLElement *e, const char *tagName = "model");
+};
+
+struct LightState : public Parser
+{
+    std::string name;
+    Frame frame;
+    Pose pose;
+
+    virtual void parse(XMLElement *e, const char *tagName = "light");
 };
 
 struct State : public Parser
 {
+    std::string worldName;
+    Time simTime;
+    Time wallTime;
+    Time realTime;
+    int iterations;
+    struct Insertions : public Parser
+    {
+        std::vector<Model*> models;
+
+        virtual void parse(XMLElement *e, const char *tagName = "insertions");
+    } insertions;
+    struct Deletions : public Parser
+    {
+        std::vector<std::string> names;
+
+        virtual void parse(XMLElement *e, const char *tagName = "deletions");
+    } deletions;
+    std::vector<ModelState*> modelstates;
+    std::vector<LightState*> lightstates;
+
     virtual void parse(XMLElement *e, const char *tagName = "state");
 };
 

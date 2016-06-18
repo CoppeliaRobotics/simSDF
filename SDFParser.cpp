@@ -220,6 +220,28 @@ void Vector::parse(XMLElement *e, const char *tagName)
     }
 }
 
+void Time::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    try
+    {
+        seconds = getSubValDouble(e, "seconds");
+        nanoseconds = getSubValDouble(e, "nanoseconds");
+    }
+    catch(std::string& ex)
+    {
+        // a time can be parsed also as a space delimited list
+        std::string text = e->GetText();
+        std::vector<std::string> tokens;
+        boost::split(tokens, text, boost::is_any_of(" "));
+        if(tokens.size() != 2)
+            throw (boost::format("invalid time length: %d") % tokens.size()).str();
+        seconds = boost::lexical_cast<double>(tokens[0]);
+        nanoseconds = boost::lexical_cast<double>(tokens[1]);
+    }
+}
+
 void Orientation::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -672,16 +694,223 @@ void Road::parse(XMLElement *e, const char *tagName)
 void Scene::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    ambient.parseSub(e, "ambient");
+    background.parseSub(e, "background");
+    sky.parseSub(e, "sky", true);
+    shadows = getSubValBool(e, "shadows");
+    fog.parseSub(e, "fog", true);
+    grid = getSubValBool(e, "grid");
+    originVisual = getSubValBool(e, "origin_visual");
+}
+
+void Scene::Sky::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    time = getSubValDouble(e, "time", false, true);
+    sunrise = getSubValDouble(e, "sunrise", false, true);
+    sunset = getSubValDouble(e, "sunset", false, true);
+    clouds.parseSub(e, "clouds", true);
+}
+
+void Scene::Sky::Clouds::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    speed = getSubValDouble(e, "speed", false, true);
+    direction.parseSub(e, "direction", true);
+    humidity = getSubValDouble(e, "humidity", false, true);
+    meanSize = getSubValDouble(e, "mean_size", false, true);
+    ambient.parseSub(e, "ambient", true);
+}
+
+void Scene::Fog::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    color.parseSub(e, "color", true);
+    const char *fogTypes[] = {"constant", "linear", "quadratic"};
+    type = getSubValOneOf(e, "type", fogTypes, sizeof(fogTypes)/sizeof(fogTypes[0]), false, true, "constant");
+    start = getSubValDouble(e, "start", false, true);
+    end = getSubValDouble(e, "end", false, true);
+    density = getSubValDouble(e, "density", false, true);
 }
 
 void Physics::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name", true);
+    default_ = getAttrBool(e, "default", true, false);
+    const char *validTypes = {"ode", "bullet", "simbody", "rtql8"};
+    type = getAttrOneOf(e, "type", validTypes, sizeof(validTypes)/sizeof(validTypes[0]), true, "ode");
+    maxStepSize = getSubValDouble(e, "max_step_size");
+    realTimeFactor = getSubValDouble(e, "real_time_factor");
+    realTimeUpdateRate = getSubValDouble(e, "real_time_update_rate");
+    maxContacts = getSubValInt(e, "max_contacts", false, true);
+    simbody.parseSub(e, "simbody", true);
+    bullet.parseSub(e, "bullet", true);
+    ode.parseSub(e, "ode", true);
+}
+
+void Physics::Simbody::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    minStepSize = getSubValDouble(e, "min_step_size", false, true);
+    accuracy = getSubValDouble(e, "accuracy", false, true);
+    maxTransientVelocity = getSubValDouble(e, "max_transient_velocity", false, true);
+    contact.parseSub(e, "contact", true);
+}
+
+void Physics::Simbody::Contact::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    stiffness = getSubValDouble(e, "stiffness", false, true);
+    dissipation = getSubValDouble(e, "dissipation", false, true);
+    plasticCoefRestitution = getSubValDouble(e, "plastic_coef_restitution", false, true);
+    plasticImpactVelocity = getSubValDouble(e, "plastic_impact_velocity", false, true);
+    staticFriction = getSubValDouble(e, "static_friction", false, true);
+    dynamicFriction = getSubValDouble(e, "dynamic_friction", false, true);
+    viscousFriction = getSubValDouble(e, "viscous_friction", false, true);
+    overrideImpactCaptureVelocity = getSubValDouble(e, "override_impact_capture_velocity", false, true);
+    overrideStictionTransitionVelocity = getSubValDouble(e, "override_stiction_transition_velocity", false, true);
+}
+
+void Physics::Bullet::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    solver.parseSub(e, "solver");
+    constraints.parseSub(e, "constraints");
+}
+
+void Physics::Bullet::Solver::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    const char *validTypes[] = {"sequential_impulse"};
+    type = getSubValOneOf(e, "type", validTypes, sizeof(validTypes)/sizeof(validTypes[0]));
+    minStepSize = getSubValDouble(e, "min_step_size", false, true);
+    iters = getSubValInt(e, "iters");
+    sor = getSubValDouble(e, "sor");
+}
+
+void Physics::Bullet::Constraints::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    cfm = getSubValDouble(e, "cfm");
+    erp = getSubValDouble(e, "erp");
+    contactSurfaceLayer = getSubValDouble(e, "contact_surface_layer");
+    splitImpulse = getSubValDouble(e, "split_impulse");
+    splitImpulsePenetrationThreshold = getSubValDouble(e, "split_impulse_penetration_threshold");
+}
+
+void Physics::ODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    solver.parseSub(e, "solver");
+    constraints.parseSub(e, "constraints");
+}
+
+void Physics::ODE::Solver::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    const char *validTypes[] = {"world", "quick"};
+    type = getSubValOneOf(e, "type", validTypes, sizeof(validTypes)/sizeof(validTypes[0]));
+    minStepSize = getSubValDouble(e, "min_step_size", false, true);
+    iters = getSubValInt(e, "iters");
+    preconIters = getSubValInt(e, "precon_iters", false, true);
+    sor = getSubValDouble(e, "sor");
+    useDynamicMOIRescaling = getSubValBool(e, "use_dynamic_moi_rescaling");
+}
+
+void Physics::ODE::Constraints::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    cfm = getSubValDouble(e, "cfm");
+    erp = getSubValDouble(e, "erp");
+    contactMaxCorrectingVel = getSubValDouble(e, "contact_max_correcting_vel");
+    contactSurfaceLayer = getSubValDouble(e, "contact_surface_layer");
+}
+
+void JointStateField::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    angle = getSubValDouble(e, "angle");
+    axis = getAttrInt(e, "axis");
+}
+
+void JointState::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    parseMany(e, "angle", fields);
+}
+
+void CollisionState::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+}
+
+void LinkState::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    velocity.parseSub(e, "velocity", true);
+    acceleration.parseSub(e, "acceleration", true);
+    wrench.parseSub(e, "wrench", true);
+    parseMany(e, "collision", collisions);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+}
+
+void ModelState::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    parseMany(e, "joint", joints);
+    parseMany(e, "model", submodelstates);
+    scale.parseSub(e, "scale", true);
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
+    parseMany(e, "link", links);
+}
+
+void LightState::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getAttrStr(e, "name");
+    frame.parseSub(e, "frame", true);
+    pose.parseSub(e, "pose", true);
 }
 
 void State::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    worldName = getAttrStr(e, "world_name");
+    simTime.parseSub(e, "sim_time", true);
+    wallTime.parseSub(e, "wall_time", true);
+    realTime.parseSub(e, "real_time", true);
+    iterations = getSubValInt(e, "iterations");
+    insertions.parseSub(e, "insertions", true);
+    deletions.parseSub(e, "deletions", true);
+    parseMany(e, "model", modelstates);
+    parseMany(e, "light", lightstates);
 }
 
 void Population::parse(XMLElement *e, const char *tagName)
