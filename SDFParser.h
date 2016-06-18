@@ -22,11 +22,11 @@ struct Parser
     double getValDouble(XMLElement *e, bool optional = false, double defaultValue = 0.0);
     std::string getValOneOf(XMLElement *e, const char **validValues, int numValues, bool optional = false, std::string defaultValue = "");
     bool getValBool(XMLElement *e, bool optional = false, bool defaultValue = false);
-    std::string getSubValStr(XMLElement *e, const char *name, bool many = false, bool optional = false, std::string defaultValue = "");
-    int getSubValInt(XMLElement *e, const char *name, bool many = false, bool optional = false, int defaultValue = 0);
-    double getSubValDouble(XMLElement *e, const char *name, bool many = false, bool optional = false, double defaultValue = 0.0);
-    std::string getSubValOneOf(XMLElement *e, const char *name, const char **validValues, int numValues, bool many = false, bool optional = false, std::string defaultValue = "");
-    bool getSubValBool(XMLElement *e, const char *name, bool many = false, bool optional = false, bool defaultValue = false);
+    std::string getSubValStr(XMLElement *e, const char *name, bool optional = false, std::string defaultValue = "");
+    int getSubValInt(XMLElement *e, const char *name, bool optional = false, int defaultValue = 0);
+    double getSubValDouble(XMLElement *e, const char *name, bool optional = false, double defaultValue = 0.0);
+    std::string getSubValOneOf(XMLElement *e, const char *name, const char **validValues, int numValues, bool optional = false, std::string defaultValue = "");
+    bool getSubValBool(XMLElement *e, const char *name, bool optional = false, bool defaultValue = false);
 
     template<typename T>
     void parseMany(XMLElement *parent, const char *tagName, std::vector<T*>& vec, bool atLeastOne = false)

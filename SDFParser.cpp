@@ -117,7 +117,7 @@ bool Parser::getValBool(XMLElement *e, bool optional, bool defaultValue)
     throw (boost::format("invalid value '%s' for element %s: must be true or false") % value % e->Name()).str();
 }
 
-std::string Parser::getSubValStr(XMLElement *e, const char *name, bool many, bool optional, std::string defaultValue)
+std::string Parser::getSubValStr(XMLElement *e, const char *name, bool optional, std::string defaultValue)
 {
     XMLElement *ex = e->FirstChildElement(name);
     if(!ex)
@@ -127,26 +127,26 @@ std::string Parser::getSubValStr(XMLElement *e, const char *name, bool many, boo
         else
             throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
     }
-    if(!many && ex->NextSiblingElement(name))
+    if(ex->NextSiblingElement(name))
         throw (boost::format("found more than one element %s in element %s") % name % e->Name()).str();
     return getValStr(ex, optional, defaultValue);
 }
 
-int Parser::getSubValInt(XMLElement *e, const char *name, bool many, bool optional, int defaultValue)
+int Parser::getSubValInt(XMLElement *e, const char *name, bool optional, int defaultValue)
 {
-    std::string value = getSubValStr(e, name, many, optional, boost::lexical_cast<std::string>(defaultValue));
+    std::string value = getSubValStr(e, name, optional, boost::lexical_cast<std::string>(defaultValue));
     return boost::lexical_cast<int>(value);
 }
 
-double Parser::getSubValDouble(XMLElement *e, const char *name, bool many, bool optional, double defaultValue)
+double Parser::getSubValDouble(XMLElement *e, const char *name, bool optional, double defaultValue)
 {
-    std::string value = getSubValStr(e, name, many, optional, boost::lexical_cast<std::string>(defaultValue));
+    std::string value = getSubValStr(e, name, optional, boost::lexical_cast<std::string>(defaultValue));
     return boost::lexical_cast<double>(value);
 }
 
-std::string Parser::getSubValOneOf(XMLElement *e, const char *name, const char **validValues, int numValues, bool many, bool optional, std::string defaultValue)
+std::string Parser::getSubValOneOf(XMLElement *e, const char *name, const char **validValues, int numValues, bool optional, std::string defaultValue)
 {
-    std::string value = getSubValStr(e, name, many, optional, defaultValue);
+    std::string value = getSubValStr(e, name, optional, defaultValue);
 
     std::string validValuesStr = "";
     if(!isOneOf(value, validValues, numValues, &validValuesStr))
@@ -155,10 +155,10 @@ std::string Parser::getSubValOneOf(XMLElement *e, const char *name, const char *
     return value;
 }
 
-bool Parser::getSubValBool(XMLElement *e, const char *name, bool many, bool optional, bool defaultValue)
+bool Parser::getSubValBool(XMLElement *e, const char *name, bool optional, bool defaultValue)
 {
     static const char *validValues[] = {"true", "false"};
-    std::string value = getSubValOneOf(e, name, validValues, 2, many, optional, defaultValue ? "true" : "false");
+    std::string value = getSubValOneOf(e, name, validValues, 2, optional, defaultValue ? "true" : "false");
     if(value == "true") return true;
     if(value == "false") return false;
     throw (boost::format("invalid value '%s' for element %s: must be true or false") % value % name).str();
@@ -298,8 +298,8 @@ void Include::parse(XMLElement *e, const char *tagName)
 
     uri = getSubValStr(e, "uri");
     pose.parseSub(e, "pose", true);
-    name = getSubValStr(e, "name", false, true);
-    dynamic = !getSubValBool(e, "static", false, true);
+    name = getSubValStr(e, "name", true);
+    dynamic = !getSubValBool(e, "static", true);
 }
 
 void Plugin::parse(XMLElement *e, const char *tagName)
@@ -427,18 +427,18 @@ void Camera::Lens::parse(XMLElement *e, const char *tagName)
     type = getSubValStr(e, "type");
     scaleToHFOV = getSubValBool(e, "scale_to_hfov");
     customFunction.parseSub(e, "custom_function", true);
-    cutoffAngle = getSubValDouble(e, "cutoffAngle", false, true);
-    envTextureSize = getSubValDouble(e, "envTextureSize", false, true);
+    cutoffAngle = getSubValDouble(e, "cutoffAngle", true);
+    envTextureSize = getSubValDouble(e, "envTextureSize", true);
 }
 
 void Camera::Lens::CustomFunction::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    c1 = getSubValDouble(e, "c1", false, true);
-    c2 = getSubValDouble(e, "c2", false, true);
-    c3 = getSubValDouble(e, "c3", false, true);
-    f = getSubValDouble(e, "f", false, true);
+    c1 = getSubValDouble(e, "c1", true);
+    c2 = getSubValDouble(e, "c2", true);
+    c3 = getSubValDouble(e, "c3", true);
+    f = getSubValDouble(e, "f", true);
     fun = getSubValStr(e, "fun");
 }
 
@@ -672,12 +672,12 @@ void Model::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
-    dynamic = !getSubValBool(e, "static", false, true, true);
-    selfCollide = getSubValBool(e, "self_collide", false, true, true);
-    allowAutoDisable = getSubValBool(e, "allow_auto_disable", false, true, true);
+    dynamic = !getSubValBool(e, "static", true, true);
+    selfCollide = getSubValBool(e, "self_collide", true, true);
+    allowAutoDisable = getSubValBool(e, "allow_auto_disable", true, true);
     parseMany(e, "include", includes);
     parseMany(e, "model", submodels);
-    enableWind = getSubValBool(e, "enable_wind", false, true, true);
+    enableWind = getSubValBool(e, "enable_wind", true, true);
     frame.parseSub(e, "frame", true);
     pose.parseSub(e, "pose", true);
     parseMany(e, "link", links);
@@ -708,9 +708,9 @@ void Scene::Sky::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    time = getSubValDouble(e, "time", false, true);
-    sunrise = getSubValDouble(e, "sunrise", false, true);
-    sunset = getSubValDouble(e, "sunset", false, true);
+    time = getSubValDouble(e, "time", true);
+    sunrise = getSubValDouble(e, "sunrise", true);
+    sunset = getSubValDouble(e, "sunset", true);
     clouds.parseSub(e, "clouds", true);
 }
 
@@ -718,10 +718,10 @@ void Scene::Sky::Clouds::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    speed = getSubValDouble(e, "speed", false, true);
+    speed = getSubValDouble(e, "speed", true);
     direction.parseSub(e, "direction", true);
-    humidity = getSubValDouble(e, "humidity", false, true);
-    meanSize = getSubValDouble(e, "mean_size", false, true);
+    humidity = getSubValDouble(e, "humidity", true);
+    meanSize = getSubValDouble(e, "mean_size", true);
     ambient.parseSub(e, "ambient", true);
 }
 
@@ -731,10 +731,10 @@ void Scene::Fog::parse(XMLElement *e, const char *tagName)
 
     color.parseSub(e, "color", true);
     const char *fogTypes[] = {"constant", "linear", "quadratic"};
-    type = getSubValOneOf(e, "type", fogTypes, sizeof(fogTypes)/sizeof(fogTypes[0]), false, true, "constant");
-    start = getSubValDouble(e, "start", false, true);
-    end = getSubValDouble(e, "end", false, true);
-    density = getSubValDouble(e, "density", false, true);
+    type = getSubValOneOf(e, "type", fogTypes, sizeof(fogTypes)/sizeof(fogTypes[0]), true, "constant");
+    start = getSubValDouble(e, "start", true);
+    end = getSubValDouble(e, "end", true);
+    density = getSubValDouble(e, "density", true);
 }
 
 void Physics::parse(XMLElement *e, const char *tagName)
@@ -748,7 +748,7 @@ void Physics::parse(XMLElement *e, const char *tagName)
     maxStepSize = getSubValDouble(e, "max_step_size");
     realTimeFactor = getSubValDouble(e, "real_time_factor");
     realTimeUpdateRate = getSubValDouble(e, "real_time_update_rate");
-    maxContacts = getSubValInt(e, "max_contacts", false, true);
+    maxContacts = getSubValInt(e, "max_contacts", true);
     simbody.parseSub(e, "simbody", true);
     bullet.parseSub(e, "bullet", true);
     ode.parseSub(e, "ode", true);
@@ -758,9 +758,9 @@ void Physics::Simbody::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    minStepSize = getSubValDouble(e, "min_step_size", false, true);
-    accuracy = getSubValDouble(e, "accuracy", false, true);
-    maxTransientVelocity = getSubValDouble(e, "max_transient_velocity", false, true);
+    minStepSize = getSubValDouble(e, "min_step_size", true);
+    accuracy = getSubValDouble(e, "accuracy", true);
+    maxTransientVelocity = getSubValDouble(e, "max_transient_velocity", true);
     contact.parseSub(e, "contact", true);
 }
 
@@ -768,15 +768,15 @@ void Physics::Simbody::Contact::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    stiffness = getSubValDouble(e, "stiffness", false, true);
-    dissipation = getSubValDouble(e, "dissipation", false, true);
-    plasticCoefRestitution = getSubValDouble(e, "plastic_coef_restitution", false, true);
-    plasticImpactVelocity = getSubValDouble(e, "plastic_impact_velocity", false, true);
-    staticFriction = getSubValDouble(e, "static_friction", false, true);
-    dynamicFriction = getSubValDouble(e, "dynamic_friction", false, true);
-    viscousFriction = getSubValDouble(e, "viscous_friction", false, true);
-    overrideImpactCaptureVelocity = getSubValDouble(e, "override_impact_capture_velocity", false, true);
-    overrideStictionTransitionVelocity = getSubValDouble(e, "override_stiction_transition_velocity", false, true);
+    stiffness = getSubValDouble(e, "stiffness", true);
+    dissipation = getSubValDouble(e, "dissipation", true);
+    plasticCoefRestitution = getSubValDouble(e, "plastic_coef_restitution", true);
+    plasticImpactVelocity = getSubValDouble(e, "plastic_impact_velocity", true);
+    staticFriction = getSubValDouble(e, "static_friction", true);
+    dynamicFriction = getSubValDouble(e, "dynamic_friction", true);
+    viscousFriction = getSubValDouble(e, "viscous_friction", true);
+    overrideImpactCaptureVelocity = getSubValDouble(e, "override_impact_capture_velocity", true);
+    overrideStictionTransitionVelocity = getSubValDouble(e, "override_stiction_transition_velocity", true);
 }
 
 void Physics::Bullet::parse(XMLElement *e, const char *tagName)
@@ -793,7 +793,7 @@ void Physics::Bullet::Solver::parse(XMLElement *e, const char *tagName)
 
     const char *validTypes[] = {"sequential_impulse"};
     type = getSubValOneOf(e, "type", validTypes, sizeof(validTypes)/sizeof(validTypes[0]));
-    minStepSize = getSubValDouble(e, "min_step_size", false, true);
+    minStepSize = getSubValDouble(e, "min_step_size", true);
     iters = getSubValInt(e, "iters");
     sor = getSubValDouble(e, "sor");
 }
@@ -823,9 +823,9 @@ void Physics::ODE::Solver::parse(XMLElement *e, const char *tagName)
 
     const char *validTypes[] = {"world", "quick"};
     type = getSubValOneOf(e, "type", validTypes, sizeof(validTypes)/sizeof(validTypes[0]));
-    minStepSize = getSubValDouble(e, "min_step_size", false, true);
+    minStepSize = getSubValDouble(e, "min_step_size", true);
     iters = getSubValInt(e, "iters");
-    preconIters = getSubValInt(e, "precon_iters", false, true);
+    preconIters = getSubValInt(e, "precon_iters", true);
     sor = getSubValDouble(e, "sor");
     useDynamicMOIRescaling = getSubValBool(e, "use_dynamic_moi_rescaling");
 }
@@ -962,17 +962,17 @@ void World::Atmosphere::parse(XMLElement *e, const char *tagName)
 
     const char *atmosphereTypes[] = {"adiabatic"};
     type = getSubValOneOf(e, "type", atmosphereTypes, sizeof(atmosphereTypes)/sizeof(atmosphereTypes[0]));
-    temperature = getSubValDouble(e, "temperature", false, true);
-    pressure = getSubValDouble(e, "pressure", false, true);
-    massDensity = getSubValDouble(e, "mass_density", false, true);
-    temperatureGradient = getSubValDouble(e, "temperature_gradient", false, true);
+    temperature = getSubValDouble(e, "temperature", true);
+    pressure = getSubValDouble(e, "pressure", true);
+    massDensity = getSubValDouble(e, "mass_density", true);
+    temperatureGradient = getSubValDouble(e, "temperature_gradient", true);
 }
 
 void World::GUI::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    fullScreen = getSubValBool(e, "full_screen", false, true, false);
+    fullScreen = getSubValBool(e, "full_screen", true, false);
     camera.parseSub(e, "camera", true);
     parseMany(e, "plugin", plugins);
 }
@@ -981,10 +981,10 @@ void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    name = getSubValStr(e, "name", false, true, "user_camera");
-    viewController = getSubValStr(e, "view_controller", false, true, "");
+    name = getSubValStr(e, "name", true, "user_camera");
+    viewController = getSubValStr(e, "view_controller", true, "");
     const char *projectionTypes[] = {"orthographic", "perspective"};
-    projectionType = getSubValOneOf(e, "projection_type", projectionTypes, sizeof(projectionTypes)/sizeof(projectionTypes[0]), false, true, "perspective");
+    projectionType = getSubValOneOf(e, "projection_type", projectionTypes, sizeof(projectionTypes)/sizeof(projectionTypes[0]), true, "perspective");
     trackVisual.parseSub(e, "track_visual", true);
     frame.parseSub(e, "frame", true);
     pose.parseSub(e, "pose", true);
@@ -994,13 +994,13 @@ void World::GUI::Camera::TrackVisual::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
     
-    name = getSubValStr(e, "name", false, true);
-    minDist = getSubValDouble(e, "min_dist", false, true);
-    maxDist = getSubValDouble(e, "max_dist", false, true);
-    static_ = getSubValBool(e, "static", false, true);
-    useModelFrame = getSubValBool(e, "use_model_frame", false, true);
+    name = getSubValStr(e, "name", true);
+    minDist = getSubValDouble(e, "min_dist", true);
+    maxDist = getSubValDouble(e, "max_dist", true);
+    static_ = getSubValBool(e, "static", true);
+    useModelFrame = getSubValBool(e, "use_model_frame", true);
     xyz.parseSub(e, "xyz", true);
-    inheritYaw = getSubValBool(e, "inherit_yaw", false, true);
+    inheritYaw = getSubValBool(e, "inherit_yaw", true);
 }
 
 void World::SphericalCoordinates::parse(XMLElement *e, const char *tagName)
@@ -1054,7 +1054,7 @@ void Light::parse(XMLElement *e, const char *tagName)
     name = getAttrStr(e, "name");
     const char *lightTypes[] = {"point", "directional", "spot"};
     type = getAttrOneOf(e, "type", lightTypes, sizeof(lightTypes)/sizeof(lightTypes[0]));
-    castShadows = getSubValBool(e, "cast_shadows", false, true, true);
+    castShadows = getSubValBool(e, "cast_shadows", true, true);
     diffuse.parseSub(e, "diffuse");
     specular.parseSub(e, "specular");
     attenuation.parseSub(e, "attenuation", true);
@@ -1069,9 +1069,9 @@ void Light::Attenuation::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     range = getSubValDouble(e, "range");
-    linear = getSubValDouble(e, "linear", false, true, 1.0);
-    constant = getSubValDouble(e, "constant", false, true, 0.0);
-    quadratic = getSubValDouble(e, "quadratic", false, true, 0.0);
+    linear = getSubValDouble(e, "linear", true, 1.0);
+    constant = getSubValDouble(e, "constant", true, 0.0);
+    quadratic = getSubValDouble(e, "quadratic", true, 0.0);
 }
 
 void Light::Spot::parse(XMLElement *e, const char *tagName)
