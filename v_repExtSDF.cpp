@@ -88,14 +88,8 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
         throw std::string("xml internal error: cannot get root element");
     SDF sdf;
     sdf.parse(root);
-    std::cout << "parsed SDF" << std::endl;
-    std::cout << "  version=" << sdf.version << std::endl;
-    std::cout << "  world count=" << sdf.worlds.size() << std::endl;
-    for(size_t i = 0; i < sdf.worlds.size(); i++)
-    {
-        std::cout << "  world[" << i << "].name=" << sdf.worlds[i]->name << std::endl;
-        std::cout << "  world[" << i << "].gravity=(" << sdf.worlds[i]->gravity.x << ", " << sdf.worlds[i]->gravity.y << ", " << sdf.worlds[i]->gravity.z << ")" << std::endl;
-    }
+    std::cout << "parsed SDF successfully" << std::endl;
+    sdf.dump();
 }
 
 VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer, int reservedInt)

@@ -11,6 +11,8 @@ using tinyxml2::XMLElement;
 
 struct Parser
 {
+    bool set;
+
     bool isOneOf(std::string s, const char **validValues, int numValues, std::string *validValuesStr = 0);
     std::string getAttrStr(XMLElement *e, const char *name, bool optional = false, std::string defaultValue = "");
     int getAttrInt(XMLElement *e, const char *name, bool optional = false, int defaultValue = 0);
@@ -38,6 +40,7 @@ struct Parser
         {
             T *t = new T;
             t->parse(e);
+            t->set = true;
             vec.push_back(t);
         }
     }
@@ -54,11 +57,13 @@ struct Parser
 
         T *t = new T;
         t->parse(e);
+        t->set = true;
         return t;
     }
 
     virtual void parse(XMLElement *e, const char *tagName = 0);
     virtual void parseSub(XMLElement *e, const char *subElementName, bool optional = false);
+    virtual void dump(int indentLevel = 0) = 0;
 };
 
 struct World;
@@ -75,6 +80,7 @@ struct SDF : public Parser
     std::vector<Light*> lights;
 
     virtual void parse(XMLElement *e, const char *tagName = "sdf");
+    virtual void dump(int indentLevel = 0);
     virtual ~SDF();
 };
 
@@ -83,6 +89,7 @@ struct Vector : public Parser
     double x, y, z;
 
     virtual void parse(XMLElement *e, const char *tagName = "vector");
+    virtual void dump(int indentLevel = 0);
     virtual ~Vector();
 };
 
@@ -91,6 +98,7 @@ struct Time : public Parser
     long seconds, nanoseconds;
 
     virtual void parse(XMLElement *e, const char *tagName = "time");
+    virtual void dump(int indentLevel = 0);
     virtual ~Time();
 };
 
@@ -99,6 +107,7 @@ struct Color : public Parser
     double r, g, b, a;
 
     virtual void parse(XMLElement *e, const char *tagName = "color");
+    virtual void dump(int indentLevel = 0);
     virtual ~Color();
 };
 
@@ -107,6 +116,7 @@ struct Orientation : public Parser
     double roll, pitch, yaw;
 
     virtual void parse(XMLElement *e, const char *tagName = "orientation");
+    virtual void dump(int indentLevel = 0);
     virtual ~Orientation();
 };
 
@@ -116,6 +126,7 @@ struct Pose : public Parser
     Orientation orientation;
 
     virtual void parse(XMLElement *e, const char *tagName = "pose");
+    virtual void dump(int indentLevel = 0);
     virtual ~Pose();
 };
 
@@ -127,6 +138,7 @@ struct Include : public Parser
     bool dynamic;
 
     virtual void parse(XMLElement *e, const char *tagName = "include");
+    virtual void dump(int indentLevel = 0);
     virtual ~Include();
 };
 
@@ -136,6 +148,7 @@ struct Plugin : public Parser
     std::string fileName;
 
     virtual void parse(XMLElement *e, const char *tagName = "plugin");
+    virtual void dump(int indentLevel = 0);
     virtual ~Plugin();
 };
 
@@ -145,6 +158,7 @@ struct Frame : public Parser
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "frame");
+    virtual void dump(int indentLevel = 0);
     virtual ~Frame();
 };
 
@@ -158,6 +172,7 @@ struct NoiseModel : public Parser
     double precision;
 
     virtual void parse(XMLElement *e, const char *tagName = "noise");
+    virtual void dump(int indentLevel = 0);
     virtual ~NoiseModel();
 };
 
@@ -168,6 +183,7 @@ struct Altimeter : public Parser
         NoiseModel noise;
 
         virtual void parse(XMLElement *e, const char *tagName = "vertical_position");
+        virtual void dump(int indentLevel = 0);
         virtual ~VerticalPosition();
     } verticalPosition;
     struct VerticalVelocity : public Parser
@@ -175,10 +191,12 @@ struct Altimeter : public Parser
         NoiseModel noise;
 
         virtual void parse(XMLElement *e, const char *tagName = "vertical_velocity");
+        virtual void dump(int indentLevel = 0);
         virtual ~VerticalVelocity();
     } verticalVelocity;
 
     virtual void parse(XMLElement *e, const char *tagName = "altimeter");
+    virtual void dump(int indentLevel = 0);
     virtual ~Altimeter();
 };
 
@@ -189,6 +207,7 @@ struct Image : public Parser
     std::string format;
 
     virtual void parse(XMLElement *e, const char *tagName = "image");
+    virtual void dump(int indentLevel = 0);
     virtual ~Image();
 };
 
@@ -198,6 +217,7 @@ struct Clip : public Parser
     double far;
 
     virtual void parse(XMLElement *e, const char *tagName = "clip");
+    virtual void dump(int indentLevel = 0);
     virtual ~Clip();
 };
 
@@ -213,6 +233,7 @@ struct Camera : public Parser
         std::string path;
 
         virtual void parse(XMLElement *e, const char *tagName = "save");
+        virtual void dump(int indentLevel = 0);
         virtual ~Save();
     } save;
     struct DepthCamera : public Parser
@@ -220,6 +241,7 @@ struct Camera : public Parser
         std::string output;
 
         virtual void parse(XMLElement *e, const char *tagName = "depth_camera");
+        virtual void dump(int indentLevel = 0);
         virtual ~DepthCamera();
     } depthCamera;
     NoiseModel noise;
@@ -231,10 +253,12 @@ struct Camera : public Parser
             double x, y;
 
             virtual void parse(XMLElement *e, const char *tagName = "center");
+            virtual void dump(int indentLevel = 0);
             virtual ~Center();
         } center;
 
         virtual void parse(XMLElement *e, const char *tagName = "distortion");
+        virtual void dump(int indentLevel = 0);
         virtual ~Distortion();
     } distortion;
     struct Lens : public Parser
@@ -247,18 +271,21 @@ struct Camera : public Parser
             std::string fun;
 
             virtual void parse(XMLElement *e, const char *tagName = "custom_function");
+            virtual void dump(int indentLevel = 0);
             virtual ~CustomFunction();
         } customFunction;
         double cutoffAngle;
         double envTextureSize;
 
         virtual void parse(XMLElement *e, const char *tagName = "lens");
+        virtual void dump(int indentLevel = 0);
         virtual ~Lens();
     } lens;
     Frame frame;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "camera");
+    virtual void dump(int indentLevel = 0);
     virtual ~Camera();
 };
 
@@ -268,6 +295,7 @@ struct Contact : public Parser
     std::string topic;
 
     virtual void parse(XMLElement *e, const char *tagName = "camera");
+    virtual void dump(int indentLevel = 0);
     virtual ~Contact();
 };
 
@@ -280,6 +308,7 @@ struct GPS : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "horizontal");
+            virtual void dump(int indentLevel = 0);
             virtual ~Horizontal();
         } horizontal;
         struct Vertical : public Parser
@@ -287,10 +316,12 @@ struct GPS : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "vertical");
+            virtual void dump(int indentLevel = 0);
             virtual ~Vertical();
         } vertical;
 
         virtual void parse(XMLElement *e, const char *tagName = "position_sensing");
+        virtual void dump(int indentLevel = 0);
         virtual ~PositionSensing();
     } positionSensing;
     struct VelocitySensing : public Parser
@@ -300,6 +331,7 @@ struct GPS : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "horizontal");
+            virtual void dump(int indentLevel = 0);
             virtual ~Horizontal();
         } horizontal;
         struct Vertical : public Parser
@@ -307,14 +339,17 @@ struct GPS : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "vertical");
+            virtual void dump(int indentLevel = 0);
             virtual ~Vertical();
         } vertical;
 
         virtual void parse(XMLElement *e, const char *tagName = "velocity_sensing");
+        virtual void dump(int indentLevel = 0);
         virtual ~VelocitySensing();
     } velocitySensing;
 
     virtual void parse(XMLElement *e, const char *tagName = "gps");
+    virtual void dump(int indentLevel = 0);
     virtual ~GPS();
 };
 
@@ -328,6 +363,7 @@ struct IMU : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "x");
+            virtual void dump(int indentLevel = 0);
             virtual ~X();
         } x;
         struct Y : public Parser
@@ -335,6 +371,7 @@ struct IMU : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "y");
+            virtual void dump(int indentLevel = 0);
             virtual ~Y();
         } y;
         struct Z : public Parser
@@ -342,10 +379,12 @@ struct IMU : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "z");
+            virtual void dump(int indentLevel = 0);
             virtual ~Z();
         } z;
 
         virtual void parse(XMLElement *e, const char *tagName = "angular_velocity");
+        virtual void dump(int indentLevel = 0);
         virtual ~AngularVelocity();
     } angularVelocity;
     struct LinearAcceleration : public Parser
@@ -355,6 +394,7 @@ struct IMU : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "x");
+            virtual void dump(int indentLevel = 0);
             virtual ~X();
         } x;
         struct Y : public Parser
@@ -362,6 +402,7 @@ struct IMU : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "y");
+            virtual void dump(int indentLevel = 0);
             virtual ~Y();
         } y;
         struct Z : public Parser
@@ -369,14 +410,17 @@ struct IMU : public Parser
             NoiseModel noise;
 
             virtual void parse(XMLElement *e, const char *tagName = "z");
+            virtual void dump(int indentLevel = 0);
             virtual ~Z();
         } z;
 
         virtual void parse(XMLElement *e, const char *tagName = "linear_acceleration");
+        virtual void dump(int indentLevel = 0);
         virtual ~LinearAcceleration();
     } linearAcceleration;
 
     virtual void parse(XMLElement *e, const char *tagName = "imu");
+    virtual void dump(int indentLevel = 0);
     virtual ~IMU();
 };
 
@@ -388,6 +432,7 @@ struct LogicalCamera : public Parser
     double horizontalFOV;
 
     virtual void parse(XMLElement *e, const char *tagName = "logical_camera");
+    virtual void dump(int indentLevel = 0);
     virtual ~LogicalCamera();
 };
 
@@ -398,6 +443,7 @@ struct Magnetometer : public Parser
         NoiseModel noise;
 
         virtual void parse(XMLElement *e, const char *tagName = "x");
+        virtual void dump(int indentLevel = 0);
         virtual ~X();
     } x;
     struct Y : public Parser
@@ -405,6 +451,7 @@ struct Magnetometer : public Parser
         NoiseModel noise;
 
         virtual void parse(XMLElement *e, const char *tagName = "y");
+        virtual void dump(int indentLevel = 0);
         virtual ~Y();
     } y;
     struct Z : public Parser
@@ -412,10 +459,12 @@ struct Magnetometer : public Parser
         NoiseModel noise;
 
         virtual void parse(XMLElement *e, const char *tagName = "z");
+        virtual void dump(int indentLevel = 0);
         virtual ~Z();
     } z;
 
     virtual void parse(XMLElement *e, const char *tagName = "magnetometer");
+    virtual void dump(int indentLevel = 0);
     virtual ~Magnetometer();
 };
 
@@ -427,6 +476,7 @@ struct LaserScanResolution : public Parser
     double maxAngle;
 
     virtual void parse(XMLElement *e, const char *tagName = "resolution");
+    virtual void dump(int indentLevel = 0);
     virtual ~LaserScanResolution();
 };
 
@@ -438,6 +488,7 @@ struct Ray : public Parser
         LaserScanResolution vertical;
 
         virtual void parse(XMLElement *e, const char *tagName = "scan");
+        virtual void dump(int indentLevel = 0);
         virtual ~Scan();
     } scan;
     struct Range : public Parser
@@ -447,23 +498,27 @@ struct Ray : public Parser
         double resolution;
 
         virtual void parse(XMLElement *e, const char *tagName = "range");
+        virtual void dump(int indentLevel = 0);
         virtual ~Range();
     } range;
     NoiseModel noise;
 
     virtual void parse(XMLElement *e, const char *tagName = "ray");
+    virtual void dump(int indentLevel = 0);
     virtual ~Ray();
 };
 
 struct RFIDTag : public Parser
 {
     virtual void parse(XMLElement *e, const char *tagName = "rfid_tag");
+    virtual void dump(int indentLevel = 0);
     virtual ~RFIDTag();
 };
 
 struct RFID : public Parser
 {
     virtual void parse(XMLElement *e, const char *tagName = "rfid");
+    virtual void dump(int indentLevel = 0);
     virtual ~RFID();
 };
 
@@ -474,6 +529,7 @@ struct Sonar : public Parser
     double radius;
 
     virtual void parse(XMLElement *e, const char *tagName = "sonar");
+    virtual void dump(int indentLevel = 0);
     virtual ~Sonar();
 };
 
@@ -488,6 +544,7 @@ struct Transceiver : public Parser
     double sensitivity;
 
     virtual void parse(XMLElement *e, const char *tagName = "transceiver");
+    virtual void dump(int indentLevel = 0);
     virtual ~Transceiver();
 };
 
@@ -497,6 +554,7 @@ struct ForceTorque : public Parser
     std::string measureDirection;
 
     virtual void parse(XMLElement *e, const char *tagName = "force_torque");
+    virtual void dump(int indentLevel = 0);
     virtual ~ForceTorque();
 };
 
@@ -508,12 +566,14 @@ struct LinkInertial : public Parser
         double ixx, ixy, ixz, iyy, iyz, izz;
 
         virtual void parse(XMLElement *e, const char *tagName = "inertia");
+        virtual void dump(int indentLevel = 0);
         virtual ~InertiaMatrix();
     } inertia;
     Frame frame;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "link_inertial");
+    virtual void dump(int indentLevel = 0);
     virtual ~LinkInertial();
 };
 
@@ -524,6 +584,7 @@ struct Texture : public Parser
     std::string normal;
 
     virtual void parse(XMLElement *e, const char *tagName = "texture");
+    virtual void dump(int indentLevel = 0);
     virtual ~Texture();
 };
 
@@ -533,12 +594,14 @@ struct TextureBlend : public Parser
     double fadeDist;
 
     virtual void parse(XMLElement *e, const char *tagName = "blend");
+    virtual void dump(int indentLevel = 0);
     virtual ~TextureBlend();
 };
 
 struct EmptyGeometry : public Parser
 {
     virtual void parse(XMLElement *e, const char *tagName = "empty");
+    virtual void dump(int indentLevel = 0);
     virtual ~EmptyGeometry();
 };
 
@@ -547,6 +610,7 @@ struct BoxGeometry : public Parser
     Vector size;
 
     virtual void parse(XMLElement *e, const char *tagName = "box");
+    virtual void dump(int indentLevel = 0);
     virtual ~BoxGeometry();
 };
 
@@ -556,6 +620,7 @@ struct CylinderGeometry : public Parser
     double length;
 
     virtual void parse(XMLElement *e, const char *tagName = "cylinder");
+    virtual void dump(int indentLevel = 0);
     virtual ~CylinderGeometry();
 };
 
@@ -569,6 +634,7 @@ struct HeightMapGeometry : public Parser
     bool useTerrainPaging;
 
     virtual void parse(XMLElement *e, const char *tagName = "heightmap");
+    virtual void dump(int indentLevel = 0);
     virtual ~HeightMapGeometry();
 };
 
@@ -581,6 +647,7 @@ struct ImageGeometry : public Parser
     double granularity;
 
     virtual void parse(XMLElement *e, const char *tagName = "image");
+    virtual void dump(int indentLevel = 0);
     virtual ~ImageGeometry();
 };
 
@@ -593,11 +660,13 @@ struct MeshGeometry : public Parser
         bool center;
 
         virtual void parse(XMLElement *e, const char *tagName = "submesh");
+        virtual void dump(int indentLevel = 0);
         virtual ~SubMesh();
     } submesh;
     double scale;
 
     virtual void parse(XMLElement *e, const char *tagName = "mesh");
+    virtual void dump(int indentLevel = 0);
     virtual ~MeshGeometry();
 };
 
@@ -607,6 +676,7 @@ struct PlaneGeometry : public Parser
     Vector size;
 
     virtual void parse(XMLElement *e, const char *tagName = "plane");
+    virtual void dump(int indentLevel = 0);
     virtual ~PlaneGeometry();
 };
 
@@ -616,6 +686,7 @@ struct PolylineGeometry : public Parser
     double height;
 
     virtual void parse(XMLElement *e, const char *tagName = "polyline");
+    virtual void dump(int indentLevel = 0);
     virtual ~PolylineGeometry();
 };
 
@@ -624,6 +695,7 @@ struct SphereGeometry : public Parser
     double radius;
 
     virtual void parse(XMLElement *e, const char *tagName = "sphere");
+    virtual void dump(int indentLevel = 0);
     virtual ~SphereGeometry();
 };
 
@@ -640,6 +712,7 @@ struct Geometry : public Parser
     SphereGeometry *sphere;
 
     virtual void parse(XMLElement *e, const char *tagName = "geometry");
+    virtual void dump(int indentLevel = 0);
     virtual ~Geometry();
 };
 
@@ -659,6 +732,7 @@ struct LinkCollision : public Parser
             double threshold;
 
             virtual void parse(XMLElement *e, const char *tagName = "bounce");
+            virtual void dump(int indentLevel = 0);
             virtual ~Bounce();
         } bounce;
         struct Friction : public Parser
@@ -674,10 +748,12 @@ struct LinkCollision : public Parser
                     double slip;
                     
                     virtual void parse(XMLElement *e, const char *tagName = "ode");
+                    virtual void dump(int indentLevel = 0);
                     virtual ~ODE();
                 } ode;
 
                 virtual void parse(XMLElement *e, const char *tagName = "torsional");
+                virtual void dump(int indentLevel = 0);
                 virtual ~Torsional();
             } torsional;
             struct ODE : public Parser
@@ -689,6 +765,7 @@ struct LinkCollision : public Parser
                 double slip2;
 
                 virtual void parse(XMLElement *e, const char *tagName = "ode");
+                virtual void dump(int indentLevel = 0);
                 virtual ~ODE();
             } ode;
             struct Bullet : public Parser
@@ -699,10 +776,12 @@ struct LinkCollision : public Parser
                 double rollingFriction;
 
                 virtual void parse(XMLElement *e, const char *tagName = "bullet");
+                virtual void dump(int indentLevel = 0);
                 virtual ~Bullet();
             } bullet;
 
             virtual void parse(XMLElement *e, const char *tagName = "friction");
+            virtual void dump(int indentLevel = 0);
             virtual ~Friction();
         } friction;
         struct Contact : public Parser
@@ -722,6 +801,7 @@ struct LinkCollision : public Parser
                 double minDepth;
 
                 virtual void parse(XMLElement *e, const char *tagName = "ode");
+                virtual void dump(int indentLevel = 0);
                 virtual ~ODE();
             } ode;
             struct Bullet : public Parser
@@ -735,10 +815,12 @@ struct LinkCollision : public Parser
                 double minDepth;
 
                 virtual void parse(XMLElement *e, const char *tagName = "bullet");
+                virtual void dump(int indentLevel = 0);
                 virtual ~Bullet();
             } bullet;
 
             virtual void parse(XMLElement *e, const char *tagName = "contact");
+            virtual void dump(int indentLevel = 0);
             virtual ~Contact();
         } contact;
         struct SoftContact : public Parser
@@ -751,18 +833,22 @@ struct LinkCollision : public Parser
                 double fleshMassFraction;
 
                 virtual void parse(XMLElement *e, const char *tagName = "dart");
+                virtual void dump(int indentLevel = 0);
                 virtual ~Dart();
             } dart;
 
             virtual void parse(XMLElement *e, const char *tagName = "soft_contact");
+            virtual void dump(int indentLevel = 0);
             virtual ~SoftContact();
         } softContact;
 
         virtual void parse(XMLElement *e, const char *tagName = "surface");
+        virtual void dump(int indentLevel = 0);
         virtual ~Surface();
     } surface;
 
     virtual void parse(XMLElement *e, const char *tagName = "collision");
+    virtual void dump(int indentLevel = 0);
     virtual ~LinkCollision();
 };
 
@@ -771,6 +857,7 @@ struct URI : public Parser
     std::string uri;
 
     virtual void parse(XMLElement *e, const char *tagName = "uri");
+    virtual void dump(int indentLevel = 0);
     virtual ~URI();
 };
 
@@ -782,6 +869,7 @@ struct Material : public Parser
         std::string name;
 
         virtual void parse(XMLElement *e, const char *tagName = "script");
+        virtual void dump(int indentLevel = 0);
         virtual ~Script();
     } script;
     struct Shader : public Parser
@@ -790,6 +878,7 @@ struct Material : public Parser
         std::string normalMap;
 
         virtual void parse(XMLElement *e, const char *tagName = "shader");
+        virtual void dump(int indentLevel = 0);
         virtual ~Shader();
     } shader;
     bool lighting;
@@ -799,6 +888,7 @@ struct Material : public Parser
     Color emissive;
 
     virtual void parse(XMLElement *e, const char *tagName = "material");
+    virtual void dump(int indentLevel = 0);
     virtual ~Material();
 };
 
@@ -813,6 +903,7 @@ struct LinkVisual : public Parser
         std::string layer;
 
         virtual void parse(XMLElement *e, const char *tagName = "meta");
+        virtual void dump(int indentLevel = 0);
         virtual ~Meta();
     } meta;
     Frame frame;
@@ -822,6 +913,7 @@ struct LinkVisual : public Parser
     std::vector<Plugin*> plugins;
 
     virtual void parse(XMLElement *e, const char *tagName = "visual");
+    virtual void dump(int indentLevel = 0);
     virtual ~LinkVisual();
 };
 
@@ -851,6 +943,7 @@ struct Sensor : public Parser
     ForceTorque forceTorque;
 
     virtual void parse(XMLElement *e, const char *tagName = "sensor");
+    virtual void dump(int indentLevel = 0);
     virtual ~Sensor();
 };
 
@@ -866,6 +959,7 @@ struct Projector : public Parser
     std::vector<Plugin*> plugins;
 
     virtual void parse(XMLElement *e, const char *tagName = "projector");
+    virtual void dump(int indentLevel = 0);
     virtual ~Projector();
 };
 
@@ -874,6 +968,7 @@ struct ContactCollision : public Parser
     std::string name;
 
     virtual void parse(XMLElement *e, const char *tagName = "collision");
+    virtual void dump(int indentLevel = 0);
     virtual ~ContactCollision();
 };
 
@@ -887,6 +982,7 @@ struct AudioSource : public Parser
         std::vector<ContactCollision*> collisions;
 
         virtual void parse(XMLElement *e, const char *tagName = "contact");
+        virtual void dump(int indentLevel = 0);
         virtual ~Contact();
     } contact;
     bool loop;
@@ -894,12 +990,14 @@ struct AudioSource : public Parser
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "audio_source");
+    virtual void dump(int indentLevel = 0);
     virtual ~AudioSource();
 };
 
 struct AudioSink : public Parser
 {
     virtual void parse(XMLElement *e, const char *tagName = "audio_sink");
+    virtual void dump(int indentLevel = 0);
     virtual ~AudioSink();
 };
 
@@ -909,6 +1007,7 @@ struct Battery : public Parser
     double voltage;
 
     virtual void parse(XMLElement *e, const char *tagName = "battery");
+    virtual void dump(int indentLevel = 0);
     virtual ~Battery();
 };
 
@@ -926,6 +1025,7 @@ struct Link : public Parser
         double angular;
 
         virtual void parse(XMLElement *e, const char *tagName = "velocity_decay");
+    virtual void dump(int indentLevel = 0);
         virtual ~VelocityDecay();
     } velocityDecay;
     Frame frame;
@@ -940,6 +1040,7 @@ struct Link : public Parser
     std::vector<Battery*> batteries;
 
     virtual void parse(XMLElement *e, const char *tagName = "link");
+    virtual void dump(int indentLevel = 0);
     virtual ~Link();
 };
 
@@ -955,6 +1056,7 @@ struct Axis : public Parser
         double springStiffness;
 
         virtual void parse(XMLElement *e, const char *tagName = "dynamics");
+        virtual void dump(int indentLevel = 0);
         virtual ~Dynamics();
     } dynamics;
     struct Limit : public Parser
@@ -967,10 +1069,12 @@ struct Axis : public Parser
         double dissipation;
 
         virtual void parse(XMLElement *e, const char *tagName = "limit");
+        virtual void dump(int indentLevel = 0);
         virtual ~Limit();
     } limit;
 
     virtual void parse(XMLElement *e, const char *tagName = "axis");
+    virtual void dump(int indentLevel = 0);
     virtual ~Axis();
 };
 
@@ -992,6 +1096,7 @@ struct Joint : public Parser
             bool mustBeLoopJoint;
 
             virtual void parse(XMLElement *e, const char *tagName = "simbody");
+            virtual void dump(int indentLevel = 0);
             virtual ~Simbody();
         } simbody;
         struct ODE : public Parser
@@ -1011,6 +1116,7 @@ struct Joint : public Parser
                 double erp;
                 
                 virtual void parse(XMLElement *e, const char *tagName = "limit");
+                virtual void dump(int indentLevel = 0);
                 virtual ~Limit();
             } limit;
             struct Suspension : public Parser
@@ -1019,15 +1125,18 @@ struct Joint : public Parser
                 double erp;
                 
                 virtual void parse(XMLElement *e, const char *tagName = "suspension");
+                virtual void dump(int indentLevel = 0);
                 virtual ~Suspension();
             } suspension;
             
             virtual void parse(XMLElement *e, const char *tagName = "ode");
+            virtual void dump(int indentLevel = 0);
             virtual ~ODE();
         } ode;
         bool provideFeedback;
 
         virtual void parse(XMLElement *e, const char *tagName = "physics");
+        virtual void dump(int indentLevel = 0);
         virtual ~Physics();
     } physics;
     Frame frame;
@@ -1035,6 +1144,7 @@ struct Joint : public Parser
     Sensor sensor;
 
     virtual void parse(XMLElement *e, const char *tagName = "joint");
+    virtual void dump(int indentLevel = 0);
     virtual ~Joint();
 };
 
@@ -1048,12 +1158,14 @@ struct Gripper : public Parser
         int minContactCount;
 
         virtual void parse(XMLElement *e, const char *tagName = "grasp_check");
+        virtual void dump(int indentLevel = 0);
         virtual ~GraspCheck();
     } graspCheck;
     std::string gripperLink;
     std::string palmLink;
 
     virtual void parse(XMLElement *e, const char *tagName = "gripper");
+    virtual void dump(int indentLevel = 0);
     virtual ~Gripper();
 };
 
@@ -1074,12 +1186,14 @@ struct Model : public Parser
     std::vector<Gripper*> grippers;
 
     virtual void parse(XMLElement *e, const char *tagName = "model");
+    virtual void dump(int indentLevel = 0);
     virtual ~Model();
 };
 
 struct Road : public Parser
 {
     virtual void parse(XMLElement *e, const char *tagName = "road");
+    virtual void dump(int indentLevel = 0);
     virtual ~Road();
 };
 
@@ -1101,10 +1215,12 @@ struct Scene : public Parser
             Color ambient;
 
             virtual void parse(XMLElement *e, const char *tagName = "clouds");
+            virtual void dump(int indentLevel = 0);
             virtual ~Clouds();
         } clouds;
 
         virtual void parse(XMLElement *e, const char *tagName = "sky");
+        virtual void dump(int indentLevel = 0);
         virtual ~Sky();
     } sky;
     bool shadows;
@@ -1117,12 +1233,14 @@ struct Scene : public Parser
         double density;
 
         virtual void parse(XMLElement *e, const char *tagName = "fog");
+        virtual void dump(int indentLevel = 0);
         virtual ~Fog();
     } fog;
     bool grid;
     bool originVisual;
 
     virtual void parse(XMLElement *e, const char *tagName = "scene");
+    virtual void dump(int indentLevel = 0);
     virtual ~Scene();
 };
 
@@ -1153,10 +1271,12 @@ struct Physics : public Parser
             double overrideStictionTransitionVelocity;
 
             virtual void parse(XMLElement *e, const char *tagName = "contact");
+            virtual void dump(int indentLevel = 0);
             virtual ~Contact();
         } contact;
 
         virtual void parse(XMLElement *e, const char *tagName = "simbody");
+        virtual void dump(int indentLevel = 0);
         virtual ~Simbody();
     } simbody;
     struct Bullet : public Parser
@@ -1169,6 +1289,7 @@ struct Physics : public Parser
             double sor;
 
             virtual void parse(XMLElement *e, const char *tagName = "solver");
+            virtual void dump(int indentLevel = 0);
             virtual ~Solver();
         } solver;
         struct Constraints : public Parser
@@ -1180,10 +1301,12 @@ struct Physics : public Parser
             double splitImpulsePenetrationThreshold;
 
             virtual void parse(XMLElement *e, const char *tagName = "constraints");
+            virtual void dump(int indentLevel = 0);
             virtual ~Constraints();
         } constraints;
 
         virtual void parse(XMLElement *e, const char *tagName = "bullet");
+        virtual void dump(int indentLevel = 0);
         virtual ~Bullet();
     } bullet;
     struct ODE : public Parser
@@ -1198,6 +1321,7 @@ struct Physics : public Parser
             bool useDynamicMOIRescaling;
 
             virtual void parse(XMLElement *e, const char *tagName = "solver");
+            virtual void dump(int indentLevel = 0);
             virtual ~Solver();
         } solver;
         struct Constraints : public Parser
@@ -1208,14 +1332,17 @@ struct Physics : public Parser
             double contactSurfaceLayer;
 
             virtual void parse(XMLElement *e, const char *tagName = "constraints");
+            virtual void dump(int indentLevel = 0);
             virtual ~Constraints();
         } constraints;
 
         virtual void parse(XMLElement *e, const char *tagName = "ode");
+        virtual void dump(int indentLevel = 0);
         virtual ~ODE();
     } ode;
 
     virtual void parse(XMLElement *e, const char *tagName = "physics");
+    virtual void dump(int indentLevel = 0);
     virtual ~Physics();
 };
 
@@ -1225,6 +1352,7 @@ struct JointStateField : public Parser
     unsigned int axis;
 
     virtual void parse(XMLElement *e, const char *tagName = "angle");
+    virtual void dump(int indentLevel = 0);
     virtual ~JointStateField();
 };
 
@@ -1234,6 +1362,7 @@ struct JointState : public Parser
     std::vector<JointStateField*> fields;
 
     virtual void parse(XMLElement *e, const char *tagName = "joint");
+    virtual void dump(int indentLevel = 0);
     virtual ~JointState();
 };
 
@@ -1242,6 +1371,7 @@ struct CollisionState : public Parser
     std::string name;
 
     virtual void parse(XMLElement *e, const char *tagName = "collision");
+    virtual void dump(int indentLevel = 0);
     virtual ~CollisionState();
 };
 
@@ -1256,6 +1386,7 @@ struct LinkState : public Parser
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "link");
+    virtual void dump(int indentLevel = 0);
     virtual ~LinkState();
 };
 
@@ -1270,6 +1401,7 @@ struct ModelState : public Parser
     std::vector<LinkState*> links;
 
     virtual void parse(XMLElement *e, const char *tagName = "model");
+    virtual void dump(int indentLevel = 0);
     virtual ~ModelState();
 };
 
@@ -1280,6 +1412,7 @@ struct LightState : public Parser
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "light");
+    virtual void dump(int indentLevel = 0);
     virtual ~LightState();
 };
 
@@ -1288,6 +1421,7 @@ struct ModelRef : public Parser
     std::string name;
 
     virtual void parse(XMLElement *e, const char *tagName = "name");
+    virtual void dump(int indentLevel = 0);
     virtual ~ModelRef();
 };
 
@@ -1303,6 +1437,7 @@ struct State : public Parser
         std::vector<Model*> models;
 
         virtual void parse(XMLElement *e, const char *tagName = "insertions");
+        virtual void dump(int indentLevel = 0);
         virtual ~Insertions();
     } insertions;
     struct Deletions : public Parser
@@ -1310,18 +1445,21 @@ struct State : public Parser
         std::vector<ModelRef*> names;
 
         virtual void parse(XMLElement *e, const char *tagName = "deletions");
+        virtual void dump(int indentLevel = 0);
         virtual ~Deletions();
     } deletions;
     std::vector<ModelState*> modelstates;
     std::vector<LightState*> lightstates;
 
     virtual void parse(XMLElement *e, const char *tagName = "state");
+    virtual void dump(int indentLevel = 0);
     virtual ~State();
 };
 
 struct Population : public Parser
 {
     virtual void parse(XMLElement *e, const char *tagName = "population");
+    virtual void dump(int indentLevel = 0);
     virtual ~Population();
 };
 
@@ -1333,6 +1471,7 @@ struct World : public Parser
         std::string device;
 
         virtual void parse(XMLElement *e, const char *tagName = "audio");
+        virtual void dump(int indentLevel = 0);
         virtual ~Audio();
     } audio;
     struct Wind : public Parser
@@ -1340,6 +1479,7 @@ struct World : public Parser
         double linearVelocity;
 
         virtual void parse(XMLElement *e, const char *tagName = "wind");
+        virtual void dump(int indentLevel = 0);
         virtual ~Wind();
     } wind;
     std::vector<Include*> includes;
@@ -1354,6 +1494,7 @@ struct World : public Parser
         double temperatureGradient;
 
         virtual void parse(XMLElement *e, const char *tagName = "atmosphere");
+        virtual void dump(int indentLevel = 0);
         virtual ~Atmosphere();
     } atmosphere;
     struct GUI : public Parser
@@ -1375,17 +1516,20 @@ struct World : public Parser
                 bool inheritYaw;
 
                 virtual void parse(XMLElement *e, const char *tagName = "track_visual");
+                virtual void dump(int indentLevel = 0);
                 virtual ~TrackVisual();
             } trackVisual;
             Frame frame;
             Pose pose;
 
             virtual void parse(XMLElement *e, const char *tagName = "camera");
+            virtual void dump(int indentLevel = 0);
             virtual ~Camera();
         } camera;
         std::vector<Plugin*> plugins;
 
         virtual void parse(XMLElement *e, const char *tagName = "gui");
+        virtual void dump(int indentLevel = 0);
         virtual ~GUI();
     } gui;
     Physics physics;
@@ -1404,12 +1548,14 @@ struct World : public Parser
         double headingDeg;
 
         virtual void parse(XMLElement *e, const char *tagName = "spherical_coordinates");
+        virtual void dump(int indentLevel = 0);
         virtual ~SphericalCoordinates();
     } sphericalCoordinates;
     std::vector<State*> states;
     std::vector<Population*> populations;
 
     virtual void parse(XMLElement *e, const char *tagName = "world");
+    virtual void dump(int indentLevel = 0);
     virtual ~World();
 };
 
@@ -1419,6 +1565,7 @@ struct Actor : public Parser
     // incomplete
 
     virtual void parse(XMLElement *e, const char *tagName = "actor");
+    virtual void dump(int indentLevel = 0);
     virtual ~Actor();
 };
 
@@ -1437,6 +1584,7 @@ struct Light : public Parser
         double quadratic;
 
         virtual void parse(XMLElement *e, const char *tagName = "attenuation");
+        virtual void dump(int indentLevel = 0);
         virtual ~Attenuation();
     } attenuation;
     Vector direction;
@@ -1447,12 +1595,14 @@ struct Light : public Parser
         double fallOff;
 
         virtual void parse(XMLElement *e, const char *tagName = "spot");
+        virtual void dump(int indentLevel = 0);
         virtual ~Spot();
     } spot;
     Frame frame;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "light");
+    virtual void dump(int indentLevel = 0);
     virtual ~Light();
 };
 
