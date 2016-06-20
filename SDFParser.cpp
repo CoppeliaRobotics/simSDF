@@ -13,6 +13,22 @@
 #define dumpField(n) dumpField1(i+1, #n, n)
 #define endDump(n) std::cout << indent(i) << "}" << std::endl
 
+#define WRAP_EXCEPTIONS_BEGIN(X) \
+    try {
+
+#define WRAP_EXCEPTIONS_END(X) \
+    } \
+    catch(std::string& exStr) { \
+        std::stringstream ss; \
+        ss << tagName << ": " << exStr; \
+        throw ss.str(); \
+    } \
+    catch(std::exception& ex) { \
+        std::stringstream ss; \
+        ss << tagName << ": " << ex.what(); \
+        throw ss.str(); \
+    }
+
 string indent(int level)
 {
     string s;
@@ -264,6 +280,7 @@ void Parser::parse(XMLElement *e, const char *tagName)
 
 void SDF::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SDF)
     Parser::parse(e, tagName);
 
     static const char *supportedVersions[] = {"1.1", "1.2", "1.3", "1.4", "1.5", "1.6"}; // TODO: verify this
@@ -272,6 +289,8 @@ void SDF::parse(XMLElement *e, const char *tagName)
     parseMany(e, "model", models);
     parseMany(e, "actor", actors);
     parseMany(e, "light", lights);
+
+    WRAP_EXCEPTIONS_END(SDF)
 }
 
 void SDF::dump(int i)
@@ -295,6 +314,7 @@ SDF::~SDF()
 
 void Vector::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Vector)
     Parser::parse(e, tagName);
 
     try
@@ -315,6 +335,8 @@ void Vector::parse(XMLElement *e, const char *tagName)
         y = boost::lexical_cast<double>(tokens[1]);
         z = boost::lexical_cast<double>(tokens[2]);
     }
+
+    WRAP_EXCEPTIONS_END(Vector)
 }
 
 void Vector::dump(int i)
@@ -332,6 +354,7 @@ Vector::~Vector()
 
 void Time::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Time)
     Parser::parse(e, tagName);
 
     try
@@ -350,6 +373,8 @@ void Time::parse(XMLElement *e, const char *tagName)
         seconds = boost::lexical_cast<double>(tokens[0]);
         nanoseconds = boost::lexical_cast<double>(tokens[1]);
     }
+
+    WRAP_EXCEPTIONS_END(Time)
 }
 
 void Time::dump(int i)
@@ -366,6 +391,7 @@ Time::~Time()
 
 void Color::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Color)
     Parser::parse(e, tagName);
 
     try
@@ -388,6 +414,8 @@ void Color::parse(XMLElement *e, const char *tagName)
         b = boost::lexical_cast<double>(tokens[2]);
         a = boost::lexical_cast<double>(tokens[3]);
     }
+
+    WRAP_EXCEPTIONS_END(Color)
 }
 
 void Color::dump(int i)
@@ -406,6 +434,7 @@ Color::~Color()
 
 void Orientation::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Orientation)
     Parser::parse(e, tagName);
 
     try
@@ -426,6 +455,8 @@ void Orientation::parse(XMLElement *e, const char *tagName)
         pitch = boost::lexical_cast<double>(tokens[1]);
         yaw = boost::lexical_cast<double>(tokens[2]);
     }
+
+    WRAP_EXCEPTIONS_END(Orientation)
 }
 
 void Orientation::dump(int i)
@@ -443,6 +474,7 @@ Orientation::~Orientation()
 
 void Pose::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Pose)
     Parser::parse(e, tagName);
 
     try
@@ -466,6 +498,8 @@ void Pose::parse(XMLElement *e, const char *tagName)
         orientation.yaw = boost::lexical_cast<double>(tokens[5]);
     }
     frame = getAttrStrOpt(e, "frame");
+
+    WRAP_EXCEPTIONS_END(Pose)
 }
 
 void Pose::dump(int i)
@@ -482,12 +516,15 @@ Pose::~Pose()
 
 void Include::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Include)
     Parser::parse(e, tagName);
 
     uri = getSubValStr(e, "uri");
     parse1Opt(e, "pose", pose);
     name = getSubValStrOpt(e, "name");
     static_ = getSubValBoolOpt(e, "static");
+
+    WRAP_EXCEPTIONS_END(Include)
 }
 
 void Include::dump(int i)
@@ -506,10 +543,13 @@ Include::~Include()
 
 void Plugin::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Plugin)
     Parser::parse(e, tagName);
 
     name = getSubValStr(e, "name");
     fileName = getSubValStr(e, "filename");
+
+    WRAP_EXCEPTIONS_END(Plugin)
 }
 
 void Plugin::dump(int i)
@@ -526,10 +566,13 @@ Plugin::~Plugin()
 
 void Frame::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Frame)
     Parser::parse(e, tagName);
 
     name = getSubValStr(e, "name");
     parse1Opt(e, "pose", pose);
+
+    WRAP_EXCEPTIONS_END(Frame)
 }
 
 void Frame::dump(int i)
@@ -546,6 +589,7 @@ Frame::~Frame()
 
 void NoiseModel::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(NoiseModel)
     Parser::parse(e, tagName);
 
     mean = getSubValDouble(e, "mean");
@@ -553,6 +597,8 @@ void NoiseModel::parse(XMLElement *e, const char *tagName)
     biasMean = getSubValDouble(e, "bias_mean");
     biasStdDev = getSubValDouble(e, "bias_stddev");
     precision = getSubValDouble(e, "precision");
+
+    WRAP_EXCEPTIONS_END(NoiseModel)
 }
 
 void NoiseModel::dump(int i)
@@ -573,10 +619,13 @@ NoiseModel::~NoiseModel()
 
 void AltimeterSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(AltimeterSensor)
     Parser::parse(e, tagName);
 
     parse1(e, "vertical_position", verticalPosition);
     parse1(e, "vertical_velocity", verticalVelocity);
+
+    WRAP_EXCEPTIONS_END(AltimeterSensor)
 }
 
 void AltimeterSensor::dump(int i)
@@ -593,9 +642,12 @@ AltimeterSensor::~AltimeterSensor()
 
 void AltimeterSensor::VerticalPosition::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(VerticalPosition)
     Parser::parse(e, tagName);
 
     parse1(e, "noise", noise);
+
+    WRAP_EXCEPTIONS_END(VerticalPosition)
 }
 
 void AltimeterSensor::VerticalPosition::dump(int i)
@@ -611,9 +663,12 @@ AltimeterSensor::VerticalPosition::~VerticalPosition()
 
 void AltimeterSensor::VerticalVelocity::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(VerticalVelocity)
     Parser::parse(e, tagName);
 
     parse1(e, "noise", noise);
+
+    WRAP_EXCEPTIONS_END(VerticalVelocity)
 }
 
 void AltimeterSensor::VerticalVelocity::dump(int i)
@@ -629,11 +684,14 @@ AltimeterSensor::VerticalVelocity::~VerticalVelocity()
 
 void Image::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Image)
     Parser::parse(e, tagName);
 
     width = getSubValDouble(e, "width");
     height = getSubValDouble(e, "height");
     format = getSubValStr(e, "format");
+
+    WRAP_EXCEPTIONS_END(Image)
 }
 
 void Image::dump(int i)
@@ -651,10 +709,13 @@ Image::~Image()
 
 void Clip::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Clip)
     Parser::parse(e, tagName);
 
     near = getSubValDouble(e, "near");
     far = getSubValDouble(e, "far");
+
+    WRAP_EXCEPTIONS_END(Clip)
 }
 
 void Clip::dump(int i)
@@ -671,6 +732,7 @@ Clip::~Clip()
 
 void CustomFunction::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(CustomFunction)
     Parser::parse(e, tagName);
 
     c1 = getSubValDoubleOpt(e, "c1");
@@ -678,6 +740,8 @@ void CustomFunction::parse(XMLElement *e, const char *tagName)
     c3 = getSubValDoubleOpt(e, "c3");
     f = getSubValDoubleOpt(e, "f");
     fun = getSubValStr(e, "fun");
+
+    WRAP_EXCEPTIONS_END(CustomFunction)
 }
 
 void CustomFunction::dump(int i)
@@ -697,6 +761,7 @@ CustomFunction::~CustomFunction()
 
 void CameraSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(CameraSensor)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -710,6 +775,8 @@ void CameraSensor::parse(XMLElement *e, const char *tagName)
     parse1(e, "lens", lens);
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
+
+    WRAP_EXCEPTIONS_END(CameraSensor)
 }
 
 void CameraSensor::dump(int i)
@@ -736,10 +803,13 @@ CameraSensor::~CameraSensor()
 
 void CameraSensor::Save::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Save)
     Parser::parse(e, tagName);
 
     enabled = getAttrBool(e, "enabled");
     path = getSubValStr(e, "path");
+
+    WRAP_EXCEPTIONS_END(Save)
 }
 
 void CameraSensor::Save::dump(int i)
@@ -756,9 +826,12 @@ CameraSensor::Save::~Save()
 
 void CameraSensor::DepthCamera::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(DepthCamera)
     Parser::parse(e, tagName);
 
     output = getSubValStr(e, "output");
+
+    WRAP_EXCEPTIONS_END(DepthCamera)
 }
 
 void CameraSensor::DepthCamera::dump(int i)
@@ -774,6 +847,7 @@ CameraSensor::DepthCamera::~DepthCamera()
 
 void CameraSensor::Distortion::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Distortion)
     Parser::parse(e, tagName);
 
     k1 = getSubValDouble(e, "k1");
@@ -782,6 +856,8 @@ void CameraSensor::Distortion::parse(XMLElement *e, const char *tagName)
     p1 = getSubValDouble(e, "p1");
     p2 = getSubValDouble(e, "p2");
     parse1(e, "center", center);
+
+    WRAP_EXCEPTIONS_END(Distortion)
 }
 
 void CameraSensor::Distortion::dump(int i)
@@ -801,10 +877,13 @@ CameraSensor::Distortion::~Distortion()
 
 void CameraSensor::Distortion::Center::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Center)
     Parser::parse(e, tagName);
 
     x = getSubValDouble(e, "x");
     y = getSubValDouble(e, "y");
+
+    WRAP_EXCEPTIONS_END(Center)
 }
 
 void CameraSensor::Distortion::Center::dump(int i)
@@ -821,6 +900,7 @@ CameraSensor::Distortion::Center::~Center()
 
 void CameraSensor::Lens::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Lens)
     Parser::parse(e, tagName);
 
     type = getSubValStr(e, "type");
@@ -828,6 +908,8 @@ void CameraSensor::Lens::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "custom_function", customFunction);
     cutoffAngle = getSubValDoubleOpt(e, "cutoffAngle");
     envTextureSize = getSubValDoubleOpt(e, "envTextureSize");
+
+    WRAP_EXCEPTIONS_END(Lens)
 }
 
 void CameraSensor::Lens::dump(int i)
@@ -847,10 +929,13 @@ CameraSensor::Lens::~Lens()
 
 void ContactSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(ContactSensor)
     Parser::parse(e, tagName);
 
     collision = getSubValStr(e, "collision");
     topic = getSubValStr(e, "topic");
+
+    WRAP_EXCEPTIONS_END(ContactSensor)
 }
 
 void ContactSensor::dump(int i)
@@ -867,9 +952,12 @@ ContactSensor::~ContactSensor()
 
 void VariableWithNoise::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(VariableWithNoise)
     Parser::parse(e, tagName);
 
     parse1(e, "noise", noise);
+
+    WRAP_EXCEPTIONS_END(VariableWithNoise)
 }
 
 void VariableWithNoise::dump(int i)
@@ -885,10 +973,13 @@ VariableWithNoise::~VariableWithNoise()
 
 void PositionSensing::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(PositionSensing)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "horizontal", horizontal);
     parse1Opt(e, "vertical", vertical);
+
+    WRAP_EXCEPTIONS_END(PositionSensing)
 }
 
 void PositionSensing::dump(int i)
@@ -905,10 +996,13 @@ PositionSensing::~PositionSensing()
 
 void VelocitySensing::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(VelocitySensing)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "horizontal", horizontal);
     parse1Opt(e, "vertical", vertical);
+
+    WRAP_EXCEPTIONS_END(VelocitySensing)
 }
 
 void VelocitySensing::dump(int i)
@@ -925,10 +1019,13 @@ VelocitySensing::~VelocitySensing()
 
 void GPSSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(GOSSensor)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "position_sensing", positionSensing);
     parse1Opt(e, "velocity_sensing", velocitySensing);
+
+    WRAP_EXCEPTIONS_END(GOSSensor)
 }
 
 void GPSSensor::dump(int i)
@@ -945,11 +1042,14 @@ GPSSensor::~GPSSensor()
 
 void AngularVelocity::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(AngularVelocity)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "x", x);
     parse1Opt(e, "y", y);
     parse1Opt(e, "z", z);
+
+    WRAP_EXCEPTIONS_END(AngularVelocity)
 }
 
 void AngularVelocity::dump(int i)
@@ -967,11 +1067,14 @@ AngularVelocity::~AngularVelocity()
 
 void LinearAcceleration::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LinearAcceleration)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "x", x);
     parse1Opt(e, "y", y);
     parse1Opt(e, "z", z);
+
+    WRAP_EXCEPTIONS_END(LinearAcceleration)
 }
 
 void LinearAcceleration::dump(int i)
@@ -989,11 +1092,14 @@ LinearAcceleration::~LinearAcceleration()
 
 void IMUSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(IMUSensor)
     Parser::parse(e, tagName);
 
     topic = getSubValStrOpt(e, "topic");
     parse1Opt(e, "angular_velocity", angularVelocity);
     parse1Opt(e, "linear_acceleration", linearAcceleration);
+
+    WRAP_EXCEPTIONS_END(IMUSensor)
 }
 
 void IMUSensor::dump(int i)
@@ -1011,12 +1117,15 @@ IMUSensor::~IMUSensor()
 
 void LogicalCameraSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LogicalCameraSensor)
     Parser::parse(e, tagName);
 
     near = getSubValDouble(e, "near");
     far = getSubValDouble(e, "far");
     aspectRatio = getSubValDouble(e, "aspect_ratio");
     horizontalFOV = getSubValDouble(e, "horizontal_fov");
+
+    WRAP_EXCEPTIONS_END(LogicalCameraSensor)
 }
 
 void LogicalCameraSensor::dump(int i)
@@ -1035,11 +1144,14 @@ LogicalCameraSensor::~LogicalCameraSensor()
 
 void MagnetometerSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(MagnetometerSensor)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "x", x);
     parse1Opt(e, "y", y);
     parse1Opt(e, "z", z);
+
+    WRAP_EXCEPTIONS_END(MagnetometerSensor)
 }
 
 void MagnetometerSensor::dump(int i)
@@ -1057,12 +1169,15 @@ MagnetometerSensor::~MagnetometerSensor()
 
 void LaserScanResolution::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LaserScanResolution)
     Parser::parse(e, tagName);
 
     samples = getSubValInt(e, "samples");
     resolution = getSubValDouble(e, "resolution");
     minAngle = getSubValDouble(e, "min_angle");
     maxAngle = getSubValDouble(e, "max_angle");
+
+    WRAP_EXCEPTIONS_END(LaserScanResolution)
 }
 
 void LaserScanResolution::dump(int i)
@@ -1081,11 +1196,14 @@ LaserScanResolution::~LaserScanResolution()
 
 void RaySensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(RaySensor)
     Parser::parse(e, tagName);
 
     parse1(e, "scan", scan);
     parse1(e, "range", range);
     parse1Opt(e, "noise", noise);
+
+    WRAP_EXCEPTIONS_END(RaySensor)
 }
 
 void RaySensor::dump(int i)
@@ -1103,10 +1221,13 @@ RaySensor::~RaySensor()
 
 void RaySensor::Scan::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Scan)
     Parser::parse(e, tagName);
 
     parse1(e, "horizontal", horizontal);
     parse1Opt(e, "vertical", vertical);
+
+    WRAP_EXCEPTIONS_END(Scan)
 }
 
 void RaySensor::Scan::dump(int i)
@@ -1123,11 +1244,14 @@ RaySensor::Scan::~Scan()
 
 void RaySensor::Range::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Range)
     Parser::parse(e, tagName);
 
     min = getSubValDouble(e, "min");
     max = getSubValDouble(e, "max");
     resolution = getSubValDoubleOpt(e, "resolution");
+
+    WRAP_EXCEPTIONS_END(Range)
 }
 
 void RaySensor::Range::dump(int i)
@@ -1144,7 +1268,10 @@ RaySensor::Range::~Range()
 
 void RFIDTagSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(RFIDTagSensor)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(RFIDTagSensor)
 }
 
 void RFIDTagSensor::dump(int i)
@@ -1159,7 +1286,10 @@ RFIDTagSensor::~RFIDTagSensor()
 
 void RFIDSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(RFIDSensor)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(RFIDSensor)
 }
 
 void RFIDSensor::dump(int i)
@@ -1174,11 +1304,14 @@ RFIDSensor::~RFIDSensor()
 
 void SonarSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SonarSensor)
     Parser::parse(e, tagName);
 
     min = getSubValDouble(e, "min");
     max = getSubValDouble(e, "max");
     radius = getSubValDouble(e, "radius");
+
+    WRAP_EXCEPTIONS_END(SonarSensor)
 }
 
 void SonarSensor::dump(int i)
@@ -1196,6 +1329,7 @@ SonarSensor::~SonarSensor()
 
 void TransceiverSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(TransceiverSensor)
     Parser::parse(e, tagName);
 
     essid = getSubValStrOpt(e, "essid");
@@ -1205,6 +1339,8 @@ void TransceiverSensor::parse(XMLElement *e, const char *tagName)
     gain = getSubValDouble(e, "gain");
     power = getSubValDouble(e, "power");
     sensitivity = getSubValDoubleOpt(e, "sensitivity");
+
+    WRAP_EXCEPTIONS_END(TransceiverSensor)
 }
 
 void TransceiverSensor::dump(int i)
@@ -1226,11 +1362,14 @@ TransceiverSensor::~TransceiverSensor()
 
 void ForceTorqueSensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(ForceTorqueSensor)
     Parser::parse(e, tagName);
 
     frame = getSubValStrOpt(e, "frame");
     static const char *measureDirectionValues[] = {"parent_to_child", "child_to_parent"};
     measureDirection = getSubValOneOfOpt(e, "measure_direction", measureDirectionValues, arraysize(measureDirectionValues));
+
+    WRAP_EXCEPTIONS_END(ForceTorqueSensor)
 }
 
 void ForceTorqueSensor::dump(int i)
@@ -1247,6 +1386,7 @@ ForceTorqueSensor::~ForceTorqueSensor()
 
 void InertiaMatrix::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(InertiaMatrix)
     Parser::parse(e, tagName);
 
     ixx = getSubValDouble(e, "ixx");
@@ -1255,6 +1395,8 @@ void InertiaMatrix::parse(XMLElement *e, const char *tagName)
     iyy = getSubValDouble(e, "iyy");
     iyz = getSubValDouble(e, "iyz");
     izz = getSubValDouble(e, "izz");
+
+    WRAP_EXCEPTIONS_END(InertiaMatrix)
 }
 
 void InertiaMatrix::dump(int i)
@@ -1275,12 +1417,15 @@ InertiaMatrix::~InertiaMatrix()
 
 void LinkInertial::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LinkInertial)
     Parser::parse(e, tagName);
 
     mass = getSubValDoubleOpt(e, "mass");
     parse1Opt(e, "inertia", inertia);
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
+
+    WRAP_EXCEPTIONS_END(LinkInertial)
 }
 
 void LinkInertial::dump(int i)
@@ -1300,11 +1445,14 @@ LinkInertial::~LinkInertial()
 
 void Texture::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Texture)
     Parser::parse(e, tagName);
 
     size = getSubValDouble(e, "size");
     diffuse = getSubValStr(e, "diffuse");
     normal = getSubValStr(e, "normal");
+
+    WRAP_EXCEPTIONS_END(Texture)
 }
 
 void Texture::dump(int i)
@@ -1322,10 +1470,13 @@ Texture::~Texture()
 
 void TextureBlend::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(TextureBlend)
     Parser::parse(e, tagName);
 
     minHeight = getSubValDouble(e, "min_height");
     fadeDist = getSubValDouble(e, "fade_dist");
+
+    WRAP_EXCEPTIONS_END(TextureBlend)
 }
 
 void TextureBlend::dump(int i)
@@ -1342,6 +1493,7 @@ TextureBlend::~TextureBlend()
 
 void Geometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Geometry)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "empty", empty);
@@ -1369,6 +1521,8 @@ void Geometry::parse(XMLElement *e, const char *tagName)
         throw string("a geometry must be specified");
     if(count > 1)
         throw string("more than one geometry has been specified");
+
+    WRAP_EXCEPTIONS_END(Geometry)
 }
 
 void Geometry::dump(int i)
@@ -1392,7 +1546,10 @@ Geometry::~Geometry()
 
 void EmptyGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(EmptyGeometry)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(EmptyGeometry)
 }
 
 void EmptyGeometry::dump(int i)
@@ -1407,9 +1564,12 @@ EmptyGeometry::~EmptyGeometry()
 
 void BoxGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(BoxGeometry)
     Parser::parse(e, tagName);
 
     parse1(e, "size", size);
+
+    WRAP_EXCEPTIONS_END(BoxGeometry)
 }
 
 void BoxGeometry::dump(int i)
@@ -1425,10 +1585,13 @@ BoxGeometry::~BoxGeometry()
 
 void CylinderGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(CylinderGeometry)
     Parser::parse(e, tagName);
 
     radius = getSubValDouble(e, "radius");
     length = getSubValDouble(e, "length");
+
+    WRAP_EXCEPTIONS_END(CylinderGeometry)
 }
 
 void CylinderGeometry::dump(int i)
@@ -1445,6 +1608,7 @@ CylinderGeometry::~CylinderGeometry()
 
 void HeightMapGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(HeightMapGeometry)
     Parser::parse(e, tagName);
 
     uri = getSubValStr(e, "uri");
@@ -1455,6 +1619,8 @@ void HeightMapGeometry::parse(XMLElement *e, const char *tagName)
     if(textures.size() - 1 != blends.size())
         throw string("number of blends must be equal to the number of textures minus one");
     useTerrainPaging = getSubValBoolOpt(e, "use_terrain_paging");
+
+    WRAP_EXCEPTIONS_END(HeightMapGeometry)
 }
 
 void HeightMapGeometry::dump(int i)
@@ -1476,6 +1642,7 @@ HeightMapGeometry::~HeightMapGeometry()
 
 void ImageGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(ImageGeometry)
     Parser::parse(e, tagName);
 
     uri = getSubValStr(e, "uri");
@@ -1483,6 +1650,8 @@ void ImageGeometry::parse(XMLElement *e, const char *tagName)
     threshold = getSubValDouble(e, "threshold");
     height = getSubValDouble(e, "height");
     granularity = getSubValDouble(e, "granularity");
+
+    WRAP_EXCEPTIONS_END(ImageGeometry)
 }
 
 void ImageGeometry::dump(int i)
@@ -1502,10 +1671,13 @@ ImageGeometry::~ImageGeometry()
 
 void SubMesh::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SubMesh)
     Parser::parse(e, tagName);
 
     name = getSubValStr(e, "name");
     center = getSubValBoolOpt(e, "center");
+
+    WRAP_EXCEPTIONS_END(SubMesh)
 }
 
 void SubMesh::dump(int i)
@@ -1522,11 +1694,14 @@ SubMesh::~SubMesh()
 
 void MeshGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(MeshGeometry)
     Parser::parse(e, tagName);
 
     uri = getSubValStr(e, "uri");
     parse1Opt(e, "submesh", submesh);
     scale = getSubValDouble(e, "scale");
+
+    WRAP_EXCEPTIONS_END(MeshGeometry)
 }
 
 void MeshGeometry::dump(int i)
@@ -1544,10 +1719,13 @@ MeshGeometry::~MeshGeometry()
 
 void PlaneGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(PlaneGeometry)
     Parser::parse(e, tagName);
 
     parse1(e, "normal", normal);
     parse1(e, "size", size);
+
+    WRAP_EXCEPTIONS_END(PlaneGeometry)
 }
 
 void PlaneGeometry::dump(int i)
@@ -1564,12 +1742,15 @@ PlaneGeometry::~PlaneGeometry()
 
 void PolylineGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(PolylineGeometry)
     Parser::parse(e, tagName);
 
     parseMany(e, "point", points);
     if(points.size() == 0)
         throw string("polyline must have at least one point");
     height = getSubValDouble(e, "height");
+
+    WRAP_EXCEPTIONS_END(PolylineGeometry)
 }
 
 void PolylineGeometry::dump(int i)
@@ -1587,9 +1768,12 @@ PolylineGeometry::~PolylineGeometry()
 
 void SphereGeometry::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SphereGeometry)
     Parser::parse(e, tagName);
 
     radius = getSubValDouble(e, "radius");
+
+    WRAP_EXCEPTIONS_END(SphereGeometry)
 }
 
 void SphereGeometry::dump(int i)
@@ -1605,10 +1789,13 @@ SphereGeometry::~SphereGeometry()
 
 void SurfaceBounce::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceBounce)
     Parser::parse(e, tagName);
 
     restitutionCoefficient = getSubValDoubleOpt(e, "restitution_coefficient");
     threshold = getSubValDoubleOpt(e, "threshold");
+
+    WRAP_EXCEPTIONS_END(SurfaceBounce)
 }
 
 void SurfaceBounce::dump(int i)
@@ -1625,9 +1812,12 @@ SurfaceBounce::~SurfaceBounce()
 
 void SurfaceFrictionTorsionalODE::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceFrictionTorsionalODE)
     Parser::parse(e, tagName);
 
     slip = getSubValDoubleOpt(e, "slip");
+
+    WRAP_EXCEPTIONS_END(SurfaceFrictionTorsionalODE)
 }
 
 void SurfaceFrictionTorsionalODE::dump(int i)
@@ -1643,6 +1833,7 @@ SurfaceFrictionTorsionalODE::~SurfaceFrictionTorsionalODE()
 
 void SurfaceFrictionTorsional::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceFrictionTorsional)
     Parser::parse(e, tagName);
 
     coefficient = getSubValDoubleOpt(e, "coefficient");
@@ -1650,6 +1841,8 @@ void SurfaceFrictionTorsional::parse(XMLElement *e, const char *tagName)
     patchRadius = getSubValDoubleOpt(e, "patch_radius");
     surfaceRadius = getSubValDoubleOpt(e, "surface_radius");
     parse1Opt(e, "ode", ode);
+
+    WRAP_EXCEPTIONS_END(SurfaceFrictionTorsional)
 }
 
 void SurfaceFrictionTorsional::dump(int i)
@@ -1669,6 +1862,7 @@ SurfaceFrictionTorsional::~SurfaceFrictionTorsional()
 
 void SurfaceFrictionODE::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceFrictionODE)
     Parser::parse(e, tagName);
 
     mu = getSubValDoubleOpt(e, "mu");
@@ -1676,6 +1870,8 @@ void SurfaceFrictionODE::parse(XMLElement *e, const char *tagName)
     fdir1 = getSubValDoubleOpt(e, "fdir1");
     slip1 = getSubValDoubleOpt(e, "slip1");
     slip2 = getSubValDoubleOpt(e, "slip2");
+
+    WRAP_EXCEPTIONS_END(SurfaceFrictionODE)
 }
 
 void SurfaceFrictionODE::dump(int i)
@@ -1695,12 +1891,15 @@ SurfaceFrictionODE::~SurfaceFrictionODE()
 
 void SurfaceFrictionBullet::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceFrictionBullet)
     Parser::parse(e, tagName);
 
     friction = getSubValDoubleOpt(e, "friction");
     friction2 = getSubValDoubleOpt(e, "friction2");
     fdir1 = getSubValDoubleOpt(e, "fdir1");
     rollingFriction = getSubValDoubleOpt(e, "rolling_friction");
+
+    WRAP_EXCEPTIONS_END(SurfaceFrictionBullet)
 }
 
 void SurfaceFrictionBullet::dump(int i)
@@ -1719,11 +1918,14 @@ SurfaceFrictionBullet::~SurfaceFrictionBullet()
 
 void SurfaceFriction::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceFriction)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "torsional", torsional);
     parse1Opt(e, "ode", ode);
     parse1Opt(e, "bullet", bullet);
+
+    WRAP_EXCEPTIONS_END(SurfaceFriction)
 }
 
 void SurfaceFriction::dump(int i)
@@ -1741,6 +1943,7 @@ SurfaceFriction::~SurfaceFriction()
 
 void SurfaceContactODE::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceContactODE)
     Parser::parse(e, tagName);
 
     softCFM = getSubValDoubleOpt(e, "soft_cfm");
@@ -1749,6 +1952,8 @@ void SurfaceContactODE::parse(XMLElement *e, const char *tagName)
     kd = getSubValDoubleOpt(e, "kd");
     maxVel = getSubValDoubleOpt(e, "max_vel");
     minDepth = getSubValDoubleOpt(e, "min_depth");
+
+    WRAP_EXCEPTIONS_END(SurfaceContactODE)
 }
 
 void SurfaceContactODE::dump(int i)
@@ -1769,6 +1974,7 @@ SurfaceContactODE::~SurfaceContactODE()
 
 void SurfaceContactBullet::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceContactBullet)
     Parser::parse(e, tagName);
 
     softCFM = getSubValDoubleOpt(e, "soft_cfm");
@@ -1778,6 +1984,8 @@ void SurfaceContactBullet::parse(XMLElement *e, const char *tagName)
     splitImpulse = getSubValDoubleOpt(e, "split_impulse");
     splitImpulsePenetrationThreshold = getSubValDoubleOpt(e, "split_impulse_penetration_threshold");
     minDepth = getSubValDoubleOpt(e, "min_depth");
+
+    WRAP_EXCEPTIONS_END(SurfaceContactBullet)
 }
 
 void SurfaceContactBullet::dump(int i)
@@ -1799,6 +2007,7 @@ SurfaceContactBullet::~SurfaceContactBullet()
 
 void SurfaceContact::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceContact)
     Parser::parse(e, tagName);
 
     collideWithoutContact = getSubValBoolOpt(e, "collide_without_contact");
@@ -1808,6 +2017,8 @@ void SurfaceContact::parse(XMLElement *e, const char *tagName)
     elasticModulus = getSubValDoubleOpt(e, "elasticModulus");
     parse1Opt(e, "ode", ode);
     parse1Opt(e, "bullet", bullet);
+
+    WRAP_EXCEPTIONS_END(SurfaceContact)
 }
 
 void SurfaceContact::dump(int i)
@@ -1829,12 +2040,15 @@ SurfaceContact::~SurfaceContact()
 
 void SurfaceSoftContactDart::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceSoftContactDart)
     Parser::parse(e, tagName);
 
     boneAttachment = getSubValDouble(e, "bone_attachment");
     stiffness = getSubValDouble(e, "stiffness");
     damping = getSubValDouble(e, "damping");
     fleshMassFraction = getSubValDouble(e, "flesh_mass_fraction");
+
+    WRAP_EXCEPTIONS_END(SurfaceSoftContactDart)
 }
 
 void SurfaceSoftContactDart::dump(int i)
@@ -1853,9 +2067,12 @@ SurfaceSoftContactDart::~SurfaceSoftContactDart()
 
 void SurfaceSoftContact::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SurfaceSoftContact)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "dart", dart);
+
+    WRAP_EXCEPTIONS_END(SurfaceSoftContact)
 }
 
 void SurfaceSoftContact::dump(int i)
@@ -1871,12 +2088,15 @@ SurfaceSoftContact::~SurfaceSoftContact()
 
 void Surface::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Surface)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "bounce", bounce);
     parse1Opt(e, "friction", friction);
     parse1Opt(e, "contact", contact);
     parse1Opt(e, "soft_contact", softContact);
+
+    WRAP_EXCEPTIONS_END(Surface)
 }
 
 void Surface::dump(int i)
@@ -1895,6 +2115,7 @@ Surface::~Surface()
 
 void LinkCollision::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LinkCollision)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -1904,6 +2125,8 @@ void LinkCollision::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "pose", pose);
     parse1(e, "geometry", geometry);
     parse1Opt(e, "surface", surface);
+
+    WRAP_EXCEPTIONS_END(LinkCollision)
 }
 
 void LinkCollision::dump(int i)
@@ -1926,9 +2149,12 @@ LinkCollision::~LinkCollision()
 
 void URI::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(URI)
     Parser::parse(e, tagName);
 
     uri = e->GetText();
+
+    WRAP_EXCEPTIONS_END(URI)
 }
 
 void URI::dump(int i)
@@ -1944,10 +2170,13 @@ URI::~URI()
 
 void Script::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Script)
     Parser::parse(e, tagName);
 
     parseMany(e, "uri", uris);
     name = getSubValStr(e, "name");
+
+    WRAP_EXCEPTIONS_END(Script)
 }
 
 void Script::dump(int i)
@@ -1965,11 +2194,14 @@ Script::~Script()
 
 void Shader::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Shader)
     Parser::parse(e, tagName);
 
     static const char *validTypes[] = {"vertex", "pixel", "normal_map_objectspace", "normal_map_tangentspace"};
     type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
     normalMap = getSubValStr(e, "normal_map");
+
+    WRAP_EXCEPTIONS_END(Shader)
 }
 
 void Shader::dump(int i)
@@ -1986,6 +2218,7 @@ Shader::~Shader()
 
 void Material::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Material)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "script", script);
@@ -1995,6 +2228,8 @@ void Material::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "diffuse", diffuse);
     parse1Opt(e, "specular", specular);
     parse1Opt(e, "emissive", emissive);
+
+    WRAP_EXCEPTIONS_END(Material)
 }
 
 void Material::dump(int i)
@@ -2016,9 +2251,12 @@ Material::~Material()
 
 void LinkVisualMeta::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LinkVisualMeta)
     Parser::parse(e, tagName);
 
     layer = getSubValStrOpt(e, "layer");
+
+    WRAP_EXCEPTIONS_END(LinkVisualMeta)
 }
 
 void LinkVisualMeta::dump(int i)
@@ -2034,6 +2272,7 @@ LinkVisualMeta::~LinkVisualMeta()
 
 void LinkVisual::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LinkVisual)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -2046,6 +2285,8 @@ void LinkVisual::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "material", material);
     parse1(e, "geometry", geometry);
     parseMany(e, "plugin", plugins);
+
+    WRAP_EXCEPTIONS_END(LinkVisual)
 }
 
 void LinkVisual::dump(int i)
@@ -2072,6 +2313,7 @@ LinkVisual::~LinkVisual()
 
 void Sensor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Sensor)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -2097,6 +2339,8 @@ void Sensor::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "sonar", sonar);
     parse1Opt(e, "transceiver", transceiver);
     parse1Opt(e, "force_torque", forceTorque);
+
+    WRAP_EXCEPTIONS_END(Sensor)
 }
 
 void Sensor::dump(int i)
@@ -2135,6 +2379,7 @@ Sensor::~Sensor()
 
 void Projector::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Projector)
     Parser::parse(e, tagName);
 
     name = getAttrStrOpt(e, "name");
@@ -2145,6 +2390,8 @@ void Projector::parse(XMLElement *e, const char *tagName)
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
     parseMany(e, "plugin", plugins);
+
+    WRAP_EXCEPTIONS_END(Projector)
 }
 
 void Projector::dump(int i)
@@ -2169,9 +2416,12 @@ Projector::~Projector()
 
 void ContactCollision::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(ContactCollision)
     Parser::parse(e, tagName);
 
     name = e->GetText();
+
+    WRAP_EXCEPTIONS_END(ContactCollision)
 }
 
 void ContactCollision::dump(int i)
@@ -2187,9 +2437,12 @@ ContactCollision::~ContactCollision()
 
 void AudioSourceContact::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(AudioSourceContact)
     Parser::parse(e, tagName);
 
     parseMany(e, "collision", collisions);
+
+    WRAP_EXCEPTIONS_END(AudioSourceContact)
 }
 
 void AudioSourceContact::dump(int i)
@@ -2206,6 +2459,7 @@ AudioSourceContact::~AudioSourceContact()
 
 void AudioSource::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(AudioSource)
     Parser::parse(e, tagName);
 
     uri = getSubValStr(e, "uri");
@@ -2215,6 +2469,8 @@ void AudioSource::parse(XMLElement *e, const char *tagName)
     loop = getSubValBoolOpt(e, "loop");
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
+
+    WRAP_EXCEPTIONS_END(AudioSource)
 }
 
 void AudioSource::dump(int i)
@@ -2237,7 +2493,10 @@ AudioSource::~AudioSource()
 
 void AudioSink::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(AudioSink)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(AudioSink)
 }
 
 void AudioSink::dump(int i)
@@ -2252,10 +2511,13 @@ AudioSink::~AudioSink()
 
 void Battery::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Battery)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
     voltage = getSubValDouble(e, "voltage");
+
+    WRAP_EXCEPTIONS_END(Battery)
 }
 
 void Battery::dump(int i)
@@ -2272,7 +2534,10 @@ Battery::~Battery()
 
 void VelocityDecay::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(VelocityDecay)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(VelocityDecay)
 }
 
 void VelocityDecay::dump(int i)
@@ -2287,6 +2552,7 @@ VelocityDecay::~VelocityDecay()
 
 void Link::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Link)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -2306,6 +2572,8 @@ void Link::parse(XMLElement *e, const char *tagName)
     parseMany(e, "audio_source", audioSources);
     parseMany(e, "audio_sink", audioSinks);
     parseMany(e, "battery", batteries);
+
+    WRAP_EXCEPTIONS_END(Link)
 }
 
 void Link::dump(int i)
@@ -2343,12 +2611,15 @@ Link::~Link()
 
 void AxisDynamics::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(AxisDynamics)
     Parser::parse(e, tagName);
 
     damping = getSubValDoubleOpt(e, "damping");
     friction = getSubValDoubleOpt(e, "friction");
     springReference = getSubValDouble(e, "spring_reference");
     springStiffness = getSubValDouble(e, "spring_stiffness");
+
+    WRAP_EXCEPTIONS_END(AxisDynamics)
 }
 
 void AxisDynamics::dump(int i)
@@ -2367,12 +2638,15 @@ AxisDynamics::~AxisDynamics()
 
 void Axis::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Axis)
     Parser::parse(e, tagName);
 
     parse1(e, "xyz", xyz);
     useParentModelFrame = getSubValBool(e, "use_parent_model_frame");
     parse1Opt(e, "dynamics", dynamics);
     parse1(e, "limit", limit);
+
+    WRAP_EXCEPTIONS_END(Axis)
 }
 
 void Axis::dump(int i)
@@ -2391,6 +2665,7 @@ Axis::~Axis()
 
 void Axis::Limit::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Limit)
     Parser::parse(e, tagName);
 
     lower = getSubValDouble(e, "lower");
@@ -2399,6 +2674,8 @@ void Axis::Limit::parse(XMLElement *e, const char *tagName)
     velocity = getSubValDoubleOpt(e, "velocity");
     stiffness = getSubValDoubleOpt(e, "stiffness");
     dissipation = getSubValDoubleOpt(e, "dissipation");
+
+    WRAP_EXCEPTIONS_END(Limit)
 }
 
 void Axis::Limit::dump(int i)
@@ -2419,9 +2696,12 @@ Axis::Limit::~Limit()
 
 void JointPhysicsSimbody::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(JointPhysicsSimbody)
     Parser::parse(e, tagName);
 
     mustBeLoopJoint = getSubValBoolOpt(e, "must_be_loop_joint");
+
+    WRAP_EXCEPTIONS_END(JointPhysicsSimbody)
 }
 
 void JointPhysicsSimbody::dump(int i)
@@ -2437,10 +2717,13 @@ JointPhysicsSimbody::~JointPhysicsSimbody()
 
 void CFMERP::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(CFMERP)
     Parser::parse(e, tagName);
 
     cfm = getSubValDoubleOpt(e, "cfm");
     erp = getSubValDoubleOpt(e, "erp");
+
+    WRAP_EXCEPTIONS_END(CFMERP)
 }
 
 void CFMERP::dump(int i)
@@ -2457,6 +2740,7 @@ CFMERP::~CFMERP()
 
 void JointPhysicsODE::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(JointPhysicsODE)
     Parser::parse(e, tagName);
 
     provideFeedback = getSubValBoolOpt(e, "provide_feedback");
@@ -2470,6 +2754,8 @@ void JointPhysicsODE::parse(XMLElement *e, const char *tagName)
     velocity = getSubValDoubleOpt(e, "velocity");
     parse1Opt(e, "limit", limit);
     parse1Opt(e, "suspension", suspension);
+
+    WRAP_EXCEPTIONS_END(JointPhysicsODE)
 }
 
 void JointPhysicsODE::dump(int i)
@@ -2495,11 +2781,14 @@ JointPhysicsODE::~JointPhysicsODE()
 
 void JointPhysics::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(JointPhysics)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "simbody", simbody);
     parse1Opt(e, "ode", ode);
     provideFeedback = getSubValBoolOpt(e, "provide_feedback");
+
+    WRAP_EXCEPTIONS_END(JointPhysics)
 }
 
 void JointPhysics::dump(int i)
@@ -2517,6 +2806,7 @@ JointPhysics::~JointPhysics()
 
 void Joint::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Joint)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -2533,6 +2823,8 @@ void Joint::parse(XMLElement *e, const char *tagName)
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
     parse1Opt(e, "sensor", sensor);
+
+    WRAP_EXCEPTIONS_END(Joint)
 }
 
 void Joint::dump(int i)
@@ -2561,7 +2853,10 @@ Joint::~Joint()
 
 void Gripper::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Gripper)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(Gripper)
 }
 
 void Gripper::dump(int i)
@@ -2576,7 +2871,10 @@ Gripper::~Gripper()
 
 void Gripper::GraspCheck::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(GraspCheck)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(GraspCheck)
 }
 
 void Gripper::GraspCheck::dump(int i)
@@ -2591,6 +2889,7 @@ Gripper::GraspCheck::~GraspCheck()
 
 void Model::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Model)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -2606,6 +2905,8 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "joint", joints);
     parseMany(e, "plugin", plugins);
     parseMany(e, "gripper", grippers);
+
+    WRAP_EXCEPTIONS_END(Model)
 }
 
 void Model::dump(int i)
@@ -2640,7 +2941,10 @@ Model::~Model()
 
 void Road::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Road)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(Road)
 }
 
 void Road::dump(int i)
@@ -2655,6 +2959,7 @@ Road::~Road()
 
 void Clouds::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Clouds)
     Parser::parse(e, tagName);
 
     speed = getSubValDoubleOpt(e, "speed");
@@ -2662,6 +2967,8 @@ void Clouds::parse(XMLElement *e, const char *tagName)
     humidity = getSubValDoubleOpt(e, "humidity");
     meanSize = getSubValDoubleOpt(e, "mean_size");
     parse1Opt(e, "ambient", ambient);
+
+    WRAP_EXCEPTIONS_END(Clouds)
 }
 
 void Clouds::dump(int i)
@@ -2681,12 +2988,15 @@ Clouds::~Clouds()
 
 void Sky::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Sky)
     Parser::parse(e, tagName);
 
     time = getSubValDoubleOpt(e, "time");
     sunrise = getSubValDoubleOpt(e, "sunrise");
     sunset = getSubValDoubleOpt(e, "sunset");
     parse1Opt(e, "clouds", clouds);
+
+    WRAP_EXCEPTIONS_END(Sky)
 }
 
 void Sky::dump(int i)
@@ -2705,6 +3015,7 @@ Sky::~Sky()
 
 void Fog::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Fog)
     Parser::parse(e, tagName);
 
     parse1Opt(e, "color", color);
@@ -2714,6 +3025,8 @@ void Fog::parse(XMLElement *e, const char *tagName)
     start = getSubValDoubleOpt(e, "start");
     end = getSubValDoubleOpt(e, "end");
     density = getSubValDoubleOpt(e, "density");
+
+    WRAP_EXCEPTIONS_END(Fog)
 }
 
 void Fog::dump(int i)
@@ -2733,6 +3046,7 @@ Fog::~Fog()
 
 void Scene::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Scene)
     Parser::parse(e, tagName);
 
     parse1(e, "ambient", ambient);
@@ -2742,6 +3056,8 @@ void Scene::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "fog", fog);
     grid = getSubValBool(e, "grid");
     originVisual = getSubValBool(e, "origin_visual");
+
+    WRAP_EXCEPTIONS_END(Scene)
 }
 
 void Scene::dump(int i)
@@ -2763,6 +3079,7 @@ Scene::~Scene()
 
 void PhysicsSimbodyContact::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(PhysicsSimbodyContact)
     Parser::parse(e, tagName);
 
     stiffness = getSubValDoubleOpt(e, "stiffness");
@@ -2774,6 +3091,8 @@ void PhysicsSimbodyContact::parse(XMLElement *e, const char *tagName)
     viscousFriction = getSubValDoubleOpt(e, "viscous_friction");
     overrideImpactCaptureVelocity = getSubValDoubleOpt(e, "override_impact_capture_velocity");
     overrideStictionTransitionVelocity = getSubValDoubleOpt(e, "override_stiction_transition_velocity");
+
+    WRAP_EXCEPTIONS_END(PhysicsSimbodyContact)
 }
 
 void PhysicsSimbodyContact::dump(int i)
@@ -2797,12 +3116,15 @@ PhysicsSimbodyContact::~PhysicsSimbodyContact()
 
 void PhysicsSimbody::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(PhysicsSimbody)
     Parser::parse(e, tagName);
 
     minStepSize = getSubValDoubleOpt(e, "min_step_size");
     accuracy = getSubValDoubleOpt(e, "accuracy");
     maxTransientVelocity = getSubValDoubleOpt(e, "max_transient_velocity");
     parse1Opt(e, "contact", contact);
+
+    WRAP_EXCEPTIONS_END(PhysicsSimbody)
 }
 
 void PhysicsSimbody::dump(int i)
@@ -2821,10 +3143,13 @@ PhysicsSimbody::~PhysicsSimbody()
 
 void PhysicsBullet::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(PhysicsBullet)
     Parser::parse(e, tagName);
 
     parse1(e, "solver", solver);
     parse1(e, "constraints", constraints);
+
+    WRAP_EXCEPTIONS_END(PhysicsBullet)
 }
 
 void PhysicsBullet::dump(int i)
@@ -2841,6 +3166,7 @@ PhysicsBullet::~PhysicsBullet()
 
 void PhysicsBullet::Solver::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Solver)
     Parser::parse(e, tagName);
 
     static const char *validTypes[] = {"sequential_impulse"};
@@ -2848,6 +3174,8 @@ void PhysicsBullet::Solver::parse(XMLElement *e, const char *tagName)
     minStepSize = getSubValDoubleOpt(e, "min_step_size");
     iters = getSubValInt(e, "iters");
     sor = getSubValDouble(e, "sor");
+
+    WRAP_EXCEPTIONS_END(Solver)
 }
 
 void PhysicsBullet::Solver::dump(int i)
@@ -2866,6 +3194,7 @@ PhysicsBullet::Solver::~Solver()
 
 void PhysicsBullet::Constraints::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Constraints)
     Parser::parse(e, tagName);
 
     cfm = getSubValDouble(e, "cfm");
@@ -2873,6 +3202,8 @@ void PhysicsBullet::Constraints::parse(XMLElement *e, const char *tagName)
     contactSurfaceLayer = getSubValDouble(e, "contact_surface_layer");
     splitImpulse = getSubValDouble(e, "split_impulse");
     splitImpulsePenetrationThreshold = getSubValDouble(e, "split_impulse_penetration_threshold");
+
+    WRAP_EXCEPTIONS_END(Constraints)
 }
 
 void PhysicsBullet::Constraints::dump(int i)
@@ -2892,10 +3223,13 @@ PhysicsBullet::Constraints::~Constraints()
 
 void PhysicsODE::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(PhysicsODE)
     Parser::parse(e, tagName);
 
     parse1(e, "solver", solver);
     parse1(e, "constraints", constraints);
+
+    WRAP_EXCEPTIONS_END(PhysicsODE)
 }
 
 void PhysicsODE::dump(int i)
@@ -2912,6 +3246,7 @@ PhysicsODE::~PhysicsODE()
 
 void PhysicsODE::Solver::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Solver)
     Parser::parse(e, tagName);
 
     static const char *validTypes[] = {"world", "quick"};
@@ -2921,6 +3256,8 @@ void PhysicsODE::Solver::parse(XMLElement *e, const char *tagName)
     preconIters = getSubValIntOpt(e, "precon_iters");
     sor = getSubValDouble(e, "sor");
     useDynamicMOIRescaling = getSubValBool(e, "use_dynamic_moi_rescaling");
+
+    WRAP_EXCEPTIONS_END(Solver)
 }
 
 void PhysicsODE::Solver::dump(int i)
@@ -2941,12 +3278,15 @@ PhysicsODE::Solver::~Solver()
 
 void PhysicsODE::Constraints::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Constraints)
     Parser::parse(e, tagName);
 
     cfm = getSubValDouble(e, "cfm");
     erp = getSubValDouble(e, "erp");
     contactMaxCorrectingVel = getSubValDouble(e, "contact_max_correcting_vel");
     contactSurfaceLayer = getSubValDouble(e, "contact_surface_layer");
+
+    WRAP_EXCEPTIONS_END(Constraints)
 }
 
 void PhysicsODE::Constraints::dump(int i)
@@ -2965,6 +3305,7 @@ PhysicsODE::Constraints::~Constraints()
 
 void Physics::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Physics)
     Parser::parse(e, tagName);
 
     name = getAttrStrOpt(e, "name");
@@ -2980,6 +3321,8 @@ void Physics::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "simbody", simbody);
     parse1Opt(e, "bullet", bullet);
     parse1Opt(e, "ode", ode);
+
+    WRAP_EXCEPTIONS_END(Physics)
 }
 
 void Physics::dump(int i)
@@ -3004,10 +3347,13 @@ Physics::~Physics()
 
 void JointStateField::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(JointStateField)
     Parser::parse(e, tagName);
 
     angle = getSubValDouble(e, "angle");
     axis = getAttrInt(e, "axis");
+
+    WRAP_EXCEPTIONS_END(JointStateField)
 }
 
 void JointStateField::dump(int i)
@@ -3024,10 +3370,13 @@ JointStateField::~JointStateField()
 
 void JointState::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(JointState)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
     parseMany(e, "angle", fields);
+
+    WRAP_EXCEPTIONS_END(JointState)
 }
 
 void JointState::dump(int i)
@@ -3045,9 +3394,12 @@ JointState::~JointState()
 
 void CollisionState::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(CollisionState)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
+
+    WRAP_EXCEPTIONS_END(CollisionState)
 }
 
 void CollisionState::dump(int i)
@@ -3063,6 +3415,7 @@ CollisionState::~CollisionState()
 
 void LinkState::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LinkState)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -3072,6 +3425,8 @@ void LinkState::parse(XMLElement *e, const char *tagName)
     parseMany(e, "collision", collisions);
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
+
+    WRAP_EXCEPTIONS_END(LinkState)
 }
 
 void LinkState::dump(int i)
@@ -3095,6 +3450,7 @@ LinkState::~LinkState()
 
 void ModelState::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(ModelState)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -3104,6 +3460,8 @@ void ModelState::parse(XMLElement *e, const char *tagName)
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
     parseMany(e, "link", links);
+
+    WRAP_EXCEPTIONS_END(ModelState)
 }
 
 void ModelState::dump(int i)
@@ -3129,11 +3487,14 @@ ModelState::~ModelState()
 
 void LightState::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LightState)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
+
+    WRAP_EXCEPTIONS_END(LightState)
 }
 
 void LightState::dump(int i)
@@ -3152,9 +3513,12 @@ LightState::~LightState()
 
 void ModelRef::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(ModelRef)
     Parser::parse(e, tagName);
 
     name = e->GetText();
+
+    WRAP_EXCEPTIONS_END(ModelRef)
 }
 
 void ModelRef::dump(int i)
@@ -3170,9 +3534,12 @@ ModelRef::~ModelRef()
 
 void StateInsertions::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(StateInsertions)
     Parser::parse(e, tagName);
 
     parseMany(e, "model", models);
+
+    WRAP_EXCEPTIONS_END(StateInsertions)
 }
 
 void StateInsertions::dump(int i)
@@ -3188,11 +3555,14 @@ StateInsertions::~StateInsertions()
 
 void StateDeletions::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(StateDeletions)
     Parser::parse(e, tagName);
 
     parseMany(e, "name", names);
     if(names.size() < 1)
         throw string("deletions element should contain at least one name");
+
+    WRAP_EXCEPTIONS_END(StateDeletions)
 }
 
 void StateDeletions::dump(int i)
@@ -3209,6 +3579,7 @@ StateDeletions::~StateDeletions()
 
 void State::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(State)
     Parser::parse(e, tagName);
 
     worldName = getAttrStr(e, "world_name");
@@ -3220,6 +3591,8 @@ void State::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "deletions", deletions);
     parseMany(e, "model", modelstates);
     parseMany(e, "light", lightstates);
+
+    WRAP_EXCEPTIONS_END(State)
 }
 
 void State::dump(int i)
@@ -3245,7 +3618,10 @@ State::~State()
 
 void Population::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Population)
     Parser::parse(e, tagName);
+
+    WRAP_EXCEPTIONS_END(Population)
 }
 
 void Population::dump(int i)
@@ -3260,9 +3636,12 @@ Population::~Population()
 
 void Audio::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Audio)
     Parser::parse(e, tagName);
 
     device = getSubValStr(e, "device");
+
+    WRAP_EXCEPTIONS_END(Audio)
 }
 
 void Audio::dump(int i)
@@ -3278,9 +3657,12 @@ Audio::~Audio()
 
 void Wind::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Wind)
     Parser::parse(e, tagName);
 
     linearVelocity = getSubValDouble(e, "linear_velocity");
+
+    WRAP_EXCEPTIONS_END(Wind)
 }
 
 void Wind::dump(int i)
@@ -3296,6 +3678,7 @@ Wind::~Wind()
 
 void TrackVisual::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(TrackVisual)
     Parser::parse(e, tagName);
     
     name = getSubValStrOpt(e, "name");
@@ -3305,6 +3688,8 @@ void TrackVisual::parse(XMLElement *e, const char *tagName)
     useModelFrame = getSubValBoolOpt(e, "use_model_frame");
     parse1Opt(e, "xyz", xyz);
     inheritYaw = getSubValBoolOpt(e, "inherit_yaw");
+
+    WRAP_EXCEPTIONS_END(TrackVisual)
 }
 
 void TrackVisual::dump(int i)
@@ -3326,6 +3711,7 @@ TrackVisual::~TrackVisual()
 
 void GUICamera::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(GUICamera)
     Parser::parse(e, tagName);
 
     name = getSubValStrOpt(e, "name");
@@ -3337,6 +3723,8 @@ void GUICamera::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "track_visual", trackVisual);
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
+
+    WRAP_EXCEPTIONS_END(GUICamera)
 }
 
 void GUICamera::dump(int i)
@@ -3358,6 +3746,7 @@ GUICamera::~GUICamera()
 
 void World::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(World)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -3378,6 +3767,8 @@ void World::parse(XMLElement *e, const char *tagName)
     parse1(e, "spherical_coordinates", sphericalCoordinates);
     parseMany(e, "state", states);
     parseMany(e, "population", populations);
+
+    WRAP_EXCEPTIONS_END(World)
 }
 
 void World::dump(int i)
@@ -3418,6 +3809,7 @@ World::~World()
 
 void World::Atmosphere::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Atmosphere)
     Parser::parse(e, tagName);
 
     static const char *atmosphereTypes[] = {"adiabatic"};
@@ -3426,6 +3818,8 @@ void World::Atmosphere::parse(XMLElement *e, const char *tagName)
     pressure = getSubValDoubleOpt(e, "pressure");
     massDensity = getSubValDoubleOpt(e, "mass_density");
     temperatureGradient = getSubValDoubleOpt(e, "temperature_gradient");
+
+    WRAP_EXCEPTIONS_END(Atmosphere)
 }
 
 void World::Atmosphere::dump(int i)
@@ -3445,12 +3839,15 @@ World::Atmosphere::~Atmosphere()
 
 void World::GUI::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(GUI)
     Parser::parse(e, tagName);
 
     fullScreen = getSubValBoolOpt(e, "full_screen");
     if(!fullScreen) fullScreen = false;
     parse1Opt(e, "camera", camera);
     parseMany(e, "plugin", plugins);
+
+    WRAP_EXCEPTIONS_END(GUI)
 }
 
 void World::GUI::dump(int i)
@@ -3469,6 +3866,7 @@ World::GUI::~GUI()
 
 void World::SphericalCoordinates::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(SphericalCoordinates)
     Parser::parse(e, tagName);
 
     surfaceModel = getSubValStr(e, "surface_model");
@@ -3476,6 +3874,8 @@ void World::SphericalCoordinates::parse(XMLElement *e, const char *tagName)
     longitudeDeg = getSubValDouble(e, "longitude_deg");
     elevation = getSubValDouble(e, "elevation");
     headingDeg = getSubValDouble(e, "heading_deg");
+
+    WRAP_EXCEPTIONS_END(SphericalCoordinates)
 }
 
 void World::SphericalCoordinates::dump(int i)
@@ -3495,9 +3895,12 @@ World::SphericalCoordinates::~SphericalCoordinates()
 
 void Actor::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Actor)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
+
+    WRAP_EXCEPTIONS_END(Actor)
 }
 
 void Actor::dump(int i)
@@ -3513,12 +3916,15 @@ Actor::~Actor()
 
 void LightAttenuation::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(LightAttenuation)
     Parser::parse(e, tagName);
 
     range = getSubValDouble(e, "range");
     linear = getSubValDoubleOpt(e, "linear");
     constant = getSubValDoubleOpt(e, "constant");
     quadratic = getSubValDoubleOpt(e, "quadratic");
+
+    WRAP_EXCEPTIONS_END(LightAttenuation)
 }
 
 void LightAttenuation::dump(int i)
@@ -3537,11 +3943,14 @@ LightAttenuation::~LightAttenuation()
 
 void Spot::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Spot)
     Parser::parse(e, tagName);
 
     innerAngle = getSubValDouble(e, "inner_angle");
     outerAngle = getSubValDouble(e, "outer_angle");
     fallOff = getSubValDouble(e, "falloff");
+
+    WRAP_EXCEPTIONS_END(Spot)
 }
 
 void Spot::dump(int i)
@@ -3559,6 +3968,7 @@ Spot::~Spot()
 
 void Light::parse(XMLElement *e, const char *tagName)
 {
+    WRAP_EXCEPTIONS_BEGIN(Light)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
@@ -3572,6 +3982,8 @@ void Light::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "spot", spot);
     parseMany(e, "frame", frames);
     parse1Opt(e, "pose", pose);
+
+    WRAP_EXCEPTIONS_END(Light)
 }
 
 void Light::dump(int i)
