@@ -44,6 +44,9 @@
 #include <vector>
 #include <map>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 #include <QThread>
 #ifdef _WIN32
     #ifdef QT_COMPIL
@@ -77,15 +80,61 @@ SDFDialog *sdfDialog = NULL;
 
 using namespace tinyxml2;
 
+void importWorld(const World& world)
+{
+    std::cout << "Importing world '" << world.name << "'..." << std::endl;
+}
+
+void importModel(const Model& model)
+{
+    std::cout << "Importing model '" << model.name << "'..." << std::endl;
+}
+
+void importActor(const Actor& actor)
+{
+    std::cout << "Importing actor '" << actor.name << "'..." << std::endl;
+    std::cout << "WARNING: actors are not currently supported" << std::endl;
+}
+
+void importLight(const Light& light)
+{
+    std::cout << "Importing light '" << light.name << "'..." << std::endl;
+}
+
+void importSDF(const SDF& sdf)
+{
+    std::cout << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
+    BOOST_FOREACH(const World& x, sdf.worlds) importWorld(x);
+    BOOST_FOREACH(const Model& x, sdf.models) importModel(x);
+    BOOST_FOREACH(const Actor& x, sdf.actors) importActor(x);
+    BOOST_FOREACH(const Light& x, sdf.lights) importLight(x);
+}
+
+XMLElement *loadAndParseXML(std::string fileName, XMLDocument *pdoc)
+{
+    XMLError err = pdoc->LoadFile(fileName.c_str());
+    if(err != XML_NO_ERROR)
+        throw std::string("xml load error");
+    XMLElement *root = pdoc->FirstChildElement();
+    if(!root)
+        throw std::string("xml internal error: cannot get root element");
+    return root;
+}
+
 void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
 {
     XMLDocument xmldoc;
-    XMLError err = xmldoc.LoadFile(in->fileName.c_str());
-    if(err != XML_NO_ERROR)
-        throw std::string("xml load error");
-    XMLElement *root = xmldoc.FirstChildElement();
-    if(!root)
-        throw std::string("xml internal error: cannot get root element");
+    XMLElement *root = loadAndParseXML(in->fileName, &xmldoc);
+    SDF sdf;
+    sdf.parse(root);
+    std::cout << "parsed SDF successfully" << std::endl;
+    importSDF(sdf);
+}
+
+void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
+{
+    XMLDocument xmldoc;
+    XMLElement *root = loadAndParseXML(in->fileName, &xmldoc);
     SDF sdf;
     sdf.parse(root);
     std::cout << "parsed SDF successfully" << std::endl;
