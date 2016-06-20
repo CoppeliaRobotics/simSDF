@@ -8,9 +8,9 @@
 
 #define ARRAYSIZE(X) (sizeof((X))/sizeof((X)[0]))
 
-#define BEGIN_DUMP(n) std::cout << indent(0*i) << #n << " {" << std::endl
+#define BEGIN_DUMP(n) dumpBegin(i, #n)
 #define DUMP_FIELD(n) dumpField1(i+1, #n, n)
-#define END_DUMP(n) std::cout << indent(i) << "}" << std::endl
+#define END_DUMP(n) dumpEnd(i, #n)
 
 #define WRAP_EXCEPTIONS_BEGIN(X) \
     try {
@@ -28,26 +28,39 @@
         throw ss.str(); \
     }
 
-string indent(int level)
+void indent(int level)
 {
-    string s;
-    while(level--) s += "    ";
-    return s;
+    while(level--) std::cout << "    ";
+}
+
+void dumpBegin(int i, const char *n)
+{
+    indent(i*0);
+    std::cout << n << " {" << std::endl;
+}
+
+void dumpEnd(int i, const char *n)
+{
+    indent(i);
+    std::cout << "}" << std::endl;
 }
 
 void dumpField1(int i, const char *n, string v)
 {
-    std::cout << indent(i) << n << ": \"" << v << "\"" << std::endl;
+    indent(i);
+    std::cout << n << ": \"" << v << "\"" << std::endl;
 }
 
 void dumpField1(int i, const char *n, double v)
 {
-    std::cout << indent(i) << n << ": " << v << std::endl;
+    indent(i);
+    std::cout << n << ": " << v << std::endl;
 }
 
 void dumpField1(int i, const char *n, Parser& p)
 {
-    std::cout << indent(i) << n << ": ";
+    indent(i);
+    std::cout << n << ": ";
     p.dump(i);
 }
 
