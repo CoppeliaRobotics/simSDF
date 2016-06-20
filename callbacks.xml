@@ -13,4 +13,14 @@
         <return>
         </return>
     </command>
+    <command name="dump">
+        <description>Inspect the structure of a SDF file. Can be useful for tracking bugs.</description>
+        <params>
+            <param name="fileName" type="string">
+                <description>SDF file path</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
 </plugin>
