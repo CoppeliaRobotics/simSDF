@@ -63,15 +63,15 @@ inline optional<bool>   getSubValBoolOpt   (XMLElement *e, const char *name) {re
 inline optional<string> getSubValOneOfOpt  (XMLElement *e, const char *name, const char **validValues, int numValues) {return _getSubValOneOf(e, name, validValues, numValues, true);}
 
 template<typename T>
-void parseMany(XMLElement *parent, const char *tagName, vector<T*>& vec, bool atLeastOne = false)
+void parseMany(XMLElement *parent, const char *tagName, vector<T>& vec, bool atLeastOne = false)
 {
     if(atLeastOne && !parent->FirstChildElement(tagName))
         throw (boost::format("element %s must have at least one %s child element") % parent->Name() % tagName).str();
 
     for(XMLElement *e = parent->FirstChildElement(tagName); e; e = e->NextSiblingElement(tagName))
     {
-        T *t = new T;
-        t->parse(e, tagName);
+        T t;
+        t.parse(e, tagName);
         vec.push_back(t);
     }
 }
@@ -112,16 +112,15 @@ struct Light;
 #define PARSER_CLASS(X) struct X : public Parser
 #define PARSER_METHODS(X) \
     virtual void parse(XMLElement *e, const char *tagName); \
-    virtual void dump(int indentLevel = 0); \
-    virtual ~X();
+    virtual void dump(int indentLevel = 0);
 
 PARSER_CLASS(SDF)
 {
     string version;
-    vector<World*> worlds;
-    vector<Model*> models;
-    vector<Actor*> actors;
-    vector<Light*> lights;
+    vector<World> worlds;
+    vector<Model> models;
+    vector<Actor> actors;
+    vector<Light> lights;
 
     inline void parse(XMLElement *e) {parse(e, "sdf");}
     PARSER_METHODS(SDF)
@@ -303,7 +302,7 @@ PARSER_CLASS(CameraSensor)
 
         PARSER_METHODS(Lens)
     } lens;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
 
     PARSER_METHODS(CameraSensor)
@@ -482,7 +481,7 @@ PARSER_CLASS(LinkInertial)
 {
     optional<double> mass;
     optional<InertiaMatrix> inertia;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
 
     PARSER_METHODS(LinkInertial)
@@ -530,8 +529,8 @@ PARSER_CLASS(HeightMapGeometry)
     string uri;
     optional<Vector> size;
     optional<Vector> pos;
-    vector<Texture*> textures;
-    vector<TextureBlend*> blends;
+    vector<Texture> textures;
+    vector<TextureBlend> blends;
     optional<bool> useTerrainPaging;
 
     PARSER_METHODS(HeightMapGeometry)
@@ -575,7 +574,7 @@ PARSER_CLASS(PlaneGeometry)
 
 PARSER_CLASS(PolylineGeometry)
 {
-    vector<Vector*> points;
+    vector<Vector> points;
     double height;
 
     PARSER_METHODS(PolylineGeometry)
@@ -729,7 +728,7 @@ PARSER_CLASS(LinkCollision)
     string name;
     optional<double> laserRetro;
     optional<int> maxContacts;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
     Geometry geometry;
     optional<Surface> surface;
@@ -746,7 +745,7 @@ PARSER_CLASS(URI)
 
 PARSER_CLASS(Script)
 {
-    vector<URI*> uris;
+    vector<URI> uris;
     string name;
 
     PARSER_METHODS(Script)
@@ -787,11 +786,11 @@ PARSER_CLASS(LinkVisual)
     optional<double> laserRetro;
     optional<double> transparency;
     optional<LinkVisualMeta> meta;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
     optional<Material> material;
     Geometry geometry;
-    vector<Plugin*> plugins;
+    vector<Plugin> plugins;
 
     PARSER_METHODS(LinkVisual)
 };
@@ -804,9 +803,9 @@ PARSER_CLASS(Sensor)
     optional<double> updateRate;
     optional<bool> visualize;
     optional<string> topic;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
-    vector<Plugin*> plugins;
+    vector<Plugin> plugins;
     optional<AltimeterSensor> altimeter;
     optional<CameraSensor> camera;
     optional<ContactSensor> contact;
@@ -831,9 +830,9 @@ PARSER_CLASS(Projector)
     optional<double> fov;
     optional<double> nearClip;
     optional<double> farClip;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
-    vector<Plugin*> plugins;
+    vector<Plugin> plugins;
 
     PARSER_METHODS(Projector)
 };
@@ -847,7 +846,7 @@ PARSER_CLASS(ContactCollision)
 
 PARSER_CLASS(AudioSourceContact)
 {
-    vector<ContactCollision*> collisions;
+    vector<ContactCollision> collisions;
 
     PARSER_METHODS(AudioSourceContact)
 };
@@ -859,7 +858,7 @@ PARSER_CLASS(AudioSource)
     optional<double> gain;
     optional<AudioSourceContact> contact;
     optional<bool> loop;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
 
     PARSER_METHODS(AudioSource)
@@ -895,16 +894,16 @@ PARSER_CLASS(Link)
     optional<bool> kinematic;
     optional<bool> mustBeBaseLink;
     optional<VelocityDecay> velocityDecay;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
     optional<LinkInertial> inertial;
-    vector<LinkCollision*> collisions;
-    vector<LinkVisual*> visuals;
+    vector<LinkCollision> collisions;
+    vector<LinkVisual> visuals;
     optional<Sensor> sensor;
     optional<Projector> projector;
-    vector<AudioSource*> audioSources;
-    vector<AudioSink*> audioSinks;
-    vector<Battery*> batteries;
+    vector<AudioSource> audioSources;
+    vector<AudioSink> audioSinks;
+    vector<Battery> batteries;
 
     PARSER_METHODS(Link)
 };
@@ -992,7 +991,7 @@ PARSER_CLASS(Joint)
     optional<Axis> axis;
     optional<Axis> axis2;
     optional<JointPhysics> physics;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
     optional<Sensor> sensor;
 
@@ -1022,15 +1021,15 @@ PARSER_CLASS(Model)
     optional<bool> static_;
     optional<bool> selfCollide;
     optional<bool> allowAutoDisable;
-    vector<Include*> includes;
-    vector<Model*> submodels;
+    vector<Include> includes;
+    vector<Model> submodels;
     optional<bool> enableWind;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
-    vector<Link*> links;
-    vector<Joint*> joints;
-    vector<Plugin*> plugins;
-    vector<Gripper*> grippers;
+    vector<Link> links;
+    vector<Joint> joints;
+    vector<Plugin> plugins;
+    vector<Gripper> grippers;
 
     PARSER_METHODS(Model)
 };
@@ -1188,7 +1187,7 @@ PARSER_CLASS(JointStateField)
 PARSER_CLASS(JointState)
 {
     string name;
-    vector<JointStateField*> fields;
+    vector<JointStateField> fields;
 
     PARSER_METHODS(JointState)
 };
@@ -1206,8 +1205,8 @@ PARSER_CLASS(LinkState)
     optional<Pose> velocity;
     optional<Pose> acceleration;
     optional<Pose> wrench;
-    vector<CollisionState*> collisions;
-    vector<Frame*> frames;
+    vector<CollisionState> collisions;
+    vector<Frame> frames;
     optional<Pose> pose;
 
     PARSER_METHODS(LinkState)
@@ -1216,12 +1215,12 @@ PARSER_CLASS(LinkState)
 PARSER_CLASS(ModelState)
 {
     string name;
-    vector<JointState*> joints;
-    vector<ModelState*> submodelstates;
+    vector<JointState> joints;
+    vector<ModelState> submodelstates;
     optional<Vector> scale;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
-    vector<LinkState*> links;
+    vector<LinkState> links;
 
     PARSER_METHODS(ModelState)
 };
@@ -1229,7 +1228,7 @@ PARSER_CLASS(ModelState)
 PARSER_CLASS(LightState)
 {
     string name;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
 
     PARSER_METHODS(LightState)
@@ -1244,14 +1243,14 @@ PARSER_CLASS(ModelRef)
 
 PARSER_CLASS(StateInsertions)
 {
-    vector<Model*> models;
+    vector<Model> models;
 
     PARSER_METHODS(StateInsertions)
 };
 
 PARSER_CLASS(StateDeletions)
 {
-    vector<ModelRef*> names;
+    vector<ModelRef> names;
 
     PARSER_METHODS(StateDeletions)
 };
@@ -1265,8 +1264,8 @@ PARSER_CLASS(State)
     int iterations;
     optional<StateInsertions> insertions;
     optional<StateDeletions> deletions;
-    vector<ModelState*> modelstates;
-    vector<LightState*> lightstates;
+    vector<ModelState> modelstates;
+    vector<LightState> lightstates;
 
     PARSER_METHODS(State)
 };
@@ -1309,7 +1308,7 @@ PARSER_CLASS(GUICamera)
     optional<string> viewController;
     optional<string> projectionType;
     optional<TrackVisual> trackVisual;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
 
     PARSER_METHODS(GUICamera)
@@ -1320,7 +1319,7 @@ PARSER_CLASS(World)
     string name;
     optional<Audio> audio;
     optional<Wind> wind;
-    vector<Include*> includes;
+    vector<Include> includes;
     Vector gravity;
     Vector magneticField;
     PARSER_CLASS(Atmosphere)
@@ -1337,17 +1336,17 @@ PARSER_CLASS(World)
     {
         optional<bool> fullScreen;
         optional<GUICamera> camera;
-        vector<Plugin*> plugins;
+        vector<Plugin> plugins;
 
         PARSER_METHODS(GUI)
     } gui;
     Physics physics;
     Scene scene;
-    vector<Light*> lights;
-    vector<Model*> models;
-    vector<Actor*> actors;
-    vector<Plugin*> plugins;
-    vector<Road*> roads;
+    vector<Light> lights;
+    vector<Model> models;
+    vector<Actor> actors;
+    vector<Plugin> plugins;
+    vector<Road> roads;
     PARSER_CLASS(SphericalCoordinates)
     {
         string surfaceModel;
@@ -1358,8 +1357,8 @@ PARSER_CLASS(World)
 
         PARSER_METHODS(SphericalCoordinates)
     } sphericalCoordinates;
-    vector<State*> states;
-    vector<Population*> populations;
+    vector<State> states;
+    vector<Population> populations;
 
     PARSER_METHODS(World)
 };
@@ -1401,7 +1400,7 @@ PARSER_CLASS(Light)
     optional<LightAttenuation> attenuation;
     Vector direction;
     optional<Spot> spot;
-    vector<Frame*> frames;
+    vector<Frame> frames;
     optional<Pose> pose;
 
     PARSER_METHODS(Light)

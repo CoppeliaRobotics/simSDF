@@ -7,7 +7,6 @@
 #include <boost/foreach.hpp>
 
 #define ARRAYSIZE(X) (sizeof((X))/sizeof((X)[0]))
-#define DELETEVEC(T,X) BOOST_FOREACH(T *x, X) delete x
 
 #define BEGIN_DUMP(n) std::cout << indent(0*i) << #n << " {" << std::endl
 #define DUMP_FIELD(n) dumpField1(i+1, #n, n)
@@ -52,15 +51,6 @@ void dumpField1(int i, const char *n, Parser& p)
     p.dump(i);
 }
 
-void dumpField1(int i, const char *n, Parser *p)
-{
-    if(p)
-    {
-        std::cout << indent(i) << n << ": ";
-        p->dump(i);
-    }
-}
-
 template<typename T>
 void dumpField1(int i, const char *n, optional<T> v)
 {
@@ -68,7 +58,7 @@ void dumpField1(int i, const char *n, optional<T> v)
 }
 
 template<typename T>
-void dumpField1(int i, const char *n, vector<T*>& v)
+void dumpField1(int i, const char *n, vector<T>& v)
 {
     for(size_t j = 0; j < v.size(); j++)
     {
@@ -304,14 +294,6 @@ void SDF::dump(int i)
     END_DUMP(SDF);
 }
 
-SDF::~SDF()
-{
-    DELETEVEC(World, worlds);
-    DELETEVEC(Model, models);
-    DELETEVEC(Actor, actors);
-    DELETEVEC(Light, lights);
-}
-
 void Vector::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Vector)
@@ -348,10 +330,6 @@ void Vector::dump(int i)
     END_DUMP(Vector);
 }
 
-Vector::~Vector()
-{
-}
-
 void Time::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Time)
@@ -383,10 +361,6 @@ void Time::dump(int i)
     DUMP_FIELD(seconds);
     DUMP_FIELD(nanoseconds);
     END_DUMP(Time);
-}
-
-Time::~Time()
-{
 }
 
 void Color::parse(XMLElement *e, const char *tagName)
@@ -428,10 +402,6 @@ void Color::dump(int i)
     END_DUMP(Color);
 }
 
-Color::~Color()
-{
-}
-
 void Orientation::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Orientation)
@@ -466,10 +436,6 @@ void Orientation::dump(int i)
     DUMP_FIELD(pitch);
     DUMP_FIELD(yaw);
     END_DUMP(Orientation);
-}
-
-Orientation::~Orientation()
-{
 }
 
 void Pose::parse(XMLElement *e, const char *tagName)
@@ -510,10 +476,6 @@ void Pose::dump(int i)
     END_DUMP(Pose);
 }
 
-Pose::~Pose()
-{
-}
-
 void Include::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Include)
@@ -537,10 +499,6 @@ void Include::dump(int i)
     END_DUMP(Include);
 }
 
-Include::~Include()
-{
-}
-
 void Plugin::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Plugin)
@@ -560,10 +518,6 @@ void Plugin::dump(int i)
     END_DUMP(Plugin);
 }
 
-Plugin::~Plugin()
-{
-}
-
 void Frame::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Frame)
@@ -581,10 +535,6 @@ void Frame::dump(int i)
     DUMP_FIELD(name);
     DUMP_FIELD(pose);
     END_DUMP(Frame);
-}
-
-Frame::~Frame()
-{
 }
 
 void NoiseModel::parse(XMLElement *e, const char *tagName)
@@ -613,10 +563,6 @@ void NoiseModel::dump(int i)
     END_DUMP(NoiseModel);
 }
 
-NoiseModel::~NoiseModel()
-{
-}
-
 void AltimeterSensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(AltimeterSensor)
@@ -636,10 +582,6 @@ void AltimeterSensor::dump(int i)
     END_DUMP(AltimeterSensor);
 }
 
-AltimeterSensor::~AltimeterSensor()
-{
-}
-
 void AltimeterSensor::VerticalPosition::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(VerticalPosition)
@@ -657,10 +599,6 @@ void AltimeterSensor::VerticalPosition::dump(int i)
     END_DUMP(VerticalPosition);
 }
 
-AltimeterSensor::VerticalPosition::~VerticalPosition()
-{
-}
-
 void AltimeterSensor::VerticalVelocity::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(VerticalVelocity)
@@ -676,10 +614,6 @@ void AltimeterSensor::VerticalVelocity::dump(int i)
     BEGIN_DUMP(VerticalVelocity);
     DUMP_FIELD(noise);
     END_DUMP(VerticalVelocity);
-}
-
-AltimeterSensor::VerticalVelocity::~VerticalVelocity()
-{
 }
 
 void Image::parse(XMLElement *e, const char *tagName)
@@ -703,10 +637,6 @@ void Image::dump(int i)
     END_DUMP(Image);
 }
 
-Image::~Image()
-{
-}
-
 void Clip::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Clip)
@@ -724,10 +654,6 @@ void Clip::dump(int i)
     DUMP_FIELD(near);
     DUMP_FIELD(far);
     END_DUMP(Clip);
-}
-
-Clip::~Clip()
-{
 }
 
 void CustomFunction::parse(XMLElement *e, const char *tagName)
@@ -753,10 +679,6 @@ void CustomFunction::dump(int i)
     DUMP_FIELD(f);
     DUMP_FIELD(fun);
     END_DUMP(CustomFunction);
-}
-
-CustomFunction::~CustomFunction()
-{
 }
 
 void CameraSensor::parse(XMLElement *e, const char *tagName)
@@ -796,11 +718,6 @@ void CameraSensor::dump(int i)
     END_DUMP(CameraSensor);
 }
 
-CameraSensor::~CameraSensor()
-{
-    DELETEVEC(Frame, frames);
-}
-
 void CameraSensor::Save::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Save)
@@ -820,10 +737,6 @@ void CameraSensor::Save::dump(int i)
     END_DUMP(Save);
 }
 
-CameraSensor::Save::~Save()
-{
-}
-
 void CameraSensor::DepthCamera::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(DepthCamera)
@@ -839,10 +752,6 @@ void CameraSensor::DepthCamera::dump(int i)
     BEGIN_DUMP(DepthCamera);
     DUMP_FIELD(output);
     END_DUMP(DepthCamera);
-}
-
-CameraSensor::DepthCamera::~DepthCamera()
-{
 }
 
 void CameraSensor::Distortion::parse(XMLElement *e, const char *tagName)
@@ -871,10 +780,6 @@ void CameraSensor::Distortion::dump(int i)
     END_DUMP(Distortion);
 }
 
-CameraSensor::Distortion::~Distortion()
-{
-}
-
 void CameraSensor::Distortion::Center::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Center)
@@ -892,10 +797,6 @@ void CameraSensor::Distortion::Center::dump(int i)
     DUMP_FIELD(x);
     DUMP_FIELD(y);
     END_DUMP(Center);
-}
-
-CameraSensor::Distortion::Center::~Center()
-{
 }
 
 void CameraSensor::Lens::parse(XMLElement *e, const char *tagName)
@@ -923,10 +824,6 @@ void CameraSensor::Lens::dump(int i)
     END_DUMP(Lens);
 }
 
-CameraSensor::Lens::~Lens()
-{
-}
-
 void ContactSensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(ContactSensor)
@@ -946,10 +843,6 @@ void ContactSensor::dump(int i)
     END_DUMP(ContactSensor);
 }
 
-ContactSensor::~ContactSensor()
-{
-}
-
 void VariableWithNoise::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(VariableWithNoise)
@@ -965,10 +858,6 @@ void VariableWithNoise::dump(int i)
     BEGIN_DUMP(Horizontal);
     DUMP_FIELD(noise);
     END_DUMP(Horizontal);
-}
-
-VariableWithNoise::~VariableWithNoise()
-{
 }
 
 void PositionSensing::parse(XMLElement *e, const char *tagName)
@@ -990,10 +879,6 @@ void PositionSensing::dump(int i)
     END_DUMP(PositionSensing);
 }
 
-PositionSensing::~PositionSensing()
-{
-}
-
 void VelocitySensing::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(VelocitySensing)
@@ -1013,10 +898,6 @@ void VelocitySensing::dump(int i)
     END_DUMP(VelocitySensing);
 }
 
-VelocitySensing::~VelocitySensing()
-{
-}
-
 void GPSSensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(GOSSensor)
@@ -1034,10 +915,6 @@ void GPSSensor::dump(int i)
     DUMP_FIELD(positionSensing);
     DUMP_FIELD(velocitySensing);
     END_DUMP(GPSSensor);
-}
-
-GPSSensor::~GPSSensor()
-{
 }
 
 void AngularVelocity::parse(XMLElement *e, const char *tagName)
@@ -1061,10 +938,6 @@ void AngularVelocity::dump(int i)
     END_DUMP(AngularVelocity);
 }
 
-AngularVelocity::~AngularVelocity()
-{
-}
-
 void LinearAcceleration::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(LinearAcceleration)
@@ -1086,10 +959,6 @@ void LinearAcceleration::dump(int i)
     END_DUMP(LinearAcceleration);
 }
 
-LinearAcceleration::~LinearAcceleration()
-{
-}
-
 void IMUSensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(IMUSensor)
@@ -1109,10 +978,6 @@ void IMUSensor::dump(int i)
     DUMP_FIELD(angularVelocity);
     DUMP_FIELD(linearAcceleration);
     END_DUMP(IMUSensor);
-}
-
-IMUSensor::~IMUSensor()
-{
 }
 
 void LogicalCameraSensor::parse(XMLElement *e, const char *tagName)
@@ -1138,10 +1003,6 @@ void LogicalCameraSensor::dump(int i)
     END_DUMP(LogicalCameraSensor);
 }
 
-LogicalCameraSensor::~LogicalCameraSensor()
-{
-}
-
 void MagnetometerSensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(MagnetometerSensor)
@@ -1161,10 +1022,6 @@ void MagnetometerSensor::dump(int i)
     DUMP_FIELD(y);
     DUMP_FIELD(z);
     END_DUMP(MagnetometerSensor);
-}
-
-MagnetometerSensor::~MagnetometerSensor()
-{
 }
 
 void LaserScanResolution::parse(XMLElement *e, const char *tagName)
@@ -1190,10 +1047,6 @@ void LaserScanResolution::dump(int i)
     END_DUMP(LaserScanResolution);
 }
 
-LaserScanResolution::~LaserScanResolution()
-{
-}
-
 void RaySensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(RaySensor)
@@ -1215,10 +1068,6 @@ void RaySensor::dump(int i)
     END_DUMP(RaySensor);
 }
 
-RaySensor::~RaySensor()
-{
-}
-
 void RaySensor::Scan::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Scan)
@@ -1236,10 +1085,6 @@ void RaySensor::Scan::dump(int i)
     DUMP_FIELD(horizontal);
     DUMP_FIELD(vertical);
     END_DUMP(Scan);
-}
-
-RaySensor::Scan::~Scan()
-{
 }
 
 void RaySensor::Range::parse(XMLElement *e, const char *tagName)
@@ -1262,10 +1107,6 @@ void RaySensor::Range::dump(int i)
     END_DUMP(Range);
 }
 
-RaySensor::Range::~Range()
-{
-}
-
 void RFIDTagSensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(RFIDTagSensor)
@@ -1280,10 +1121,6 @@ void RFIDTagSensor::dump(int i)
     END_DUMP(RFIDTagSensor);
 }
 
-RFIDTagSensor::~RFIDTagSensor()
-{
-}
-
 void RFIDSensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(RFIDSensor)
@@ -1296,10 +1133,6 @@ void RFIDSensor::dump(int i)
 {
     BEGIN_DUMP(RFIDSensor);
     END_DUMP(RFIDSensor);
-}
-
-RFIDSensor::~RFIDSensor()
-{
 }
 
 void SonarSensor::parse(XMLElement *e, const char *tagName)
@@ -1321,10 +1154,6 @@ void SonarSensor::dump(int i)
     DUMP_FIELD(max);
     DUMP_FIELD(radius);
     END_DUMP(SonarSensor);
-}
-
-SonarSensor::~SonarSensor()
-{
 }
 
 void TransceiverSensor::parse(XMLElement *e, const char *tagName)
@@ -1356,10 +1185,6 @@ void TransceiverSensor::dump(int i)
     END_DUMP(TransceiverSensor);
 }
 
-TransceiverSensor::~TransceiverSensor()
-{
-}
-
 void ForceTorqueSensor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(ForceTorqueSensor)
@@ -1378,10 +1203,6 @@ void ForceTorqueSensor::dump(int i)
     DUMP_FIELD(frame);
     DUMP_FIELD(measureDirection);
     END_DUMP(ForceTorqueSensor);
-}
-
-ForceTorqueSensor::~ForceTorqueSensor()
-{
 }
 
 void InertiaMatrix::parse(XMLElement *e, const char *tagName)
@@ -1411,10 +1232,6 @@ void InertiaMatrix::dump(int i)
     END_DUMP(InertiaMatrix);
 }
 
-InertiaMatrix::~InertiaMatrix()
-{
-}
-
 void LinkInertial::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(LinkInertial)
@@ -1438,11 +1255,6 @@ void LinkInertial::dump(int i)
     END_DUMP(LinkInertial);
 }
 
-LinkInertial::~LinkInertial()
-{
-    DELETEVEC(Frame, frames);
-}
-
 void Texture::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Texture)
@@ -1464,10 +1276,6 @@ void Texture::dump(int i)
     END_DUMP(Texture);
 }
 
-Texture::~Texture()
-{
-}
-
 void TextureBlend::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(TextureBlend)
@@ -1485,10 +1293,6 @@ void TextureBlend::dump(int i)
     DUMP_FIELD(minHeight);
     DUMP_FIELD(fadeDist);
     END_DUMP(TextureBlend);
-}
-
-TextureBlend::~TextureBlend()
-{
 }
 
 void Geometry::parse(XMLElement *e, const char *tagName)
@@ -1540,10 +1344,6 @@ void Geometry::dump(int i)
     END_DUMP(Geometry);
 }
 
-Geometry::~Geometry()
-{
-}
-
 void EmptyGeometry::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(EmptyGeometry)
@@ -1556,10 +1356,6 @@ void EmptyGeometry::dump(int i)
 {
     BEGIN_DUMP(EmptyGeometry);
     END_DUMP(EmptyGeometry);
-}
-
-EmptyGeometry::~EmptyGeometry()
-{
 }
 
 void BoxGeometry::parse(XMLElement *e, const char *tagName)
@@ -1579,10 +1375,6 @@ void BoxGeometry::dump(int i)
     END_DUMP(BoxGeometry);
 }
 
-BoxGeometry::~BoxGeometry()
-{
-}
-
 void CylinderGeometry::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(CylinderGeometry)
@@ -1600,10 +1392,6 @@ void CylinderGeometry::dump(int i)
     DUMP_FIELD(radius);
     DUMP_FIELD(length);
     END_DUMP(CylinderGeometry);
-}
-
-CylinderGeometry::~CylinderGeometry()
-{
 }
 
 void HeightMapGeometry::parse(XMLElement *e, const char *tagName)
@@ -1634,12 +1422,6 @@ void HeightMapGeometry::dump(int i)
     END_DUMP(HeightMapGeometry);
 }
 
-HeightMapGeometry::~HeightMapGeometry()
-{
-    DELETEVEC(Texture, textures);
-    DELETEVEC(TextureBlend, blends);
-}
-
 void ImageGeometry::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(ImageGeometry)
@@ -1665,10 +1447,6 @@ void ImageGeometry::dump(int i)
     END_DUMP(ImageGeometry);
 }
 
-ImageGeometry::~ImageGeometry()
-{
-}
-
 void SubMesh::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SubMesh)
@@ -1686,10 +1464,6 @@ void SubMesh::dump(int i)
     DUMP_FIELD(name);
     DUMP_FIELD(center);
     END_DUMP(SubMesh);
-}
-
-SubMesh::~SubMesh()
-{
 }
 
 void MeshGeometry::parse(XMLElement *e, const char *tagName)
@@ -1713,10 +1487,6 @@ void MeshGeometry::dump(int i)
     END_DUMP(MeshGeometry);
 }
 
-MeshGeometry::~MeshGeometry()
-{
-}
-
 void PlaneGeometry::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(PlaneGeometry)
@@ -1734,10 +1504,6 @@ void PlaneGeometry::dump(int i)
     DUMP_FIELD(normal);
     DUMP_FIELD(size);
     END_DUMP(PlaneGeometry);
-}
-
-PlaneGeometry::~PlaneGeometry()
-{
 }
 
 void PolylineGeometry::parse(XMLElement *e, const char *tagName)
@@ -1761,11 +1527,6 @@ void PolylineGeometry::dump(int i)
     END_DUMP(PolylineGeometry);
 }
 
-PolylineGeometry::~PolylineGeometry()
-{
-    DELETEVEC(Vector, points);
-}
-
 void SphereGeometry::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SphereGeometry)
@@ -1781,10 +1542,6 @@ void SphereGeometry::dump(int i)
     BEGIN_DUMP(SphereGeometry);
     DUMP_FIELD(radius);
     END_DUMP(SphereGeometry);
-}
-
-SphereGeometry::~SphereGeometry()
-{
 }
 
 void SurfaceBounce::parse(XMLElement *e, const char *tagName)
@@ -1806,10 +1563,6 @@ void SurfaceBounce::dump(int i)
     END_DUMP(Bounce);
 }
 
-SurfaceBounce::~SurfaceBounce()
-{
-}
-
 void SurfaceFrictionTorsionalODE::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SurfaceFrictionTorsionalODE)
@@ -1825,10 +1578,6 @@ void SurfaceFrictionTorsionalODE::dump(int i)
     BEGIN_DUMP(ODE);
     DUMP_FIELD(slip);
     END_DUMP(ODE);
-}
-
-SurfaceFrictionTorsionalODE::~SurfaceFrictionTorsionalODE()
-{
 }
 
 void SurfaceFrictionTorsional::parse(XMLElement *e, const char *tagName)
@@ -1856,10 +1605,6 @@ void SurfaceFrictionTorsional::dump(int i)
     END_DUMP(Torsional);
 }
 
-SurfaceFrictionTorsional::~SurfaceFrictionTorsional()
-{
-}
-
 void SurfaceFrictionODE::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SurfaceFrictionODE)
@@ -1885,10 +1630,6 @@ void SurfaceFrictionODE::dump(int i)
     END_DUMP(ODE);
 }
 
-SurfaceFrictionODE::~SurfaceFrictionODE()
-{
-}
-
 void SurfaceFrictionBullet::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SurfaceFrictionBullet)
@@ -1912,10 +1653,6 @@ void SurfaceFrictionBullet::dump(int i)
     END_DUMP(Bullet);
 }
 
-SurfaceFrictionBullet::~SurfaceFrictionBullet()
-{
-}
-
 void SurfaceFriction::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SurfaceFriction)
@@ -1935,10 +1672,6 @@ void SurfaceFriction::dump(int i)
     DUMP_FIELD(ode);
     DUMP_FIELD(bullet);
     END_DUMP(Friction);
-}
-
-SurfaceFriction::~SurfaceFriction()
-{
 }
 
 void SurfaceContactODE::parse(XMLElement *e, const char *tagName)
@@ -1966,10 +1699,6 @@ void SurfaceContactODE::dump(int i)
     DUMP_FIELD(maxVel);
     DUMP_FIELD(minDepth);
     END_DUMP(ODE);
-}
-
-SurfaceContactODE::~SurfaceContactODE()
-{
 }
 
 void SurfaceContactBullet::parse(XMLElement *e, const char *tagName)
@@ -2001,10 +1730,6 @@ void SurfaceContactBullet::dump(int i)
     END_DUMP(Bullet);
 }
 
-SurfaceContactBullet::~SurfaceContactBullet()
-{
-}
-
 void SurfaceContact::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SurfaceContact)
@@ -2034,10 +1759,6 @@ void SurfaceContact::dump(int i)
     END_DUMP(Contact);
 }
 
-SurfaceContact::~SurfaceContact()
-{
-}
-
 void SurfaceSoftContactDart::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SurfaceSoftContactDart)
@@ -2061,10 +1782,6 @@ void SurfaceSoftContactDart::dump(int i)
     END_DUMP(Dart);
 }
 
-SurfaceSoftContactDart::~SurfaceSoftContactDart()
-{
-}
-
 void SurfaceSoftContact::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SurfaceSoftContact)
@@ -2080,10 +1797,6 @@ void SurfaceSoftContact::dump(int i)
     BEGIN_DUMP(SoftContact);
     DUMP_FIELD(dart);
     END_DUMP(SoftContact);
-}
-
-SurfaceSoftContact::~SurfaceSoftContact()
-{
 }
 
 void Surface::parse(XMLElement *e, const char *tagName)
@@ -2107,10 +1820,6 @@ void Surface::dump(int i)
     DUMP_FIELD(contact);
     DUMP_FIELD(softContact);
     END_DUMP(Surface);
-}
-
-Surface::~Surface()
-{
 }
 
 void LinkCollision::parse(XMLElement *e, const char *tagName)
@@ -2142,11 +1851,6 @@ void LinkCollision::dump(int i)
     END_DUMP(LinkCollision);
 }
 
-LinkCollision::~LinkCollision()
-{
-    DELETEVEC(Frame, frames);
-}
-
 void URI::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(URI)
@@ -2162,10 +1866,6 @@ void URI::dump(int i)
     BEGIN_DUMP(URI);
     DUMP_FIELD(uri);
     END_DUMP(URI);
-}
-
-URI::~URI()
-{
 }
 
 void Script::parse(XMLElement *e, const char *tagName)
@@ -2187,11 +1887,6 @@ void Script::dump(int i)
     END_DUMP(Script);
 }
 
-Script::~Script()
-{
-    DELETEVEC(URI, uris);
-}
-
 void Shader::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Shader)
@@ -2210,10 +1905,6 @@ void Shader::dump(int i)
     DUMP_FIELD(type);
     DUMP_FIELD(normalMap);
     END_DUMP(Shader);
-}
-
-Shader::~Shader()
-{
 }
 
 void Material::parse(XMLElement *e, const char *tagName)
@@ -2245,10 +1936,6 @@ void Material::dump(int i)
     END_DUMP(Material);
 }
 
-Material::~Material()
-{
-}
-
 void LinkVisualMeta::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(LinkVisualMeta)
@@ -2264,10 +1951,6 @@ void LinkVisualMeta::dump(int i)
     BEGIN_DUMP(Meta);
     DUMP_FIELD(layer);
     END_DUMP(Meta);
-}
-
-LinkVisualMeta::~LinkVisualMeta()
-{
 }
 
 void LinkVisual::parse(XMLElement *e, const char *tagName)
@@ -2303,12 +1986,6 @@ void LinkVisual::dump(int i)
     DUMP_FIELD(geometry);
     DUMP_FIELD(plugins);
     END_DUMP(LinkVisual);
-}
-
-LinkVisual::~LinkVisual()
-{
-    DELETEVEC(Frame, frames);
-    DELETEVEC(Plugin, plugins);
 }
 
 void Sensor::parse(XMLElement *e, const char *tagName)
@@ -2371,12 +2048,6 @@ void Sensor::dump(int i)
     END_DUMP(Sensor);
 }
 
-Sensor::~Sensor()
-{
-    DELETEVEC(Frame, frames);
-    DELETEVEC(Plugin, plugins);
-}
-
 void Projector::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Projector)
@@ -2408,12 +2079,6 @@ void Projector::dump(int i)
     END_DUMP(Projector);
 }
 
-Projector::~Projector()
-{
-    DELETEVEC(Frame, frames);
-    DELETEVEC(Plugin, plugins);
-}
-
 void ContactCollision::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(ContactCollision)
@@ -2431,10 +2096,6 @@ void ContactCollision::dump(int i)
     END_DUMP(ContactCollision);
 }
 
-ContactCollision::~ContactCollision()
-{
-}
-
 void AudioSourceContact::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(AudioSourceContact)
@@ -2450,11 +2111,6 @@ void AudioSourceContact::dump(int i)
     BEGIN_DUMP(Contact);
     DUMP_FIELD(collisions);
     END_DUMP(Contact);
-}
-
-AudioSourceContact::~AudioSourceContact()
-{
-    DELETEVEC(ContactCollision, collisions);
 }
 
 void AudioSource::parse(XMLElement *e, const char *tagName)
@@ -2486,11 +2142,6 @@ void AudioSource::dump(int i)
     END_DUMP(AudioSource);
 }
 
-AudioSource::~AudioSource()
-{
-    DELETEVEC(Frame, frames);
-}
-
 void AudioSink::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(AudioSink)
@@ -2503,10 +2154,6 @@ void AudioSink::dump(int i)
 {
     BEGIN_DUMP(AudioSink);
     END_DUMP(AudioSink);
-}
-
-AudioSink::~AudioSink()
-{
 }
 
 void Battery::parse(XMLElement *e, const char *tagName)
@@ -2528,10 +2175,6 @@ void Battery::dump(int i)
     END_DUMP(Battery);
 }
 
-Battery::~Battery()
-{
-}
-
 void VelocityDecay::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(VelocityDecay)
@@ -2544,10 +2187,6 @@ void VelocityDecay::dump(int i)
 {
     BEGIN_DUMP(VelocityDecay);
     END_DUMP(VelocityDecay);
-}
-
-VelocityDecay::~VelocityDecay()
-{
 }
 
 void Link::parse(XMLElement *e, const char *tagName)
@@ -2599,16 +2238,6 @@ void Link::dump(int i)
     END_DUMP(Link);
 }
 
-Link::~Link()
-{
-    DELETEVEC(Frame, frames);
-    DELETEVEC(LinkCollision, collisions);
-    DELETEVEC(LinkVisual, visuals);
-    DELETEVEC(AudioSource, audioSources);
-    DELETEVEC(AudioSink, audioSinks);
-    DELETEVEC(Battery, batteries);
-}
-
 void AxisDynamics::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(AxisDynamics)
@@ -2632,10 +2261,6 @@ void AxisDynamics::dump(int i)
     END_DUMP(Dynamics);
 }
 
-AxisDynamics::~AxisDynamics()
-{
-}
-
 void Axis::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Axis)
@@ -2657,10 +2282,6 @@ void Axis::dump(int i)
     DUMP_FIELD(dynamics);
     DUMP_FIELD(limit);
     END_DUMP(Axis);
-}
-
-Axis::~Axis()
-{
 }
 
 void Axis::Limit::parse(XMLElement *e, const char *tagName)
@@ -2690,10 +2311,6 @@ void Axis::Limit::dump(int i)
     END_DUMP(Limit);
 }
 
-Axis::Limit::~Limit()
-{
-}
-
 void JointPhysicsSimbody::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(JointPhysicsSimbody)
@@ -2709,10 +2326,6 @@ void JointPhysicsSimbody::dump(int i)
     BEGIN_DUMP(Simbody);
     DUMP_FIELD(mustBeLoopJoint);
     END_DUMP(Simbody);
-}
-
-JointPhysicsSimbody::~JointPhysicsSimbody()
-{
 }
 
 void CFMERP::parse(XMLElement *e, const char *tagName)
@@ -2732,10 +2345,6 @@ void CFMERP::dump(int i)
     DUMP_FIELD(cfm);
     DUMP_FIELD(erp);
     END_DUMP(Limit);
-}
-
-CFMERP::~CFMERP()
-{
 }
 
 void JointPhysicsODE::parse(XMLElement *e, const char *tagName)
@@ -2775,10 +2384,6 @@ void JointPhysicsODE::dump(int i)
     END_DUMP(ODE);
 }
 
-JointPhysicsODE::~JointPhysicsODE()
-{
-}
-
 void JointPhysics::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(JointPhysics)
@@ -2798,10 +2403,6 @@ void JointPhysics::dump(int i)
     DUMP_FIELD(ode);
     DUMP_FIELD(provideFeedback);
     END_DUMP(Physics);
-}
-
-JointPhysics::~JointPhysics()
-{
 }
 
 void Joint::parse(XMLElement *e, const char *tagName)
@@ -2846,11 +2447,6 @@ void Joint::dump(int i)
     END_DUMP(Joint);
 }
 
-Joint::~Joint()
-{
-    DELETEVEC(Frame, frames);
-}
-
 void Gripper::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Gripper)
@@ -2865,10 +2461,6 @@ void Gripper::dump(int i)
     END_DUMP(Gripper);
 }
 
-Gripper::~Gripper()
-{
-}
-
 void Gripper::GraspCheck::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(GraspCheck)
@@ -2881,10 +2473,6 @@ void Gripper::GraspCheck::dump(int i)
 {
     BEGIN_DUMP(GraspCheck);
     END_DUMP(GraspCheck);
-}
-
-Gripper::GraspCheck::~GraspCheck()
-{
 }
 
 void Model::parse(XMLElement *e, const char *tagName)
@@ -2928,17 +2516,6 @@ void Model::dump(int i)
     END_DUMP(Model);
 }
 
-Model::~Model()
-{
-    DELETEVEC(Include, includes);
-    DELETEVEC(Model, submodels);
-    DELETEVEC(Frame, frames);
-    DELETEVEC(Link, links);
-    DELETEVEC(Joint, joints);
-    DELETEVEC(Plugin, plugins);
-    DELETEVEC(Gripper, grippers);
-}
-
 void Road::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Road)
@@ -2951,10 +2528,6 @@ void Road::dump(int i)
 {
     BEGIN_DUMP(Road);
     END_DUMP(Road);
-}
-
-Road::~Road()
-{
 }
 
 void Clouds::parse(XMLElement *e, const char *tagName)
@@ -2982,10 +2555,6 @@ void Clouds::dump(int i)
     END_DUMP(Clouds);
 }
 
-Clouds::~Clouds()
-{
-}
-
 void Sky::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Sky)
@@ -3007,10 +2576,6 @@ void Sky::dump(int i)
     DUMP_FIELD(sunset);
     DUMP_FIELD(clouds);
     END_DUMP(Sky);
-}
-
-Sky::~Sky()
-{
 }
 
 void Fog::parse(XMLElement *e, const char *tagName)
@@ -3040,10 +2605,6 @@ void Fog::dump(int i)
     END_DUMP(Fog);
 }
 
-Fog::~Fog()
-{
-}
-
 void Scene::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Scene)
@@ -3071,10 +2632,6 @@ void Scene::dump(int i)
     DUMP_FIELD(grid);
     DUMP_FIELD(originVisual);
     END_DUMP(Scene);
-}
-
-Scene::~Scene()
-{
 }
 
 void PhysicsSimbodyContact::parse(XMLElement *e, const char *tagName)
@@ -3110,10 +2667,6 @@ void PhysicsSimbodyContact::dump(int i)
     END_DUMP(Contact);
 }
 
-PhysicsSimbodyContact::~PhysicsSimbodyContact()
-{
-}
-
 void PhysicsSimbody::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(PhysicsSimbody)
@@ -3137,10 +2690,6 @@ void PhysicsSimbody::dump(int i)
     END_DUMP(Simbody);
 }
 
-PhysicsSimbody::~PhysicsSimbody()
-{
-}
-
 void PhysicsBullet::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(PhysicsBullet)
@@ -3158,10 +2707,6 @@ void PhysicsBullet::dump(int i)
     DUMP_FIELD(solver);
     DUMP_FIELD(constraints);
     END_DUMP(Bullet);
-}
-
-PhysicsBullet::~PhysicsBullet()
-{
 }
 
 void PhysicsBullet::Solver::parse(XMLElement *e, const char *tagName)
@@ -3186,10 +2731,6 @@ void PhysicsBullet::Solver::dump(int i)
     DUMP_FIELD(iters);
     DUMP_FIELD(sor);
     END_DUMP(Solver);
-}
-
-PhysicsBullet::Solver::~Solver()
-{
 }
 
 void PhysicsBullet::Constraints::parse(XMLElement *e, const char *tagName)
@@ -3217,10 +2758,6 @@ void PhysicsBullet::Constraints::dump(int i)
     END_DUMP(Constraints);
 }
 
-PhysicsBullet::Constraints::~Constraints()
-{
-}
-
 void PhysicsODE::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(PhysicsODE)
@@ -3238,10 +2775,6 @@ void PhysicsODE::dump(int i)
     DUMP_FIELD(solver);
     DUMP_FIELD(constraints);
     END_DUMP(ODE);
-}
-
-PhysicsODE::~PhysicsODE()
-{
 }
 
 void PhysicsODE::Solver::parse(XMLElement *e, const char *tagName)
@@ -3272,10 +2805,6 @@ void PhysicsODE::Solver::dump(int i)
     END_DUMP(Solver);
 }
 
-PhysicsODE::Solver::~Solver()
-{
-}
-
 void PhysicsODE::Constraints::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Constraints)
@@ -3297,10 +2826,6 @@ void PhysicsODE::Constraints::dump(int i)
     DUMP_FIELD(contactMaxCorrectingVel);
     DUMP_FIELD(contactSurfaceLayer);
     END_DUMP(Constraints);
-}
-
-PhysicsODE::Constraints::~Constraints()
-{
 }
 
 void Physics::parse(XMLElement *e, const char *tagName)
@@ -3341,10 +2866,6 @@ void Physics::dump(int i)
     END_DUMP(Physics);
 }
 
-Physics::~Physics()
-{
-}
-
 void JointStateField::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(JointStateField)
@@ -3362,10 +2883,6 @@ void JointStateField::dump(int i)
     DUMP_FIELD(angle);
     DUMP_FIELD(axis);
     END_DUMP(JointStateField);
-}
-
-JointStateField::~JointStateField()
-{
 }
 
 void JointState::parse(XMLElement *e, const char *tagName)
@@ -3387,11 +2904,6 @@ void JointState::dump(int i)
     END_DUMP(JointState);
 }
 
-JointState::~JointState()
-{
-    DELETEVEC(JointStateField, fields);
-}
-
 void CollisionState::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(CollisionState)
@@ -3407,10 +2919,6 @@ void CollisionState::dump(int i)
     BEGIN_DUMP(CollisionState);
     DUMP_FIELD(name);
     END_DUMP(CollisionState);
-}
-
-CollisionState::~CollisionState()
-{
 }
 
 void LinkState::parse(XMLElement *e, const char *tagName)
@@ -3442,12 +2950,6 @@ void LinkState::dump(int i)
     END_DUMP(LinkState);
 }
 
-LinkState::~LinkState()
-{
-    DELETEVEC(CollisionState, collisions);
-    DELETEVEC(Frame, frames);
-}
-
 void ModelState::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(ModelState)
@@ -3477,14 +2979,6 @@ void ModelState::dump(int i)
     END_DUMP(ModelState);
 }
 
-ModelState::~ModelState()
-{
-    DELETEVEC(JointState, joints);
-    DELETEVEC(ModelState, submodelstates);
-    DELETEVEC(Frame, frames);
-    DELETEVEC(LinkState, links);
-}
-
 void LightState::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(LightState)
@@ -3506,11 +3000,6 @@ void LightState::dump(int i)
     END_DUMP(LightState);
 }
 
-LightState::~LightState()
-{
-    DELETEVEC(Frame, frames);
-}
-
 void ModelRef::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(ModelRef)
@@ -3528,10 +3017,6 @@ void ModelRef::dump(int i)
     END_DUMP(ModelRef);
 }
 
-ModelRef::~ModelRef()
-{
-}
-
 void StateInsertions::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(StateInsertions)
@@ -3546,11 +3031,6 @@ void StateInsertions::dump(int i)
 {
     BEGIN_DUMP(Insertions);
     END_DUMP(Insertions);
-}
-
-StateInsertions::~StateInsertions()
-{
-    DELETEVEC(Model, models);
 }
 
 void StateDeletions::parse(XMLElement *e, const char *tagName)
@@ -3570,11 +3050,6 @@ void StateDeletions::dump(int i)
     BEGIN_DUMP(Deletions);
     DUMP_FIELD(names);
     END_DUMP(Deletions);
-}
-
-StateDeletions::~StateDeletions()
-{
-    DELETEVEC(ModelRef, names);
 }
 
 void State::parse(XMLElement *e, const char *tagName)
@@ -3610,12 +3085,6 @@ void State::dump(int i)
     END_DUMP(State);
 }
 
-State::~State()
-{
-    DELETEVEC(ModelState, modelstates);
-    DELETEVEC(LightState, lightstates);
-}
-
 void Population::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Population)
@@ -3628,10 +3097,6 @@ void Population::dump(int i)
 {
     BEGIN_DUMP(Population);
     END_DUMP(Population);
-}
-
-Population::~Population()
-{
 }
 
 void Audio::parse(XMLElement *e, const char *tagName)
@@ -3651,10 +3116,6 @@ void Audio::dump(int i)
     END_DUMP(Audio);
 }
 
-Audio::~Audio()
-{
-}
-
 void Wind::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Wind)
@@ -3670,10 +3131,6 @@ void Wind::dump(int i)
     BEGIN_DUMP(Wind);
     DUMP_FIELD(linearVelocity);
     END_DUMP(Wind);
-}
-
-Wind::~Wind()
-{
 }
 
 void TrackVisual::parse(XMLElement *e, const char *tagName)
@@ -3705,10 +3162,6 @@ void TrackVisual::dump(int i)
     END_DUMP(TrackVisual);
 }
 
-TrackVisual::~TrackVisual()
-{
-}
-
 void GUICamera::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(GUICamera)
@@ -3737,11 +3190,6 @@ void GUICamera::dump(int i)
     DUMP_FIELD(frames);
     DUMP_FIELD(pose);
     END_DUMP(Camera);
-}
-
-GUICamera::~GUICamera()
-{
-    DELETEVEC(Frame, frames);
 }
 
 void World::parse(XMLElement *e, const char *tagName)
@@ -3795,18 +3243,6 @@ void World::dump(int i)
     END_DUMP(World);
 }
 
-World::~World()
-{
-    DELETEVEC(Include, includes);
-    DELETEVEC(Light, lights);
-    DELETEVEC(Model, models);
-    DELETEVEC(Actor, actors);
-    DELETEVEC(Plugin, plugins);
-    DELETEVEC(Road, roads);
-    DELETEVEC(State, states);
-    DELETEVEC(Population, populations);
-}
-
 void World::Atmosphere::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Atmosphere)
@@ -3833,10 +3269,6 @@ void World::Atmosphere::dump(int i)
     END_DUMP(Atmosphere);
 }
 
-World::Atmosphere::~Atmosphere()
-{
-}
-
 void World::GUI::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(GUI)
@@ -3857,11 +3289,6 @@ void World::GUI::dump(int i)
     DUMP_FIELD(camera);
     DUMP_FIELD(plugins);
     END_DUMP(GUI);
-}
-
-World::GUI::~GUI()
-{
-    DELETEVEC(Plugin, plugins);
 }
 
 void World::SphericalCoordinates::parse(XMLElement *e, const char *tagName)
@@ -3889,10 +3316,6 @@ void World::SphericalCoordinates::dump(int i)
     END_DUMP(SphericalCoordinates);
 }
 
-World::SphericalCoordinates::~SphericalCoordinates()
-{
-}
-
 void Actor::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Actor)
@@ -3908,10 +3331,6 @@ void Actor::dump(int i)
     BEGIN_DUMP(Actor);
     DUMP_FIELD(name);
     END_DUMP(Actor);
-}
-
-Actor::~Actor()
-{
 }
 
 void LightAttenuation::parse(XMLElement *e, const char *tagName)
@@ -3937,10 +3356,6 @@ void LightAttenuation::dump(int i)
     END_DUMP(Attenuation);
 }
 
-LightAttenuation::~LightAttenuation()
-{
-}
-
 void Spot::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Spot)
@@ -3960,10 +3375,6 @@ void Spot::dump(int i)
     DUMP_FIELD(outerAngle);
     DUMP_FIELD(fallOff);
     END_DUMP(Spot);
-}
-
-Spot::~Spot()
-{
 }
 
 void Light::parse(XMLElement *e, const char *tagName)
@@ -4000,10 +3411,5 @@ void Light::dump(int i)
     DUMP_FIELD(frames);
     DUMP_FIELD(pose);
     END_DUMP(Light);
-}
-
-Light::~Light()
-{
-    DELETEVEC(Frame, frames);
 }
 
