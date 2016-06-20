@@ -85,9 +85,55 @@ void importWorld(const World& world)
     std::cout << "Importing world '" << world.name << "'..." << std::endl;
 }
 
+void importModelLinkInertial(const Model& model, const Link& link, const LinkInertial& inertial)
+{
+}
+
+void importModelLinkCollision(const Model& model, const Link& link, const LinkCollision& collision)
+{
+}
+
+void importModelLinkVisual(const Model& model, const Link& link, const LinkVisual& visual)
+{
+}
+
+void importModelLink(const Model& model, const Link& link)
+{
+    std::cout << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
+    if(link.inertial)
+    {
+        importModelLinkInertial(model, link, *link.inertial);
+    }
+    BOOST_FOREACH(const LinkCollision& x, link.collisions)
+    {
+        importModelLinkCollision(model, link, x);
+    }
+    BOOST_FOREACH(const LinkVisual& x, link.visuals)
+    {
+        importModelLinkVisual(model, link, x);
+    }
+}
+
+void importModelJoint(const Model& model, const Joint& joint)
+{
+    std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
+}
+
 void importModel(const Model& model)
 {
     std::cout << "Importing model '" << model.name << "'..." << std::endl;
+    BOOST_FOREACH(const Model& x, model.submodels)
+    {
+        importModel(x);
+    }
+    BOOST_FOREACH(const Link& x, model.links)
+    {
+        importModelLink(model, x);
+    }
+    BOOST_FOREACH(const Joint& x, model.joints)
+    {
+        importModelJoint(model, x);
+    }
 }
 
 void importActor(const Actor& actor)
@@ -104,10 +150,22 @@ void importLight(const Light& light)
 void importSDF(const SDF& sdf)
 {
     std::cout << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
-    BOOST_FOREACH(const World& x, sdf.worlds) importWorld(x);
-    BOOST_FOREACH(const Model& x, sdf.models) importModel(x);
-    BOOST_FOREACH(const Actor& x, sdf.actors) importActor(x);
-    BOOST_FOREACH(const Light& x, sdf.lights) importLight(x);
+    BOOST_FOREACH(const World& x, sdf.worlds)
+    {
+        importWorld(x);
+    }
+    BOOST_FOREACH(const Model& x, sdf.models)
+    {
+        importModel(x);
+    }
+    BOOST_FOREACH(const Actor& x, sdf.actors)
+    {
+        importActor(x);
+    }
+    BOOST_FOREACH(const Light& x, sdf.lights)
+    {
+        importLight(x);
+    }
 }
 
 XMLElement *loadAndParseXML(std::string fileName, XMLDocument *pdoc)
