@@ -266,7 +266,7 @@ struct CameraSensor : public Parser
         virtual void dump(int indentLevel = 0);
         virtual ~Lens();
     } lens;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "camera");
@@ -554,7 +554,7 @@ struct LinkInertial : public Parser
         virtual void dump(int indentLevel = 0);
         virtual ~InertiaMatrix();
     } inertia;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "link_inertial");
@@ -706,7 +706,7 @@ struct LinkCollision : public Parser
     std::string name;
     double laserRetro;
     int maxContacts;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
     Geometry geometry;
     struct Surface : public Parser
@@ -891,7 +891,7 @@ struct LinkVisual : public Parser
         virtual void dump(int indentLevel = 0);
         virtual ~Meta();
     } meta;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
     Material material;
     Geometry geometry;
@@ -910,7 +910,7 @@ struct Sensor : public Parser
     double updateRate;
     bool visualize;
     std::string topic;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
     std::vector<Plugin*> plugins;
     AltimeterSensor altimeter;
@@ -939,7 +939,7 @@ struct Projector : public Parser
     double fov;
     double nearClip;
     double farClip;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
     std::vector<Plugin*> plugins;
 
@@ -971,7 +971,7 @@ struct AudioSource : public Parser
         virtual ~Contact();
     } contact;
     bool loop;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "audio_source");
@@ -1013,7 +1013,7 @@ struct Link : public Parser
     virtual void dump(int indentLevel = 0);
         virtual ~VelocityDecay();
     } velocityDecay;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
     LinkInertial inertial;
     std::vector<LinkCollision*> collisions;
@@ -1124,7 +1124,7 @@ struct Joint : public Parser
         virtual void dump(int indentLevel = 0);
         virtual ~Physics();
     } physics;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
     Sensor sensor;
 
@@ -1163,7 +1163,7 @@ struct Model : public Parser
     std::vector<Include*> includes;
     std::vector<Model*> submodels;
     bool enableWind;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
     std::vector<Link*> links;
     std::vector<Joint*> joints;
@@ -1367,7 +1367,7 @@ struct LinkState : public Parser
     Pose acceleration;
     Pose wrench;
     std::vector<CollisionState*> collisions;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "link");
@@ -1381,7 +1381,7 @@ struct ModelState : public Parser
     std::vector<JointState*> joints;
     std::vector<ModelState*> submodelstates;
     Vector scale;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
     std::vector<LinkState*> links;
 
@@ -1393,7 +1393,7 @@ struct ModelState : public Parser
 struct LightState : public Parser
 {
     std::string name;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "light");
@@ -1504,7 +1504,7 @@ struct World : public Parser
                 virtual void dump(int indentLevel = 0);
                 virtual ~TrackVisual();
             } trackVisual;
-            Frame frame;
+            std::vector<Frame*> frames;
             Pose pose;
 
             virtual void parse(XMLElement *e, const char *tagName = "camera");
@@ -1583,7 +1583,7 @@ struct Light : public Parser
         virtual void dump(int indentLevel = 0);
         virtual ~Spot();
     } spot;
-    Frame frame;
+    std::vector<Frame*> frames;
     Pose pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "light");

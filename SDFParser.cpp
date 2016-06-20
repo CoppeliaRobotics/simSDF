@@ -662,7 +662,7 @@ void CameraSensor::parse(XMLElement *e, const char *tagName)
     noise.parseSub(e, "noise");
     distortion.parseSub(e, "distortion");
     lens.parseSub(e, "lens");
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
 }
 
@@ -678,13 +678,14 @@ void CameraSensor::dump(int i)
     dumpField(noise);
     dumpField(distortion);
     dumpField(lens);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     endDump(CameraSensor);
 }
 
 CameraSensor::~CameraSensor()
 {
+    deletevec(Frame, frames);
 }
 
 void CameraSensor::Save::parse(XMLElement *e, const char *tagName)
@@ -1425,13 +1426,13 @@ void ForceTorqueSensor::parse(XMLElement *e, const char *tagName)
 
     frame = getSubValStr(e, "frame", true);
     static const char *measureDirectionValues[] = {"parent_to_child", "child_to_parent"};
-    measureDirection = getSubValOneOf(e, "frame", measureDirectionValues, arraysize(measureDirectionValues), true);
+    measureDirection = getSubValOneOf(e, "measure_direction", measureDirectionValues, arraysize(measureDirectionValues), true);
 }
 
 void ForceTorqueSensor::dump(int i)
 {
     beginDump(ForceTorqueSensor);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(measureDirection);
     endDump(ForceTorqueSensor);
 }
@@ -1446,7 +1447,7 @@ void LinkInertial::parse(XMLElement *e, const char *tagName)
 
     mass = getSubValDouble(e, "mass", true);
     inertia.parseSub(e, "inertia", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
 }
 
@@ -1455,13 +1456,14 @@ void LinkInertial::dump(int i)
     beginDump(LinkInertial);
     dumpField(mass);
     dumpField(inertia);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     endDump(LinkInertial);
 }
 
 LinkInertial::~LinkInertial()
 {
+    deletevec(Frame, frames);
 }
 
 void LinkInertial::InertiaMatrix::parse(XMLElement *e, const char *tagName)
@@ -1804,7 +1806,7 @@ void LinkCollision::parse(XMLElement *e, const char *tagName)
     name = getAttrStr(e, "name");
     laserRetro = getSubValDouble(e, "laser_retro", true);
     maxContacts = getSubValInt(e, "max_contacts", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
     geometry.parseSub(e, "geometry");
     surface.parseSub(e, "surface", true);
@@ -1816,7 +1818,7 @@ void LinkCollision::dump(int i)
     dumpField(name);
     dumpField(laserRetro);
     dumpField(maxContacts);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     dumpField(geometry);
     dumpField(surface);
@@ -1825,6 +1827,7 @@ void LinkCollision::dump(int i)
 
 LinkCollision::~LinkCollision()
 {
+    deletevec(Frame, frames);
 }
 
 void LinkCollision::Surface::parse(XMLElement *e, const char *tagName)
@@ -2216,7 +2219,7 @@ void LinkVisual::parse(XMLElement *e, const char *tagName)
     laserRetro = getSubValDouble(e, "laser_retro", true);
     transparency = getSubValDouble(e, "transparency", true);
     meta.parseSub(e, "meta", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
     material.parseSub(e, "material", true);
     geometry.parseSub(e, "geometry");
@@ -2231,7 +2234,7 @@ void LinkVisual::dump(int i)
     dumpField(laserRetro);
     dumpField(transparency);
     dumpField(meta);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     dumpField(material);
     dumpField(geometry);
@@ -2241,6 +2244,7 @@ void LinkVisual::dump(int i)
 
 LinkVisual::~LinkVisual()
 {
+    deletevec(Frame, frames);
     deletevec(Plugin, plugins);
 }
 
@@ -2273,7 +2277,7 @@ void Sensor::parse(XMLElement *e, const char *tagName)
     updateRate = getSubValDouble(e, "update_rate", true);
     visualize = getSubValBool(e, "visualize", true);
     topic = getSubValStr(e, "topic", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
     parseMany(e, "plugin", plugins);
     altimeter.parseSub(e, "altimeter", true);
@@ -2300,7 +2304,7 @@ void Sensor::dump(int i)
     dumpField(updateRate);
     dumpField(visualize);
     dumpField(topic);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     dumpField(plugins);
     dumpField(altimeter);
@@ -2321,6 +2325,7 @@ void Sensor::dump(int i)
 
 Sensor::~Sensor()
 {
+    deletevec(Frame, frames);
     deletevec(Plugin, plugins);
 }
 
@@ -2333,7 +2338,7 @@ void Projector::parse(XMLElement *e, const char *tagName)
     fov = getSubValDouble(e, "fov", true);
     nearClip = getSubValDouble(e, "near_clip", true);
     farClip = getSubValDouble(e, "far_clip", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
     parseMany(e, "plugin", plugins);
 }
@@ -2346,7 +2351,7 @@ void Projector::dump(int i)
     dumpField(fov);
     dumpField(nearClip);
     dumpField(farClip);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     dumpField(plugins);
     endDump(Projector);
@@ -2354,6 +2359,7 @@ void Projector::dump(int i)
 
 Projector::~Projector()
 {
+    deletevec(Frame, frames);
     deletevec(Plugin, plugins);
 }
 
@@ -2384,7 +2390,7 @@ void AudioSource::parse(XMLElement *e, const char *tagName)
     gain = getSubValDouble(e, "gain", true);
     contact.parseSub(e, "contact", true);
     loop = getSubValBool(e, "loop", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
 }
 
@@ -2396,13 +2402,14 @@ void AudioSource::dump(int i)
     dumpField(gain);
     dumpField(contact);
     dumpField(loop);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     endDump(AudioSource);
 }
 
 AudioSource::~AudioSource()
 {
+    deletevec(Frame, frames);
 }
 
 void AudioSource::Contact::parse(XMLElement *e, const char *tagName)
@@ -2470,7 +2477,7 @@ void Link::parse(XMLElement *e, const char *tagName)
     kinematic = getSubValBool(e, "kinematic", true);
     mustBeBaseLink = getSubValBool(e, "must_be_base_link", true);
     velocityDecay.parseSub(e, "velocity_decay", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
     inertial.parseSub(e, "inertial", true);
     parseMany(e, "collision", collisions);
@@ -2492,7 +2499,7 @@ void Link::dump(int i)
     dumpField(kinematic);
     dumpField(mustBeBaseLink);
     dumpField(velocityDecay);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     dumpField(inertial);
     dumpField(collisions);
@@ -2507,6 +2514,7 @@ void Link::dump(int i)
 
 Link::~Link()
 {
+    deletevec(Frame, frames);
     deletevec(LinkCollision, collisions);
     deletevec(LinkVisual, visuals);
     deletevec(AudioSource, audioSources);
@@ -2620,7 +2628,7 @@ void Joint::parse(XMLElement *e, const char *tagName)
     axis.parseSub(e, "axis", true);
     axis2.parseSub(e, "axis2", true);
     physics.parseSub(e, "physics", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
     sensor.parseSub(e, "sensor", true);
 }
@@ -2638,7 +2646,7 @@ void Joint::dump(int i)
     dumpField(axis);
     dumpField(axis2);
     dumpField(physics);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     dumpField(sensor);
     endDump(Joint);
@@ -2646,6 +2654,7 @@ void Joint::dump(int i)
 
 Joint::~Joint()
 {
+    deletevec(Frame, frames);
 }
 
 void Joint::Physics::parse(XMLElement *e, const char *tagName)
@@ -2807,7 +2816,7 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "include", includes);
     parseMany(e, "model", submodels);
     enableWind = getSubValBool(e, "enable_wind", true, true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
     parseMany(e, "link", links);
     parseMany(e, "joint", joints);
@@ -2825,7 +2834,7 @@ void Model::dump(int i)
     dumpField(includes);
     dumpField(submodels);
     dumpField(enableWind);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     dumpField(links);
     dumpField(joints);
@@ -2838,6 +2847,7 @@ Model::~Model()
 {
     deletevec(Include, includes);
     deletevec(Model, submodels);
+    deletevec(Frame, frames);
     deletevec(Link, links);
     deletevec(Joint, joints);
     deletevec(Plugin, plugins);
@@ -3273,7 +3283,7 @@ void LinkState::parse(XMLElement *e, const char *tagName)
     acceleration.parseSub(e, "acceleration", true);
     wrench.parseSub(e, "wrench", true);
     parseMany(e, "collision", collisions);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
 }
 
@@ -3285,7 +3295,7 @@ void LinkState::dump(int i)
     dumpField(acceleration);
     dumpField(wrench);
     dumpField(collisions);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     endDump(LinkState);
 }
@@ -3293,6 +3303,7 @@ void LinkState::dump(int i)
 LinkState::~LinkState()
 {
     deletevec(CollisionState, collisions);
+    deletevec(Frame, frames);
 }
 
 void ModelState::parse(XMLElement *e, const char *tagName)
@@ -3303,7 +3314,7 @@ void ModelState::parse(XMLElement *e, const char *tagName)
     parseMany(e, "joint", joints);
     parseMany(e, "model", submodelstates);
     scale.parseSub(e, "scale", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
     parseMany(e, "link", links);
 }
@@ -3315,7 +3326,7 @@ void ModelState::dump(int i)
     dumpField(joints);
     dumpField(submodelstates);
     dumpField(scale);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     dumpField(links);
     endDump(ModelState);
@@ -3325,6 +3336,7 @@ ModelState::~ModelState()
 {
     deletevec(JointState, joints);
     deletevec(ModelState, submodelstates);
+    deletevec(Frame, frames);
     deletevec(LinkState, links);
 }
 
@@ -3333,7 +3345,7 @@ void LightState::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
 }
 
@@ -3341,13 +3353,14 @@ void LightState::dump(int i)
 {
     beginDump(LightState);
     dumpField(name);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     endDump(LightState);
 }
 
 LightState::~LightState()
 {
+    deletevec(Frame, frames);
 }
 
 void ModelRef::parse(XMLElement *e, const char *tagName)
@@ -3613,7 +3626,7 @@ void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
     static const char *projectionTypes[] = {"orthographic", "perspective"};
     projectionType = getSubValOneOf(e, "projection_type", projectionTypes, arraysize(projectionTypes), true, "perspective");
     trackVisual.parseSub(e, "track_visual", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
 }
 
@@ -3624,13 +3637,14 @@ void World::GUI::Camera::dump(int i)
     dumpField(viewController);
     dumpField(projectionType);
     dumpField(trackVisual);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     endDump(Camera);
 }
 
 World::GUI::Camera::~Camera()
 {
+    deletevec(Frame, frames);
 }
 
 void World::GUI::Camera::TrackVisual::parse(XMLElement *e, const char *tagName)
@@ -3720,7 +3734,7 @@ void Light::parse(XMLElement *e, const char *tagName)
     attenuation.parseSub(e, "attenuation", true);
     direction.parseSub(e, "direction");
     spot.parseSub(e, "spot", true);
-    frame.parseSub(e, "frame", true);
+    parseMany(e, "frame", frames);
     pose.parseSub(e, "pose", true);
 }
 
@@ -3735,13 +3749,14 @@ void Light::dump(int i)
     dumpField(attenuation);
     dumpField(direction);
     dumpField(spot);
-    dumpField(frame);
+    dumpField(frames);
     dumpField(pose);
     endDump(Light);
 }
 
 Light::~Light()
 {
+    deletevec(Frame, frames);
 }
 
 void Light::Attenuation::parse(XMLElement *e, const char *tagName)
