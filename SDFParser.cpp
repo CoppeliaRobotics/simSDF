@@ -6,12 +6,12 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/foreach.hpp>
 
-#define arraysize(X) (sizeof((X))/sizeof((X)[0]))
-#define deletevec(T,X) BOOST_FOREACH(T *x, X) delete x
+#define ARRAYSIZE(X) (sizeof((X))/sizeof((X)[0]))
+#define DELETEVEC(T,X) BOOST_FOREACH(T *x, X) delete x
 
-#define beginDump(n) std::cout << indent(0*i) << #n << " {" << std::endl
-#define dumpField(n) dumpField1(i+1, #n, n)
-#define endDump(n) std::cout << indent(i) << "}" << std::endl
+#define BEGIN_DUMP(n) std::cout << indent(0*i) << #n << " {" << std::endl
+#define DUMP_FIELD(n) dumpField1(i+1, #n, n)
+#define END_DUMP(n) std::cout << indent(i) << "}" << std::endl
 
 #define WRAP_EXCEPTIONS_BEGIN(X) \
     try {
@@ -284,7 +284,7 @@ void SDF::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     static const char *supportedVersions[] = {"1.1", "1.2", "1.3", "1.4", "1.5", "1.6"}; // TODO: verify this
-    version = getAttrOneOf(e, "version", supportedVersions, arraysize(supportedVersions));
+    version = getAttrOneOf(e, "version", supportedVersions, ARRAYSIZE(supportedVersions));
     parseMany(e, "world", worlds);
     parseMany(e, "model", models);
     parseMany(e, "actor", actors);
@@ -295,21 +295,21 @@ void SDF::parse(XMLElement *e, const char *tagName)
 
 void SDF::dump(int i)
 {
-    beginDump(SDF);
-    dumpField(version);
-    dumpField(worlds);
-    dumpField(models);
-    dumpField(actors);
-    dumpField(lights);
-    endDump(SDF);
+    BEGIN_DUMP(SDF);
+    DUMP_FIELD(version);
+    DUMP_FIELD(worlds);
+    DUMP_FIELD(models);
+    DUMP_FIELD(actors);
+    DUMP_FIELD(lights);
+    END_DUMP(SDF);
 }
 
 SDF::~SDF()
 {
-    deletevec(World, worlds);
-    deletevec(Model, models);
-    deletevec(Actor, actors);
-    deletevec(Light, lights);
+    DELETEVEC(World, worlds);
+    DELETEVEC(Model, models);
+    DELETEVEC(Actor, actors);
+    DELETEVEC(Light, lights);
 }
 
 void Vector::parse(XMLElement *e, const char *tagName)
@@ -341,11 +341,11 @@ void Vector::parse(XMLElement *e, const char *tagName)
 
 void Vector::dump(int i)
 {
-    beginDump(Vector);
-    dumpField(x);
-    dumpField(y);
-    dumpField(z);
-    endDump(Vector);
+    BEGIN_DUMP(Vector);
+    DUMP_FIELD(x);
+    DUMP_FIELD(y);
+    DUMP_FIELD(z);
+    END_DUMP(Vector);
 }
 
 Vector::~Vector()
@@ -379,10 +379,10 @@ void Time::parse(XMLElement *e, const char *tagName)
 
 void Time::dump(int i)
 {
-    beginDump(Time);
-    dumpField(seconds);
-    dumpField(nanoseconds);
-    endDump(Time);
+    BEGIN_DUMP(Time);
+    DUMP_FIELD(seconds);
+    DUMP_FIELD(nanoseconds);
+    END_DUMP(Time);
 }
 
 Time::~Time()
@@ -420,12 +420,12 @@ void Color::parse(XMLElement *e, const char *tagName)
 
 void Color::dump(int i)
 {
-    beginDump(Color);
-    dumpField(r);
-    dumpField(g);
-    dumpField(b);
-    dumpField(a);
-    endDump(Color);
+    BEGIN_DUMP(Color);
+    DUMP_FIELD(r);
+    DUMP_FIELD(g);
+    DUMP_FIELD(b);
+    DUMP_FIELD(a);
+    END_DUMP(Color);
 }
 
 Color::~Color()
@@ -461,11 +461,11 @@ void Orientation::parse(XMLElement *e, const char *tagName)
 
 void Orientation::dump(int i)
 {
-    beginDump(Orientation);
-    dumpField(roll);
-    dumpField(pitch);
-    dumpField(yaw);
-    endDump(Orientation);
+    BEGIN_DUMP(Orientation);
+    DUMP_FIELD(roll);
+    DUMP_FIELD(pitch);
+    DUMP_FIELD(yaw);
+    END_DUMP(Orientation);
 }
 
 Orientation::~Orientation()
@@ -504,10 +504,10 @@ void Pose::parse(XMLElement *e, const char *tagName)
 
 void Pose::dump(int i)
 {
-    beginDump(Pose);
-    dumpField(position);
-    dumpField(orientation);
-    endDump(Pose);
+    BEGIN_DUMP(Pose);
+    DUMP_FIELD(position);
+    DUMP_FIELD(orientation);
+    END_DUMP(Pose);
 }
 
 Pose::~Pose()
@@ -529,12 +529,12 @@ void Include::parse(XMLElement *e, const char *tagName)
 
 void Include::dump(int i)
 {
-    beginDump(Include);
-    dumpField(uri);
-    dumpField(pose);
-    dumpField(name);
-    dumpField(static_);
-    endDump(Include);
+    BEGIN_DUMP(Include);
+    DUMP_FIELD(uri);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(name);
+    DUMP_FIELD(static_);
+    END_DUMP(Include);
 }
 
 Include::~Include()
@@ -554,10 +554,10 @@ void Plugin::parse(XMLElement *e, const char *tagName)
 
 void Plugin::dump(int i)
 {
-    beginDump(Plugin);
-    dumpField(name);
-    dumpField(fileName);
-    endDump(Plugin);
+    BEGIN_DUMP(Plugin);
+    DUMP_FIELD(name);
+    DUMP_FIELD(fileName);
+    END_DUMP(Plugin);
 }
 
 Plugin::~Plugin()
@@ -577,10 +577,10 @@ void Frame::parse(XMLElement *e, const char *tagName)
 
 void Frame::dump(int i)
 {
-    beginDump(Frame);
-    dumpField(name);
-    dumpField(pose);
-    endDump(Frame);
+    BEGIN_DUMP(Frame);
+    DUMP_FIELD(name);
+    DUMP_FIELD(pose);
+    END_DUMP(Frame);
 }
 
 Frame::~Frame()
@@ -603,14 +603,14 @@ void NoiseModel::parse(XMLElement *e, const char *tagName)
 
 void NoiseModel::dump(int i)
 {
-    beginDump(NoiseModel);
-    dumpField(type);
-    dumpField(mean);
-    dumpField(stdDev);
-    dumpField(biasMean);
-    dumpField(biasStdDev);
-    dumpField(precision);
-    endDump(NoiseModel);
+    BEGIN_DUMP(NoiseModel);
+    DUMP_FIELD(type);
+    DUMP_FIELD(mean);
+    DUMP_FIELD(stdDev);
+    DUMP_FIELD(biasMean);
+    DUMP_FIELD(biasStdDev);
+    DUMP_FIELD(precision);
+    END_DUMP(NoiseModel);
 }
 
 NoiseModel::~NoiseModel()
@@ -630,10 +630,10 @@ void AltimeterSensor::parse(XMLElement *e, const char *tagName)
 
 void AltimeterSensor::dump(int i)
 {
-    beginDump(AltimeterSensor);
-    dumpField(verticalPosition);
-    dumpField(verticalVelocity);
-    endDump(AltimeterSensor);
+    BEGIN_DUMP(AltimeterSensor);
+    DUMP_FIELD(verticalPosition);
+    DUMP_FIELD(verticalVelocity);
+    END_DUMP(AltimeterSensor);
 }
 
 AltimeterSensor::~AltimeterSensor()
@@ -652,9 +652,9 @@ void AltimeterSensor::VerticalPosition::parse(XMLElement *e, const char *tagName
 
 void AltimeterSensor::VerticalPosition::dump(int i)
 {
-    beginDump(VerticalPosition);
-    dumpField(noise);
-    endDump(VerticalPosition);
+    BEGIN_DUMP(VerticalPosition);
+    DUMP_FIELD(noise);
+    END_DUMP(VerticalPosition);
 }
 
 AltimeterSensor::VerticalPosition::~VerticalPosition()
@@ -673,9 +673,9 @@ void AltimeterSensor::VerticalVelocity::parse(XMLElement *e, const char *tagName
 
 void AltimeterSensor::VerticalVelocity::dump(int i)
 {
-    beginDump(VerticalVelocity);
-    dumpField(noise);
-    endDump(VerticalVelocity);
+    BEGIN_DUMP(VerticalVelocity);
+    DUMP_FIELD(noise);
+    END_DUMP(VerticalVelocity);
 }
 
 AltimeterSensor::VerticalVelocity::~VerticalVelocity()
@@ -696,11 +696,11 @@ void Image::parse(XMLElement *e, const char *tagName)
 
 void Image::dump(int i)
 {
-    beginDump(Image);
-    dumpField(width);
-    dumpField(height);
-    dumpField(format);
-    endDump(Image);
+    BEGIN_DUMP(Image);
+    DUMP_FIELD(width);
+    DUMP_FIELD(height);
+    DUMP_FIELD(format);
+    END_DUMP(Image);
 }
 
 Image::~Image()
@@ -720,10 +720,10 @@ void Clip::parse(XMLElement *e, const char *tagName)
 
 void Clip::dump(int i)
 {
-    beginDump(Clip);
-    dumpField(near);
-    dumpField(far);
-    endDump(Clip);
+    BEGIN_DUMP(Clip);
+    DUMP_FIELD(near);
+    DUMP_FIELD(far);
+    END_DUMP(Clip);
 }
 
 Clip::~Clip()
@@ -746,13 +746,13 @@ void CustomFunction::parse(XMLElement *e, const char *tagName)
 
 void CustomFunction::dump(int i)
 {
-    beginDump(CustomFunction);
-    dumpField(c1);
-    dumpField(c2);
-    dumpField(c3);
-    dumpField(f);
-    dumpField(fun);
-    endDump(CustomFunction);
+    BEGIN_DUMP(CustomFunction);
+    DUMP_FIELD(c1);
+    DUMP_FIELD(c2);
+    DUMP_FIELD(c3);
+    DUMP_FIELD(f);
+    DUMP_FIELD(fun);
+    END_DUMP(CustomFunction);
 }
 
 CustomFunction::~CustomFunction()
@@ -781,24 +781,24 @@ void CameraSensor::parse(XMLElement *e, const char *tagName)
 
 void CameraSensor::dump(int i)
 {
-    beginDump(CameraSensor);
-    dumpField(name);
-    dumpField(horizontalFOV);
-    dumpField(image);
-    dumpField(clip);
-    dumpField(save);
-    dumpField(depthCamera);
-    dumpField(noise);
-    dumpField(distortion);
-    dumpField(lens);
-    dumpField(frames);
-    dumpField(pose);
-    endDump(CameraSensor);
+    BEGIN_DUMP(CameraSensor);
+    DUMP_FIELD(name);
+    DUMP_FIELD(horizontalFOV);
+    DUMP_FIELD(image);
+    DUMP_FIELD(clip);
+    DUMP_FIELD(save);
+    DUMP_FIELD(depthCamera);
+    DUMP_FIELD(noise);
+    DUMP_FIELD(distortion);
+    DUMP_FIELD(lens);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    END_DUMP(CameraSensor);
 }
 
 CameraSensor::~CameraSensor()
 {
-    deletevec(Frame, frames);
+    DELETEVEC(Frame, frames);
 }
 
 void CameraSensor::Save::parse(XMLElement *e, const char *tagName)
@@ -814,10 +814,10 @@ void CameraSensor::Save::parse(XMLElement *e, const char *tagName)
 
 void CameraSensor::Save::dump(int i)
 {
-    beginDump(Save);
-    dumpField(enabled);
-    dumpField(path);
-    endDump(Save);
+    BEGIN_DUMP(Save);
+    DUMP_FIELD(enabled);
+    DUMP_FIELD(path);
+    END_DUMP(Save);
 }
 
 CameraSensor::Save::~Save()
@@ -836,9 +836,9 @@ void CameraSensor::DepthCamera::parse(XMLElement *e, const char *tagName)
 
 void CameraSensor::DepthCamera::dump(int i)
 {
-    beginDump(DepthCamera);
-    dumpField(output);
-    endDump(DepthCamera);
+    BEGIN_DUMP(DepthCamera);
+    DUMP_FIELD(output);
+    END_DUMP(DepthCamera);
 }
 
 CameraSensor::DepthCamera::~DepthCamera()
@@ -862,13 +862,13 @@ void CameraSensor::Distortion::parse(XMLElement *e, const char *tagName)
 
 void CameraSensor::Distortion::dump(int i)
 {
-    beginDump(Distortion);
-    dumpField(k1);
-    dumpField(k2);
-    dumpField(k3);
-    dumpField(p1);
-    dumpField(p2);
-    endDump(Distortion);
+    BEGIN_DUMP(Distortion);
+    DUMP_FIELD(k1);
+    DUMP_FIELD(k2);
+    DUMP_FIELD(k3);
+    DUMP_FIELD(p1);
+    DUMP_FIELD(p2);
+    END_DUMP(Distortion);
 }
 
 CameraSensor::Distortion::~Distortion()
@@ -888,10 +888,10 @@ void CameraSensor::Distortion::Center::parse(XMLElement *e, const char *tagName)
 
 void CameraSensor::Distortion::Center::dump(int i)
 {
-    beginDump(Center);
-    dumpField(x);
-    dumpField(y);
-    endDump(Center);
+    BEGIN_DUMP(Center);
+    DUMP_FIELD(x);
+    DUMP_FIELD(y);
+    END_DUMP(Center);
 }
 
 CameraSensor::Distortion::Center::~Center()
@@ -914,13 +914,13 @@ void CameraSensor::Lens::parse(XMLElement *e, const char *tagName)
 
 void CameraSensor::Lens::dump(int i)
 {
-    beginDump(Lens);
-    dumpField(type);
-    dumpField(scaleToHFOV);
-    dumpField(customFunction);
-    dumpField(cutoffAngle);
-    dumpField(envTextureSize);
-    endDump(Lens);
+    BEGIN_DUMP(Lens);
+    DUMP_FIELD(type);
+    DUMP_FIELD(scaleToHFOV);
+    DUMP_FIELD(customFunction);
+    DUMP_FIELD(cutoffAngle);
+    DUMP_FIELD(envTextureSize);
+    END_DUMP(Lens);
 }
 
 CameraSensor::Lens::~Lens()
@@ -940,10 +940,10 @@ void ContactSensor::parse(XMLElement *e, const char *tagName)
 
 void ContactSensor::dump(int i)
 {
-    beginDump(ContactSensor);
-    dumpField(collision);
-    dumpField(topic);
-    endDump(ContactSensor);
+    BEGIN_DUMP(ContactSensor);
+    DUMP_FIELD(collision);
+    DUMP_FIELD(topic);
+    END_DUMP(ContactSensor);
 }
 
 ContactSensor::~ContactSensor()
@@ -962,9 +962,9 @@ void VariableWithNoise::parse(XMLElement *e, const char *tagName)
 
 void VariableWithNoise::dump(int i)
 {
-    beginDump(Horizontal);
-    dumpField(noise);
-    endDump(Horizontal);
+    BEGIN_DUMP(Horizontal);
+    DUMP_FIELD(noise);
+    END_DUMP(Horizontal);
 }
 
 VariableWithNoise::~VariableWithNoise()
@@ -984,10 +984,10 @@ void PositionSensing::parse(XMLElement *e, const char *tagName)
 
 void PositionSensing::dump(int i)
 {
-    beginDump(PositionSensing);
-    dumpField(horizontal);
-    dumpField(vertical);
-    endDump(PositionSensing);
+    BEGIN_DUMP(PositionSensing);
+    DUMP_FIELD(horizontal);
+    DUMP_FIELD(vertical);
+    END_DUMP(PositionSensing);
 }
 
 PositionSensing::~PositionSensing()
@@ -1007,10 +1007,10 @@ void VelocitySensing::parse(XMLElement *e, const char *tagName)
 
 void VelocitySensing::dump(int i)
 {
-    beginDump(VelocitySensing);
-    dumpField(horizontal);
-    dumpField(vertical);
-    endDump(VelocitySensing);
+    BEGIN_DUMP(VelocitySensing);
+    DUMP_FIELD(horizontal);
+    DUMP_FIELD(vertical);
+    END_DUMP(VelocitySensing);
 }
 
 VelocitySensing::~VelocitySensing()
@@ -1030,10 +1030,10 @@ void GPSSensor::parse(XMLElement *e, const char *tagName)
 
 void GPSSensor::dump(int i)
 {
-    beginDump(GPSSensor);
-    dumpField(positionSensing);
-    dumpField(velocitySensing);
-    endDump(GPSSensor);
+    BEGIN_DUMP(GPSSensor);
+    DUMP_FIELD(positionSensing);
+    DUMP_FIELD(velocitySensing);
+    END_DUMP(GPSSensor);
 }
 
 GPSSensor::~GPSSensor()
@@ -1054,11 +1054,11 @@ void AngularVelocity::parse(XMLElement *e, const char *tagName)
 
 void AngularVelocity::dump(int i)
 {
-    beginDump(AngularVelocity);
-    dumpField(x);
-    dumpField(y);
-    dumpField(z);
-    endDump(AngularVelocity);
+    BEGIN_DUMP(AngularVelocity);
+    DUMP_FIELD(x);
+    DUMP_FIELD(y);
+    DUMP_FIELD(z);
+    END_DUMP(AngularVelocity);
 }
 
 AngularVelocity::~AngularVelocity()
@@ -1079,11 +1079,11 @@ void LinearAcceleration::parse(XMLElement *e, const char *tagName)
 
 void LinearAcceleration::dump(int i)
 {
-    beginDump(LinearAcceleration);
-    dumpField(x);
-    dumpField(y);
-    dumpField(z);
-    endDump(LinearAcceleration);
+    BEGIN_DUMP(LinearAcceleration);
+    DUMP_FIELD(x);
+    DUMP_FIELD(y);
+    DUMP_FIELD(z);
+    END_DUMP(LinearAcceleration);
 }
 
 LinearAcceleration::~LinearAcceleration()
@@ -1104,11 +1104,11 @@ void IMUSensor::parse(XMLElement *e, const char *tagName)
 
 void IMUSensor::dump(int i)
 {
-    beginDump(IMUSensor);
-    dumpField(topic);
-    dumpField(angularVelocity);
-    dumpField(linearAcceleration);
-    endDump(IMUSensor);
+    BEGIN_DUMP(IMUSensor);
+    DUMP_FIELD(topic);
+    DUMP_FIELD(angularVelocity);
+    DUMP_FIELD(linearAcceleration);
+    END_DUMP(IMUSensor);
 }
 
 IMUSensor::~IMUSensor()
@@ -1130,12 +1130,12 @@ void LogicalCameraSensor::parse(XMLElement *e, const char *tagName)
 
 void LogicalCameraSensor::dump(int i)
 {
-    beginDump(LogicalCameraSensor);
-    dumpField(near);
-    dumpField(far);
-    dumpField(aspectRatio);
-    dumpField(horizontalFOV);
-    endDump(LogicalCameraSensor);
+    BEGIN_DUMP(LogicalCameraSensor);
+    DUMP_FIELD(near);
+    DUMP_FIELD(far);
+    DUMP_FIELD(aspectRatio);
+    DUMP_FIELD(horizontalFOV);
+    END_DUMP(LogicalCameraSensor);
 }
 
 LogicalCameraSensor::~LogicalCameraSensor()
@@ -1156,11 +1156,11 @@ void MagnetometerSensor::parse(XMLElement *e, const char *tagName)
 
 void MagnetometerSensor::dump(int i)
 {
-    beginDump(MagnetometerSensor);
-    dumpField(x);
-    dumpField(y);
-    dumpField(z);
-    endDump(MagnetometerSensor);
+    BEGIN_DUMP(MagnetometerSensor);
+    DUMP_FIELD(x);
+    DUMP_FIELD(y);
+    DUMP_FIELD(z);
+    END_DUMP(MagnetometerSensor);
 }
 
 MagnetometerSensor::~MagnetometerSensor()
@@ -1182,12 +1182,12 @@ void LaserScanResolution::parse(XMLElement *e, const char *tagName)
 
 void LaserScanResolution::dump(int i)
 {
-    beginDump(LaserScanResolution);
-    dumpField(samples);
-    dumpField(resolution);
-    dumpField(minAngle);
-    dumpField(maxAngle);
-    endDump(LaserScanResolution);
+    BEGIN_DUMP(LaserScanResolution);
+    DUMP_FIELD(samples);
+    DUMP_FIELD(resolution);
+    DUMP_FIELD(minAngle);
+    DUMP_FIELD(maxAngle);
+    END_DUMP(LaserScanResolution);
 }
 
 LaserScanResolution::~LaserScanResolution()
@@ -1208,11 +1208,11 @@ void RaySensor::parse(XMLElement *e, const char *tagName)
 
 void RaySensor::dump(int i)
 {
-    beginDump(RaySensor);
-    dumpField(scan);
-    dumpField(range);
-    dumpField(noise);
-    endDump(RaySensor);
+    BEGIN_DUMP(RaySensor);
+    DUMP_FIELD(scan);
+    DUMP_FIELD(range);
+    DUMP_FIELD(noise);
+    END_DUMP(RaySensor);
 }
 
 RaySensor::~RaySensor()
@@ -1232,10 +1232,10 @@ void RaySensor::Scan::parse(XMLElement *e, const char *tagName)
 
 void RaySensor::Scan::dump(int i)
 {
-    beginDump(Scan);
-    dumpField(horizontal);
-    dumpField(vertical);
-    endDump(Scan);
+    BEGIN_DUMP(Scan);
+    DUMP_FIELD(horizontal);
+    DUMP_FIELD(vertical);
+    END_DUMP(Scan);
 }
 
 RaySensor::Scan::~Scan()
@@ -1256,10 +1256,10 @@ void RaySensor::Range::parse(XMLElement *e, const char *tagName)
 
 void RaySensor::Range::dump(int i)
 {
-    beginDump(Range);
-    dumpField(min);
-    dumpField(max);
-    endDump(Range);
+    BEGIN_DUMP(Range);
+    DUMP_FIELD(min);
+    DUMP_FIELD(max);
+    END_DUMP(Range);
 }
 
 RaySensor::Range::~Range()
@@ -1276,8 +1276,8 @@ void RFIDTagSensor::parse(XMLElement *e, const char *tagName)
 
 void RFIDTagSensor::dump(int i)
 {
-    beginDump(RFIDTagSensor);
-    endDump(RFIDTagSensor);
+    BEGIN_DUMP(RFIDTagSensor);
+    END_DUMP(RFIDTagSensor);
 }
 
 RFIDTagSensor::~RFIDTagSensor()
@@ -1294,8 +1294,8 @@ void RFIDSensor::parse(XMLElement *e, const char *tagName)
 
 void RFIDSensor::dump(int i)
 {
-    beginDump(RFIDSensor);
-    endDump(RFIDSensor);
+    BEGIN_DUMP(RFIDSensor);
+    END_DUMP(RFIDSensor);
 }
 
 RFIDSensor::~RFIDSensor()
@@ -1316,11 +1316,11 @@ void SonarSensor::parse(XMLElement *e, const char *tagName)
 
 void SonarSensor::dump(int i)
 {
-    beginDump(SonarSensor);
-    dumpField(min);
-    dumpField(max);
-    dumpField(radius);
-    endDump(SonarSensor);
+    BEGIN_DUMP(SonarSensor);
+    DUMP_FIELD(min);
+    DUMP_FIELD(max);
+    DUMP_FIELD(radius);
+    END_DUMP(SonarSensor);
 }
 
 SonarSensor::~SonarSensor()
@@ -1345,15 +1345,15 @@ void TransceiverSensor::parse(XMLElement *e, const char *tagName)
 
 void TransceiverSensor::dump(int i)
 {
-    beginDump(TransceiverSensor);
-    dumpField(essid);
-    dumpField(frequency);
-    dumpField(minFrequency);
-    dumpField(maxFrequency);
-    dumpField(gain);
-    dumpField(power);
-    dumpField(sensitivity);
-    endDump(TransceiverSensor);
+    BEGIN_DUMP(TransceiverSensor);
+    DUMP_FIELD(essid);
+    DUMP_FIELD(frequency);
+    DUMP_FIELD(minFrequency);
+    DUMP_FIELD(maxFrequency);
+    DUMP_FIELD(gain);
+    DUMP_FIELD(power);
+    DUMP_FIELD(sensitivity);
+    END_DUMP(TransceiverSensor);
 }
 
 TransceiverSensor::~TransceiverSensor()
@@ -1367,17 +1367,17 @@ void ForceTorqueSensor::parse(XMLElement *e, const char *tagName)
 
     frame = getSubValStrOpt(e, "frame");
     static const char *measureDirectionValues[] = {"parent_to_child", "child_to_parent"};
-    measureDirection = getSubValOneOfOpt(e, "measure_direction", measureDirectionValues, arraysize(measureDirectionValues));
+    measureDirection = getSubValOneOfOpt(e, "measure_direction", measureDirectionValues, ARRAYSIZE(measureDirectionValues));
 
     WRAP_EXCEPTIONS_END(ForceTorqueSensor)
 }
 
 void ForceTorqueSensor::dump(int i)
 {
-    beginDump(ForceTorqueSensor);
-    dumpField(frame);
-    dumpField(measureDirection);
-    endDump(ForceTorqueSensor);
+    BEGIN_DUMP(ForceTorqueSensor);
+    DUMP_FIELD(frame);
+    DUMP_FIELD(measureDirection);
+    END_DUMP(ForceTorqueSensor);
 }
 
 ForceTorqueSensor::~ForceTorqueSensor()
@@ -1401,14 +1401,14 @@ void InertiaMatrix::parse(XMLElement *e, const char *tagName)
 
 void InertiaMatrix::dump(int i)
 {
-    beginDump(InertiaMatrix);
-    dumpField(ixx);
-    dumpField(ixy);
-    dumpField(ixz);
-    dumpField(iyy);
-    dumpField(iyz);
-    dumpField(izz);
-    endDump(InertiaMatrix);
+    BEGIN_DUMP(InertiaMatrix);
+    DUMP_FIELD(ixx);
+    DUMP_FIELD(ixy);
+    DUMP_FIELD(ixz);
+    DUMP_FIELD(iyy);
+    DUMP_FIELD(iyz);
+    DUMP_FIELD(izz);
+    END_DUMP(InertiaMatrix);
 }
 
 InertiaMatrix::~InertiaMatrix()
@@ -1430,17 +1430,17 @@ void LinkInertial::parse(XMLElement *e, const char *tagName)
 
 void LinkInertial::dump(int i)
 {
-    beginDump(LinkInertial);
-    dumpField(mass);
-    dumpField(inertia);
-    dumpField(frames);
-    dumpField(pose);
-    endDump(LinkInertial);
+    BEGIN_DUMP(LinkInertial);
+    DUMP_FIELD(mass);
+    DUMP_FIELD(inertia);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    END_DUMP(LinkInertial);
 }
 
 LinkInertial::~LinkInertial()
 {
-    deletevec(Frame, frames);
+    DELETEVEC(Frame, frames);
 }
 
 void Texture::parse(XMLElement *e, const char *tagName)
@@ -1457,11 +1457,11 @@ void Texture::parse(XMLElement *e, const char *tagName)
 
 void Texture::dump(int i)
 {
-    beginDump(Texture);
-    dumpField(size);
-    dumpField(diffuse);
-    dumpField(normal);
-    endDump(Texture);
+    BEGIN_DUMP(Texture);
+    DUMP_FIELD(size);
+    DUMP_FIELD(diffuse);
+    DUMP_FIELD(normal);
+    END_DUMP(Texture);
 }
 
 Texture::~Texture()
@@ -1481,10 +1481,10 @@ void TextureBlend::parse(XMLElement *e, const char *tagName)
 
 void TextureBlend::dump(int i)
 {
-    beginDump(TextureBlend);
-    dumpField(minHeight);
-    dumpField(fadeDist);
-    endDump(TextureBlend);
+    BEGIN_DUMP(TextureBlend);
+    DUMP_FIELD(minHeight);
+    DUMP_FIELD(fadeDist);
+    END_DUMP(TextureBlend);
 }
 
 TextureBlend::~TextureBlend()
@@ -1527,17 +1527,17 @@ void Geometry::parse(XMLElement *e, const char *tagName)
 
 void Geometry::dump(int i)
 {
-    beginDump(Geometry);
-    dumpField(empty);
-    dumpField(box);
-    dumpField(cylinder);
-    dumpField(heightmap);
-    dumpField(image);
-    dumpField(mesh);
-    dumpField(plane);
-    dumpField(polyline);
-    dumpField(sphere);
-    endDump(Geometry);
+    BEGIN_DUMP(Geometry);
+    DUMP_FIELD(empty);
+    DUMP_FIELD(box);
+    DUMP_FIELD(cylinder);
+    DUMP_FIELD(heightmap);
+    DUMP_FIELD(image);
+    DUMP_FIELD(mesh);
+    DUMP_FIELD(plane);
+    DUMP_FIELD(polyline);
+    DUMP_FIELD(sphere);
+    END_DUMP(Geometry);
 }
 
 Geometry::~Geometry()
@@ -1554,8 +1554,8 @@ void EmptyGeometry::parse(XMLElement *e, const char *tagName)
 
 void EmptyGeometry::dump(int i)
 {
-    beginDump(EmptyGeometry);
-    endDump(EmptyGeometry);
+    BEGIN_DUMP(EmptyGeometry);
+    END_DUMP(EmptyGeometry);
 }
 
 EmptyGeometry::~EmptyGeometry()
@@ -1574,9 +1574,9 @@ void BoxGeometry::parse(XMLElement *e, const char *tagName)
 
 void BoxGeometry::dump(int i)
 {
-    beginDump(BoxGeometry);
-    dumpField(size);
-    endDump(BoxGeometry);
+    BEGIN_DUMP(BoxGeometry);
+    DUMP_FIELD(size);
+    END_DUMP(BoxGeometry);
 }
 
 BoxGeometry::~BoxGeometry()
@@ -1596,10 +1596,10 @@ void CylinderGeometry::parse(XMLElement *e, const char *tagName)
 
 void CylinderGeometry::dump(int i)
 {
-    beginDump(CylinderGeometry);
-    dumpField(radius);
-    dumpField(length);
-    endDump(CylinderGeometry);
+    BEGIN_DUMP(CylinderGeometry);
+    DUMP_FIELD(radius);
+    DUMP_FIELD(length);
+    END_DUMP(CylinderGeometry);
 }
 
 CylinderGeometry::~CylinderGeometry()
@@ -1625,19 +1625,19 @@ void HeightMapGeometry::parse(XMLElement *e, const char *tagName)
 
 void HeightMapGeometry::dump(int i)
 {
-    beginDump(HeightMapGeometry);
-    dumpField(uri);
-    dumpField(size);
-    dumpField(pos);
-    dumpField(textures);
-    dumpField(blends);
-    endDump(HeightMapGeometry);
+    BEGIN_DUMP(HeightMapGeometry);
+    DUMP_FIELD(uri);
+    DUMP_FIELD(size);
+    DUMP_FIELD(pos);
+    DUMP_FIELD(textures);
+    DUMP_FIELD(blends);
+    END_DUMP(HeightMapGeometry);
 }
 
 HeightMapGeometry::~HeightMapGeometry()
 {
-    deletevec(Texture, textures);
-    deletevec(TextureBlend, blends);
+    DELETEVEC(Texture, textures);
+    DELETEVEC(TextureBlend, blends);
 }
 
 void ImageGeometry::parse(XMLElement *e, const char *tagName)
@@ -1656,13 +1656,13 @@ void ImageGeometry::parse(XMLElement *e, const char *tagName)
 
 void ImageGeometry::dump(int i)
 {
-    beginDump(ImageGeometry);
-    dumpField(uri);
-    dumpField(scale);
-    dumpField(threshold);
-    dumpField(height);
-    dumpField(granularity);
-    endDump(ImageGeometry);
+    BEGIN_DUMP(ImageGeometry);
+    DUMP_FIELD(uri);
+    DUMP_FIELD(scale);
+    DUMP_FIELD(threshold);
+    DUMP_FIELD(height);
+    DUMP_FIELD(granularity);
+    END_DUMP(ImageGeometry);
 }
 
 ImageGeometry::~ImageGeometry()
@@ -1682,10 +1682,10 @@ void SubMesh::parse(XMLElement *e, const char *tagName)
 
 void SubMesh::dump(int i)
 {
-    beginDump(SubMesh);
-    dumpField(name);
-    dumpField(center);
-    endDump(SubMesh);
+    BEGIN_DUMP(SubMesh);
+    DUMP_FIELD(name);
+    DUMP_FIELD(center);
+    END_DUMP(SubMesh);
 }
 
 SubMesh::~SubMesh()
@@ -1706,11 +1706,11 @@ void MeshGeometry::parse(XMLElement *e, const char *tagName)
 
 void MeshGeometry::dump(int i)
 {
-    beginDump(MeshGeometry);
-    dumpField(uri);
-    dumpField(submesh);
-    dumpField(scale);
-    endDump(MeshGeometry);
+    BEGIN_DUMP(MeshGeometry);
+    DUMP_FIELD(uri);
+    DUMP_FIELD(submesh);
+    DUMP_FIELD(scale);
+    END_DUMP(MeshGeometry);
 }
 
 MeshGeometry::~MeshGeometry()
@@ -1730,10 +1730,10 @@ void PlaneGeometry::parse(XMLElement *e, const char *tagName)
 
 void PlaneGeometry::dump(int i)
 {
-    beginDump(PlaneGeometry);
-    dumpField(normal);
-    dumpField(size);
-    endDump(PlaneGeometry);
+    BEGIN_DUMP(PlaneGeometry);
+    DUMP_FIELD(normal);
+    DUMP_FIELD(size);
+    END_DUMP(PlaneGeometry);
 }
 
 PlaneGeometry::~PlaneGeometry()
@@ -1755,15 +1755,15 @@ void PolylineGeometry::parse(XMLElement *e, const char *tagName)
 
 void PolylineGeometry::dump(int i)
 {
-    beginDump(PolylineGeometry);
-    dumpField(points);
-    dumpField(height);
-    endDump(PolylineGeometry);
+    BEGIN_DUMP(PolylineGeometry);
+    DUMP_FIELD(points);
+    DUMP_FIELD(height);
+    END_DUMP(PolylineGeometry);
 }
 
 PolylineGeometry::~PolylineGeometry()
 {
-    deletevec(Vector, points);
+    DELETEVEC(Vector, points);
 }
 
 void SphereGeometry::parse(XMLElement *e, const char *tagName)
@@ -1778,9 +1778,9 @@ void SphereGeometry::parse(XMLElement *e, const char *tagName)
 
 void SphereGeometry::dump(int i)
 {
-    beginDump(SphereGeometry);
-    dumpField(radius);
-    endDump(SphereGeometry);
+    BEGIN_DUMP(SphereGeometry);
+    DUMP_FIELD(radius);
+    END_DUMP(SphereGeometry);
 }
 
 SphereGeometry::~SphereGeometry()
@@ -1800,10 +1800,10 @@ void SurfaceBounce::parse(XMLElement *e, const char *tagName)
 
 void SurfaceBounce::dump(int i)
 {
-    beginDump(Bounce);
-    dumpField(restitutionCoefficient);
-    dumpField(threshold);
-    endDump(Bounce);
+    BEGIN_DUMP(Bounce);
+    DUMP_FIELD(restitutionCoefficient);
+    DUMP_FIELD(threshold);
+    END_DUMP(Bounce);
 }
 
 SurfaceBounce::~SurfaceBounce()
@@ -1822,9 +1822,9 @@ void SurfaceFrictionTorsionalODE::parse(XMLElement *e, const char *tagName)
 
 void SurfaceFrictionTorsionalODE::dump(int i)
 {
-    beginDump(ODE);
-    dumpField(slip);
-    endDump(ODE);
+    BEGIN_DUMP(ODE);
+    DUMP_FIELD(slip);
+    END_DUMP(ODE);
 }
 
 SurfaceFrictionTorsionalODE::~SurfaceFrictionTorsionalODE()
@@ -1847,13 +1847,13 @@ void SurfaceFrictionTorsional::parse(XMLElement *e, const char *tagName)
 
 void SurfaceFrictionTorsional::dump(int i)
 {
-    beginDump(Torsional);
-    dumpField(coefficient);
-    dumpField(usePatchRadius);
-    dumpField(patchRadius);
-    dumpField(surfaceRadius);
-    dumpField(ode);
-    endDump(Torsional);
+    BEGIN_DUMP(Torsional);
+    DUMP_FIELD(coefficient);
+    DUMP_FIELD(usePatchRadius);
+    DUMP_FIELD(patchRadius);
+    DUMP_FIELD(surfaceRadius);
+    DUMP_FIELD(ode);
+    END_DUMP(Torsional);
 }
 
 SurfaceFrictionTorsional::~SurfaceFrictionTorsional()
@@ -1876,13 +1876,13 @@ void SurfaceFrictionODE::parse(XMLElement *e, const char *tagName)
 
 void SurfaceFrictionODE::dump(int i)
 {
-    beginDump(ODE);
-    dumpField(mu);
-    dumpField(mu2);
-    dumpField(fdir1);
-    dumpField(slip1);
-    dumpField(slip2);
-    endDump(ODE);
+    BEGIN_DUMP(ODE);
+    DUMP_FIELD(mu);
+    DUMP_FIELD(mu2);
+    DUMP_FIELD(fdir1);
+    DUMP_FIELD(slip1);
+    DUMP_FIELD(slip2);
+    END_DUMP(ODE);
 }
 
 SurfaceFrictionODE::~SurfaceFrictionODE()
@@ -1904,12 +1904,12 @@ void SurfaceFrictionBullet::parse(XMLElement *e, const char *tagName)
 
 void SurfaceFrictionBullet::dump(int i)
 {
-    beginDump(Bullet);
-    dumpField(friction);
-    dumpField(friction2);
-    dumpField(fdir1);
-    dumpField(rollingFriction);
-    endDump(Bullet);
+    BEGIN_DUMP(Bullet);
+    DUMP_FIELD(friction);
+    DUMP_FIELD(friction2);
+    DUMP_FIELD(fdir1);
+    DUMP_FIELD(rollingFriction);
+    END_DUMP(Bullet);
 }
 
 SurfaceFrictionBullet::~SurfaceFrictionBullet()
@@ -1930,11 +1930,11 @@ void SurfaceFriction::parse(XMLElement *e, const char *tagName)
 
 void SurfaceFriction::dump(int i)
 {
-    beginDump(Friction);
-    dumpField(torsional);
-    dumpField(ode);
-    dumpField(bullet);
-    endDump(Friction);
+    BEGIN_DUMP(Friction);
+    DUMP_FIELD(torsional);
+    DUMP_FIELD(ode);
+    DUMP_FIELD(bullet);
+    END_DUMP(Friction);
 }
 
 SurfaceFriction::~SurfaceFriction()
@@ -1958,14 +1958,14 @@ void SurfaceContactODE::parse(XMLElement *e, const char *tagName)
 
 void SurfaceContactODE::dump(int i)
 {
-    beginDump(ODE);
-    dumpField(softCFM);
-    dumpField(softERP);
-    dumpField(kp);
-    dumpField(kd);
-    dumpField(maxVel);
-    dumpField(minDepth);
-    endDump(ODE);
+    BEGIN_DUMP(ODE);
+    DUMP_FIELD(softCFM);
+    DUMP_FIELD(softERP);
+    DUMP_FIELD(kp);
+    DUMP_FIELD(kd);
+    DUMP_FIELD(maxVel);
+    DUMP_FIELD(minDepth);
+    END_DUMP(ODE);
 }
 
 SurfaceContactODE::~SurfaceContactODE()
@@ -1990,15 +1990,15 @@ void SurfaceContactBullet::parse(XMLElement *e, const char *tagName)
 
 void SurfaceContactBullet::dump(int i)
 {
-    beginDump(Bullet);
-    dumpField(softCFM);
-    dumpField(softERP);
-    dumpField(kp);
-    dumpField(kd);
-    dumpField(splitImpulse);
-    dumpField(splitImpulsePenetrationThreshold);
-    dumpField(minDepth);
-    endDump(Bullet);
+    BEGIN_DUMP(Bullet);
+    DUMP_FIELD(softCFM);
+    DUMP_FIELD(softERP);
+    DUMP_FIELD(kp);
+    DUMP_FIELD(kd);
+    DUMP_FIELD(splitImpulse);
+    DUMP_FIELD(splitImpulsePenetrationThreshold);
+    DUMP_FIELD(minDepth);
+    END_DUMP(Bullet);
 }
 
 SurfaceContactBullet::~SurfaceContactBullet()
@@ -2023,15 +2023,15 @@ void SurfaceContact::parse(XMLElement *e, const char *tagName)
 
 void SurfaceContact::dump(int i)
 {
-    beginDump(Contact);
-    dumpField(collideWithoutContact);
-    dumpField(collideWithoutContactBitmask);
-    dumpField(collideBitmask);
-    dumpField(poissonsRatio);
-    dumpField(elasticModulus);
-    dumpField(ode);
-    dumpField(bullet);
-    endDump(Contact);
+    BEGIN_DUMP(Contact);
+    DUMP_FIELD(collideWithoutContact);
+    DUMP_FIELD(collideWithoutContactBitmask);
+    DUMP_FIELD(collideBitmask);
+    DUMP_FIELD(poissonsRatio);
+    DUMP_FIELD(elasticModulus);
+    DUMP_FIELD(ode);
+    DUMP_FIELD(bullet);
+    END_DUMP(Contact);
 }
 
 SurfaceContact::~SurfaceContact()
@@ -2053,12 +2053,12 @@ void SurfaceSoftContactDart::parse(XMLElement *e, const char *tagName)
 
 void SurfaceSoftContactDart::dump(int i)
 {
-    beginDump(Dart);
-    dumpField(boneAttachment);
-    dumpField(stiffness);
-    dumpField(damping);
-    dumpField(fleshMassFraction);
-    endDump(Dart);
+    BEGIN_DUMP(Dart);
+    DUMP_FIELD(boneAttachment);
+    DUMP_FIELD(stiffness);
+    DUMP_FIELD(damping);
+    DUMP_FIELD(fleshMassFraction);
+    END_DUMP(Dart);
 }
 
 SurfaceSoftContactDart::~SurfaceSoftContactDart()
@@ -2077,9 +2077,9 @@ void SurfaceSoftContact::parse(XMLElement *e, const char *tagName)
 
 void SurfaceSoftContact::dump(int i)
 {
-    beginDump(SoftContact);
-    dumpField(dart);
-    endDump(SoftContact);
+    BEGIN_DUMP(SoftContact);
+    DUMP_FIELD(dart);
+    END_DUMP(SoftContact);
 }
 
 SurfaceSoftContact::~SurfaceSoftContact()
@@ -2101,12 +2101,12 @@ void Surface::parse(XMLElement *e, const char *tagName)
 
 void Surface::dump(int i)
 {
-    beginDump(Surface);
-    dumpField(bounce);
-    dumpField(friction);
-    dumpField(contact);
-    dumpField(softContact);
-    endDump(Surface);
+    BEGIN_DUMP(Surface);
+    DUMP_FIELD(bounce);
+    DUMP_FIELD(friction);
+    DUMP_FIELD(contact);
+    DUMP_FIELD(softContact);
+    END_DUMP(Surface);
 }
 
 Surface::~Surface()
@@ -2131,20 +2131,20 @@ void LinkCollision::parse(XMLElement *e, const char *tagName)
 
 void LinkCollision::dump(int i)
 {
-    beginDump(LinkCollision);
-    dumpField(name);
-    dumpField(laserRetro);
-    dumpField(maxContacts);
-    dumpField(frames);
-    dumpField(pose);
-    dumpField(geometry);
-    dumpField(surface);
-    endDump(LinkCollision);
+    BEGIN_DUMP(LinkCollision);
+    DUMP_FIELD(name);
+    DUMP_FIELD(laserRetro);
+    DUMP_FIELD(maxContacts);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(geometry);
+    DUMP_FIELD(surface);
+    END_DUMP(LinkCollision);
 }
 
 LinkCollision::~LinkCollision()
 {
-    deletevec(Frame, frames);
+    DELETEVEC(Frame, frames);
 }
 
 void URI::parse(XMLElement *e, const char *tagName)
@@ -2159,9 +2159,9 @@ void URI::parse(XMLElement *e, const char *tagName)
 
 void URI::dump(int i)
 {
-    beginDump(URI);
-    dumpField(uri);
-    endDump(URI);
+    BEGIN_DUMP(URI);
+    DUMP_FIELD(uri);
+    END_DUMP(URI);
 }
 
 URI::~URI()
@@ -2181,15 +2181,15 @@ void Script::parse(XMLElement *e, const char *tagName)
 
 void Script::dump(int i)
 {
-    beginDump(Script);
-    dumpField(uris);
-    dumpField(name);
-    endDump(Script);
+    BEGIN_DUMP(Script);
+    DUMP_FIELD(uris);
+    DUMP_FIELD(name);
+    END_DUMP(Script);
 }
 
 Script::~Script()
 {
-    deletevec(URI, uris);
+    DELETEVEC(URI, uris);
 }
 
 void Shader::parse(XMLElement *e, const char *tagName)
@@ -2198,7 +2198,7 @@ void Shader::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     static const char *validTypes[] = {"vertex", "pixel", "normal_map_objectspace", "normal_map_tangentspace"};
-    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
+    type = getAttrOneOf(e, "type", validTypes, ARRAYSIZE(validTypes));
     normalMap = getSubValStr(e, "normal_map");
 
     WRAP_EXCEPTIONS_END(Shader)
@@ -2206,10 +2206,10 @@ void Shader::parse(XMLElement *e, const char *tagName)
 
 void Shader::dump(int i)
 {
-    beginDump(Shader);
-    dumpField(type);
-    dumpField(normalMap);
-    endDump(Shader);
+    BEGIN_DUMP(Shader);
+    DUMP_FIELD(type);
+    DUMP_FIELD(normalMap);
+    END_DUMP(Shader);
 }
 
 Shader::~Shader()
@@ -2234,15 +2234,15 @@ void Material::parse(XMLElement *e, const char *tagName)
 
 void Material::dump(int i)
 {
-    beginDump(Material);
-    dumpField(script);
-    dumpField(shader);
-    dumpField(lighting);
-    dumpField(ambient);
-    dumpField(diffuse);
-    dumpField(specular);
-    dumpField(emissive);
-    endDump(Material);
+    BEGIN_DUMP(Material);
+    DUMP_FIELD(script);
+    DUMP_FIELD(shader);
+    DUMP_FIELD(lighting);
+    DUMP_FIELD(ambient);
+    DUMP_FIELD(diffuse);
+    DUMP_FIELD(specular);
+    DUMP_FIELD(emissive);
+    END_DUMP(Material);
 }
 
 Material::~Material()
@@ -2261,9 +2261,9 @@ void LinkVisualMeta::parse(XMLElement *e, const char *tagName)
 
 void LinkVisualMeta::dump(int i)
 {
-    beginDump(Meta);
-    dumpField(layer);
-    endDump(Meta);
+    BEGIN_DUMP(Meta);
+    DUMP_FIELD(layer);
+    END_DUMP(Meta);
 }
 
 LinkVisualMeta::~LinkVisualMeta()
@@ -2291,24 +2291,24 @@ void LinkVisual::parse(XMLElement *e, const char *tagName)
 
 void LinkVisual::dump(int i)
 {
-    beginDump(LinkVisual);
-    dumpField(name);
-    dumpField(castShadows);
-    dumpField(laserRetro);
-    dumpField(transparency);
-    dumpField(meta);
-    dumpField(frames);
-    dumpField(pose);
-    dumpField(material);
-    dumpField(geometry);
-    dumpField(plugins);
-    endDump(LinkVisual);
+    BEGIN_DUMP(LinkVisual);
+    DUMP_FIELD(name);
+    DUMP_FIELD(castShadows);
+    DUMP_FIELD(laserRetro);
+    DUMP_FIELD(transparency);
+    DUMP_FIELD(meta);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(material);
+    DUMP_FIELD(geometry);
+    DUMP_FIELD(plugins);
+    END_DUMP(LinkVisual);
 }
 
 LinkVisual::~LinkVisual()
 {
-    deletevec(Frame, frames);
-    deletevec(Plugin, plugins);
+    DELETEVEC(Frame, frames);
+    DELETEVEC(Plugin, plugins);
 }
 
 void Sensor::parse(XMLElement *e, const char *tagName)
@@ -2318,7 +2318,7 @@ void Sensor::parse(XMLElement *e, const char *tagName)
 
     name = getAttrStr(e, "name");
     static const char *validTypes[] = {"altimeter", "camera", "contact", "depth", "force_torque", "gps", "gpu_ray", "imu", "logical_camera", "magnetometer", "multicamera", "ray", "rfid", "rfidtag", "sonar", "wireless_receiver", "wireless_transmitter"};
-    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
+    type = getAttrOneOf(e, "type", validTypes, ARRAYSIZE(validTypes));
     alwaysOn = getSubValBoolOpt(e, "always_on");
     updateRate = getSubValDoubleOpt(e, "update_rate");
     visualize = getSubValBoolOpt(e, "visualize");
@@ -2345,36 +2345,36 @@ void Sensor::parse(XMLElement *e, const char *tagName)
 
 void Sensor::dump(int i)
 {
-    beginDump(Sensor);
-    dumpField(name);
-    dumpField(type);
-    dumpField(alwaysOn);
-    dumpField(updateRate);
-    dumpField(visualize);
-    dumpField(topic);
-    dumpField(frames);
-    dumpField(pose);
-    dumpField(plugins);
-    dumpField(altimeter);
-    dumpField(camera);
-    dumpField(contact);
-    dumpField(gps);
-    dumpField(imu);
-    dumpField(logicalCamera);
-    dumpField(magnetometer);
-    dumpField(ray);
-    dumpField(rfidTag);
-    dumpField(rfid);
-    dumpField(sonar);
-    dumpField(transceiver);
-    dumpField(forceTorque);
-    endDump(Sensor);
+    BEGIN_DUMP(Sensor);
+    DUMP_FIELD(name);
+    DUMP_FIELD(type);
+    DUMP_FIELD(alwaysOn);
+    DUMP_FIELD(updateRate);
+    DUMP_FIELD(visualize);
+    DUMP_FIELD(topic);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(plugins);
+    DUMP_FIELD(altimeter);
+    DUMP_FIELD(camera);
+    DUMP_FIELD(contact);
+    DUMP_FIELD(gps);
+    DUMP_FIELD(imu);
+    DUMP_FIELD(logicalCamera);
+    DUMP_FIELD(magnetometer);
+    DUMP_FIELD(ray);
+    DUMP_FIELD(rfidTag);
+    DUMP_FIELD(rfid);
+    DUMP_FIELD(sonar);
+    DUMP_FIELD(transceiver);
+    DUMP_FIELD(forceTorque);
+    END_DUMP(Sensor);
 }
 
 Sensor::~Sensor()
 {
-    deletevec(Frame, frames);
-    deletevec(Plugin, plugins);
+    DELETEVEC(Frame, frames);
+    DELETEVEC(Plugin, plugins);
 }
 
 void Projector::parse(XMLElement *e, const char *tagName)
@@ -2396,22 +2396,22 @@ void Projector::parse(XMLElement *e, const char *tagName)
 
 void Projector::dump(int i)
 {
-    beginDump(Projector);
-    dumpField(name);
-    dumpField(texture);
-    dumpField(fov);
-    dumpField(nearClip);
-    dumpField(farClip);
-    dumpField(frames);
-    dumpField(pose);
-    dumpField(plugins);
-    endDump(Projector);
+    BEGIN_DUMP(Projector);
+    DUMP_FIELD(name);
+    DUMP_FIELD(texture);
+    DUMP_FIELD(fov);
+    DUMP_FIELD(nearClip);
+    DUMP_FIELD(farClip);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(plugins);
+    END_DUMP(Projector);
 }
 
 Projector::~Projector()
 {
-    deletevec(Frame, frames);
-    deletevec(Plugin, plugins);
+    DELETEVEC(Frame, frames);
+    DELETEVEC(Plugin, plugins);
 }
 
 void ContactCollision::parse(XMLElement *e, const char *tagName)
@@ -2426,9 +2426,9 @@ void ContactCollision::parse(XMLElement *e, const char *tagName)
 
 void ContactCollision::dump(int i)
 {
-    beginDump(ContactCollision);
-    dumpField(name);
-    endDump(ContactCollision);
+    BEGIN_DUMP(ContactCollision);
+    DUMP_FIELD(name);
+    END_DUMP(ContactCollision);
 }
 
 ContactCollision::~ContactCollision()
@@ -2447,14 +2447,14 @@ void AudioSourceContact::parse(XMLElement *e, const char *tagName)
 
 void AudioSourceContact::dump(int i)
 {
-    beginDump(Contact);
-    dumpField(collisions);
-    endDump(Contact);
+    BEGIN_DUMP(Contact);
+    DUMP_FIELD(collisions);
+    END_DUMP(Contact);
 }
 
 AudioSourceContact::~AudioSourceContact()
 {
-    deletevec(ContactCollision, collisions);
+    DELETEVEC(ContactCollision, collisions);
 }
 
 void AudioSource::parse(XMLElement *e, const char *tagName)
@@ -2475,20 +2475,20 @@ void AudioSource::parse(XMLElement *e, const char *tagName)
 
 void AudioSource::dump(int i)
 {
-    beginDump(AudioSource);
-    dumpField(uri);
-    dumpField(pitch);
-    dumpField(gain);
-    dumpField(contact);
-    dumpField(loop);
-    dumpField(frames);
-    dumpField(pose);
-    endDump(AudioSource);
+    BEGIN_DUMP(AudioSource);
+    DUMP_FIELD(uri);
+    DUMP_FIELD(pitch);
+    DUMP_FIELD(gain);
+    DUMP_FIELD(contact);
+    DUMP_FIELD(loop);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    END_DUMP(AudioSource);
 }
 
 AudioSource::~AudioSource()
 {
-    deletevec(Frame, frames);
+    DELETEVEC(Frame, frames);
 }
 
 void AudioSink::parse(XMLElement *e, const char *tagName)
@@ -2501,8 +2501,8 @@ void AudioSink::parse(XMLElement *e, const char *tagName)
 
 void AudioSink::dump(int i)
 {
-    beginDump(AudioSink);
-    endDump(AudioSink);
+    BEGIN_DUMP(AudioSink);
+    END_DUMP(AudioSink);
 }
 
 AudioSink::~AudioSink()
@@ -2522,10 +2522,10 @@ void Battery::parse(XMLElement *e, const char *tagName)
 
 void Battery::dump(int i)
 {
-    beginDump(Battery);
-    dumpField(name);
-    dumpField(voltage);
-    endDump(Battery);
+    BEGIN_DUMP(Battery);
+    DUMP_FIELD(name);
+    DUMP_FIELD(voltage);
+    END_DUMP(Battery);
 }
 
 Battery::~Battery()
@@ -2542,8 +2542,8 @@ void VelocityDecay::parse(XMLElement *e, const char *tagName)
 
 void VelocityDecay::dump(int i)
 {
-    beginDump(VelocityDecay);
-    endDump(VelocityDecay);
+    BEGIN_DUMP(VelocityDecay);
+    END_DUMP(VelocityDecay);
 }
 
 VelocityDecay::~VelocityDecay()
@@ -2578,35 +2578,35 @@ void Link::parse(XMLElement *e, const char *tagName)
 
 void Link::dump(int i)
 {
-    beginDump(Link);
-    dumpField(name);
-    dumpField(gravity);
-    dumpField(enableWind);
-    dumpField(selfCollide);
-    dumpField(kinematic);
-    dumpField(mustBeBaseLink);
-    dumpField(velocityDecay);
-    dumpField(frames);
-    dumpField(pose);
-    dumpField(inertial);
-    dumpField(collisions);
-    dumpField(visuals);
-    dumpField(sensor);
-    dumpField(projector);
-    dumpField(audioSources);
-    dumpField(audioSinks);
-    dumpField(batteries);
-    endDump(Link);
+    BEGIN_DUMP(Link);
+    DUMP_FIELD(name);
+    DUMP_FIELD(gravity);
+    DUMP_FIELD(enableWind);
+    DUMP_FIELD(selfCollide);
+    DUMP_FIELD(kinematic);
+    DUMP_FIELD(mustBeBaseLink);
+    DUMP_FIELD(velocityDecay);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(inertial);
+    DUMP_FIELD(collisions);
+    DUMP_FIELD(visuals);
+    DUMP_FIELD(sensor);
+    DUMP_FIELD(projector);
+    DUMP_FIELD(audioSources);
+    DUMP_FIELD(audioSinks);
+    DUMP_FIELD(batteries);
+    END_DUMP(Link);
 }
 
 Link::~Link()
 {
-    deletevec(Frame, frames);
-    deletevec(LinkCollision, collisions);
-    deletevec(LinkVisual, visuals);
-    deletevec(AudioSource, audioSources);
-    deletevec(AudioSink, audioSinks);
-    deletevec(Battery, batteries);
+    DELETEVEC(Frame, frames);
+    DELETEVEC(LinkCollision, collisions);
+    DELETEVEC(LinkVisual, visuals);
+    DELETEVEC(AudioSource, audioSources);
+    DELETEVEC(AudioSink, audioSinks);
+    DELETEVEC(Battery, batteries);
 }
 
 void AxisDynamics::parse(XMLElement *e, const char *tagName)
@@ -2624,12 +2624,12 @@ void AxisDynamics::parse(XMLElement *e, const char *tagName)
 
 void AxisDynamics::dump(int i)
 {
-    beginDump(Dynamics);
-    dumpField(damping);
-    dumpField(friction);
-    dumpField(springReference);
-    dumpField(springStiffness);
-    endDump(Dynamics);
+    BEGIN_DUMP(Dynamics);
+    DUMP_FIELD(damping);
+    DUMP_FIELD(friction);
+    DUMP_FIELD(springReference);
+    DUMP_FIELD(springStiffness);
+    END_DUMP(Dynamics);
 }
 
 AxisDynamics::~AxisDynamics()
@@ -2651,12 +2651,12 @@ void Axis::parse(XMLElement *e, const char *tagName)
 
 void Axis::dump(int i)
 {
-    beginDump(Axis);
-    dumpField(xyz);
-    dumpField(useParentModelFrame);
-    dumpField(dynamics);
-    dumpField(limit);
-    endDump(Axis);
+    BEGIN_DUMP(Axis);
+    DUMP_FIELD(xyz);
+    DUMP_FIELD(useParentModelFrame);
+    DUMP_FIELD(dynamics);
+    DUMP_FIELD(limit);
+    END_DUMP(Axis);
 }
 
 Axis::~Axis()
@@ -2680,14 +2680,14 @@ void Axis::Limit::parse(XMLElement *e, const char *tagName)
 
 void Axis::Limit::dump(int i)
 {
-    beginDump(Limit);
-    dumpField(lower);
-    dumpField(upper);
-    dumpField(effort);
-    dumpField(velocity);
-    dumpField(stiffness);
-    dumpField(dissipation);
-    endDump(Limit);
+    BEGIN_DUMP(Limit);
+    DUMP_FIELD(lower);
+    DUMP_FIELD(upper);
+    DUMP_FIELD(effort);
+    DUMP_FIELD(velocity);
+    DUMP_FIELD(stiffness);
+    DUMP_FIELD(dissipation);
+    END_DUMP(Limit);
 }
 
 Axis::Limit::~Limit()
@@ -2706,9 +2706,9 @@ void JointPhysicsSimbody::parse(XMLElement *e, const char *tagName)
 
 void JointPhysicsSimbody::dump(int i)
 {
-    beginDump(Simbody);
-    dumpField(mustBeLoopJoint);
-    endDump(Simbody);
+    BEGIN_DUMP(Simbody);
+    DUMP_FIELD(mustBeLoopJoint);
+    END_DUMP(Simbody);
 }
 
 JointPhysicsSimbody::~JointPhysicsSimbody()
@@ -2728,10 +2728,10 @@ void CFMERP::parse(XMLElement *e, const char *tagName)
 
 void CFMERP::dump(int i)
 {
-    beginDump(Limit);
-    dumpField(cfm);
-    dumpField(erp);
-    endDump(Limit);
+    BEGIN_DUMP(Limit);
+    DUMP_FIELD(cfm);
+    DUMP_FIELD(erp);
+    END_DUMP(Limit);
 }
 
 CFMERP::~CFMERP()
@@ -2760,19 +2760,19 @@ void JointPhysicsODE::parse(XMLElement *e, const char *tagName)
 
 void JointPhysicsODE::dump(int i)
 {
-    beginDump(ODE);
-    dumpField(provideFeedback);
-    dumpField(cfmDamping);
-    dumpField(implicitSpringDamper);
-    dumpField(fudgeFactor);
-    dumpField(cfm);
-    dumpField(erp);
-    dumpField(bounce);
-    dumpField(maxForce);
-    dumpField(velocity);
-    dumpField(limit);
-    dumpField(suspension);
-    endDump(ODE);
+    BEGIN_DUMP(ODE);
+    DUMP_FIELD(provideFeedback);
+    DUMP_FIELD(cfmDamping);
+    DUMP_FIELD(implicitSpringDamper);
+    DUMP_FIELD(fudgeFactor);
+    DUMP_FIELD(cfm);
+    DUMP_FIELD(erp);
+    DUMP_FIELD(bounce);
+    DUMP_FIELD(maxForce);
+    DUMP_FIELD(velocity);
+    DUMP_FIELD(limit);
+    DUMP_FIELD(suspension);
+    END_DUMP(ODE);
 }
 
 JointPhysicsODE::~JointPhysicsODE()
@@ -2793,11 +2793,11 @@ void JointPhysics::parse(XMLElement *e, const char *tagName)
 
 void JointPhysics::dump(int i)
 {
-    beginDump(Physics);
-    dumpField(simbody);
-    dumpField(ode);
-    dumpField(provideFeedback);
-    endDump(Physics);
+    BEGIN_DUMP(Physics);
+    DUMP_FIELD(simbody);
+    DUMP_FIELD(ode);
+    DUMP_FIELD(provideFeedback);
+    END_DUMP(Physics);
 }
 
 JointPhysics::~JointPhysics()
@@ -2811,7 +2811,7 @@ void Joint::parse(XMLElement *e, const char *tagName)
 
     name = getAttrStr(e, "name");
     static const char *validTypes[] = {"revolute", "gearbox", "revolute2", "prismatic", "ball", "screw", "universal", "fixed"};
-    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
+    type = getAttrOneOf(e, "type", validTypes, ARRAYSIZE(validTypes));
     parent = getSubValStr(e, "parent");
     child = getSubValStr(e, "child");
     gearboxRatio = getSubValDoubleOpt(e, "gearbox_ratio");
@@ -2829,26 +2829,26 @@ void Joint::parse(XMLElement *e, const char *tagName)
 
 void Joint::dump(int i)
 {
-    beginDump(Joint);
-    dumpField(name);
-    dumpField(type);
-    dumpField(parent);
-    dumpField(child);
-    dumpField(gearboxRatio);
-    dumpField(gearboxReferenceBody);
-    dumpField(threadPitch);
-    dumpField(axis);
-    dumpField(axis2);
-    dumpField(physics);
-    dumpField(frames);
-    dumpField(pose);
-    dumpField(sensor);
-    endDump(Joint);
+    BEGIN_DUMP(Joint);
+    DUMP_FIELD(name);
+    DUMP_FIELD(type);
+    DUMP_FIELD(parent);
+    DUMP_FIELD(child);
+    DUMP_FIELD(gearboxRatio);
+    DUMP_FIELD(gearboxReferenceBody);
+    DUMP_FIELD(threadPitch);
+    DUMP_FIELD(axis);
+    DUMP_FIELD(axis2);
+    DUMP_FIELD(physics);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(sensor);
+    END_DUMP(Joint);
 }
 
 Joint::~Joint()
 {
-    deletevec(Frame, frames);
+    DELETEVEC(Frame, frames);
 }
 
 void Gripper::parse(XMLElement *e, const char *tagName)
@@ -2861,8 +2861,8 @@ void Gripper::parse(XMLElement *e, const char *tagName)
 
 void Gripper::dump(int i)
 {
-    beginDump(Gripper);
-    endDump(Gripper);
+    BEGIN_DUMP(Gripper);
+    END_DUMP(Gripper);
 }
 
 Gripper::~Gripper()
@@ -2879,8 +2879,8 @@ void Gripper::GraspCheck::parse(XMLElement *e, const char *tagName)
 
 void Gripper::GraspCheck::dump(int i)
 {
-    beginDump(GraspCheck);
-    endDump(GraspCheck);
+    BEGIN_DUMP(GraspCheck);
+    END_DUMP(GraspCheck);
 }
 
 Gripper::GraspCheck::~GraspCheck()
@@ -2911,32 +2911,32 @@ void Model::parse(XMLElement *e, const char *tagName)
 
 void Model::dump(int i)
 {
-    beginDump(Model);
-    dumpField(name);
-    dumpField(static_);
-    dumpField(selfCollide);
-    dumpField(allowAutoDisable);
-    dumpField(includes);
-    dumpField(submodels);
-    dumpField(enableWind);
-    dumpField(frames);
-    dumpField(pose);
-    dumpField(links);
-    dumpField(joints);
-    dumpField(plugins);
-    dumpField(grippers);
-    endDump(Model);
+    BEGIN_DUMP(Model);
+    DUMP_FIELD(name);
+    DUMP_FIELD(static_);
+    DUMP_FIELD(selfCollide);
+    DUMP_FIELD(allowAutoDisable);
+    DUMP_FIELD(includes);
+    DUMP_FIELD(submodels);
+    DUMP_FIELD(enableWind);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(links);
+    DUMP_FIELD(joints);
+    DUMP_FIELD(plugins);
+    DUMP_FIELD(grippers);
+    END_DUMP(Model);
 }
 
 Model::~Model()
 {
-    deletevec(Include, includes);
-    deletevec(Model, submodels);
-    deletevec(Frame, frames);
-    deletevec(Link, links);
-    deletevec(Joint, joints);
-    deletevec(Plugin, plugins);
-    deletevec(Gripper, grippers);
+    DELETEVEC(Include, includes);
+    DELETEVEC(Model, submodels);
+    DELETEVEC(Frame, frames);
+    DELETEVEC(Link, links);
+    DELETEVEC(Joint, joints);
+    DELETEVEC(Plugin, plugins);
+    DELETEVEC(Gripper, grippers);
 }
 
 void Road::parse(XMLElement *e, const char *tagName)
@@ -2949,8 +2949,8 @@ void Road::parse(XMLElement *e, const char *tagName)
 
 void Road::dump(int i)
 {
-    beginDump(Road);
-    endDump(Road);
+    BEGIN_DUMP(Road);
+    END_DUMP(Road);
 }
 
 Road::~Road()
@@ -2973,13 +2973,13 @@ void Clouds::parse(XMLElement *e, const char *tagName)
 
 void Clouds::dump(int i)
 {
-    beginDump(Clouds);
-    dumpField(speed);
-    dumpField(direction);
-    dumpField(humidity);
-    dumpField(meanSize);
-    dumpField(ambient);
-    endDump(Clouds);
+    BEGIN_DUMP(Clouds);
+    DUMP_FIELD(speed);
+    DUMP_FIELD(direction);
+    DUMP_FIELD(humidity);
+    DUMP_FIELD(meanSize);
+    DUMP_FIELD(ambient);
+    END_DUMP(Clouds);
 }
 
 Clouds::~Clouds()
@@ -3001,12 +3001,12 @@ void Sky::parse(XMLElement *e, const char *tagName)
 
 void Sky::dump(int i)
 {
-    beginDump(Sky);
-    dumpField(time);
-    dumpField(sunrise);
-    dumpField(sunset);
-    dumpField(clouds);
-    endDump(Sky);
+    BEGIN_DUMP(Sky);
+    DUMP_FIELD(time);
+    DUMP_FIELD(sunrise);
+    DUMP_FIELD(sunset);
+    DUMP_FIELD(clouds);
+    END_DUMP(Sky);
 }
 
 Sky::~Sky()
@@ -3020,7 +3020,7 @@ void Fog::parse(XMLElement *e, const char *tagName)
 
     parse1Opt(e, "color", color);
     static const char *fogTypes[] = {"constant", "linear", "quadratic"};
-    type = getSubValOneOfOpt(e, "type", fogTypes, arraysize(fogTypes));
+    type = getSubValOneOfOpt(e, "type", fogTypes, ARRAYSIZE(fogTypes));
     if(!type) type = "constant";
     start = getSubValDoubleOpt(e, "start");
     end = getSubValDoubleOpt(e, "end");
@@ -3031,13 +3031,13 @@ void Fog::parse(XMLElement *e, const char *tagName)
 
 void Fog::dump(int i)
 {
-    beginDump(Fog);
-    dumpField(color);
-    dumpField(type);
-    dumpField(start);
-    dumpField(end);
-    dumpField(density);
-    endDump(Fog);
+    BEGIN_DUMP(Fog);
+    DUMP_FIELD(color);
+    DUMP_FIELD(type);
+    DUMP_FIELD(start);
+    DUMP_FIELD(end);
+    DUMP_FIELD(density);
+    END_DUMP(Fog);
 }
 
 Fog::~Fog()
@@ -3062,15 +3062,15 @@ void Scene::parse(XMLElement *e, const char *tagName)
 
 void Scene::dump(int i)
 {
-    beginDump(Scene);
-    dumpField(ambient);
-    dumpField(background);
-    dumpField(sky);
-    dumpField(shadows);
-    dumpField(fog);
-    dumpField(grid);
-    dumpField(originVisual);
-    endDump(Scene);
+    BEGIN_DUMP(Scene);
+    DUMP_FIELD(ambient);
+    DUMP_FIELD(background);
+    DUMP_FIELD(sky);
+    DUMP_FIELD(shadows);
+    DUMP_FIELD(fog);
+    DUMP_FIELD(grid);
+    DUMP_FIELD(originVisual);
+    END_DUMP(Scene);
 }
 
 Scene::~Scene()
@@ -3097,17 +3097,17 @@ void PhysicsSimbodyContact::parse(XMLElement *e, const char *tagName)
 
 void PhysicsSimbodyContact::dump(int i)
 {
-    beginDump(Contact);
-    dumpField(stiffness);
-    dumpField(dissipation);
-    dumpField(plasticCoefRestitution);
-    dumpField(plasticImpactVelocity);
-    dumpField(staticFriction);
-    dumpField(dynamicFriction);
-    dumpField(viscousFriction);
-    dumpField(overrideImpactCaptureVelocity);
-    dumpField(overrideStictionTransitionVelocity);
-    endDump(Contact);
+    BEGIN_DUMP(Contact);
+    DUMP_FIELD(stiffness);
+    DUMP_FIELD(dissipation);
+    DUMP_FIELD(plasticCoefRestitution);
+    DUMP_FIELD(plasticImpactVelocity);
+    DUMP_FIELD(staticFriction);
+    DUMP_FIELD(dynamicFriction);
+    DUMP_FIELD(viscousFriction);
+    DUMP_FIELD(overrideImpactCaptureVelocity);
+    DUMP_FIELD(overrideStictionTransitionVelocity);
+    END_DUMP(Contact);
 }
 
 PhysicsSimbodyContact::~PhysicsSimbodyContact()
@@ -3129,12 +3129,12 @@ void PhysicsSimbody::parse(XMLElement *e, const char *tagName)
 
 void PhysicsSimbody::dump(int i)
 {
-    beginDump(Simbody);
-    dumpField(minStepSize);
-    dumpField(accuracy);
-    dumpField(maxTransientVelocity);
-    dumpField(contact);
-    endDump(Simbody);
+    BEGIN_DUMP(Simbody);
+    DUMP_FIELD(minStepSize);
+    DUMP_FIELD(accuracy);
+    DUMP_FIELD(maxTransientVelocity);
+    DUMP_FIELD(contact);
+    END_DUMP(Simbody);
 }
 
 PhysicsSimbody::~PhysicsSimbody()
@@ -3154,10 +3154,10 @@ void PhysicsBullet::parse(XMLElement *e, const char *tagName)
 
 void PhysicsBullet::dump(int i)
 {
-    beginDump(Bullet);
-    dumpField(solver);
-    dumpField(constraints);
-    endDump(Bullet);
+    BEGIN_DUMP(Bullet);
+    DUMP_FIELD(solver);
+    DUMP_FIELD(constraints);
+    END_DUMP(Bullet);
 }
 
 PhysicsBullet::~PhysicsBullet()
@@ -3170,7 +3170,7 @@ void PhysicsBullet::Solver::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     static const char *validTypes[] = {"sequential_impulse"};
-    type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
+    type = getSubValOneOf(e, "type", validTypes, ARRAYSIZE(validTypes));
     minStepSize = getSubValDoubleOpt(e, "min_step_size");
     iters = getSubValInt(e, "iters");
     sor = getSubValDouble(e, "sor");
@@ -3180,12 +3180,12 @@ void PhysicsBullet::Solver::parse(XMLElement *e, const char *tagName)
 
 void PhysicsBullet::Solver::dump(int i)
 {
-    beginDump(Solver);
-    dumpField(type);
-    dumpField(minStepSize);
-    dumpField(iters);
-    dumpField(sor);
-    endDump(Solver);
+    BEGIN_DUMP(Solver);
+    DUMP_FIELD(type);
+    DUMP_FIELD(minStepSize);
+    DUMP_FIELD(iters);
+    DUMP_FIELD(sor);
+    END_DUMP(Solver);
 }
 
 PhysicsBullet::Solver::~Solver()
@@ -3208,13 +3208,13 @@ void PhysicsBullet::Constraints::parse(XMLElement *e, const char *tagName)
 
 void PhysicsBullet::Constraints::dump(int i)
 {
-    beginDump(Constraints);
-    dumpField(cfm);
-    dumpField(erp);
-    dumpField(contactSurfaceLayer);
-    dumpField(splitImpulse);
-    dumpField(splitImpulsePenetrationThreshold);
-    endDump(Constraints);
+    BEGIN_DUMP(Constraints);
+    DUMP_FIELD(cfm);
+    DUMP_FIELD(erp);
+    DUMP_FIELD(contactSurfaceLayer);
+    DUMP_FIELD(splitImpulse);
+    DUMP_FIELD(splitImpulsePenetrationThreshold);
+    END_DUMP(Constraints);
 }
 
 PhysicsBullet::Constraints::~Constraints()
@@ -3234,10 +3234,10 @@ void PhysicsODE::parse(XMLElement *e, const char *tagName)
 
 void PhysicsODE::dump(int i)
 {
-    beginDump(ODE);
-    dumpField(solver);
-    dumpField(constraints);
-    endDump(ODE);
+    BEGIN_DUMP(ODE);
+    DUMP_FIELD(solver);
+    DUMP_FIELD(constraints);
+    END_DUMP(ODE);
 }
 
 PhysicsODE::~PhysicsODE()
@@ -3250,7 +3250,7 @@ void PhysicsODE::Solver::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     static const char *validTypes[] = {"world", "quick"};
-    type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
+    type = getSubValOneOf(e, "type", validTypes, ARRAYSIZE(validTypes));
     minStepSize = getSubValDoubleOpt(e, "min_step_size");
     iters = getSubValInt(e, "iters");
     preconIters = getSubValIntOpt(e, "precon_iters");
@@ -3262,14 +3262,14 @@ void PhysicsODE::Solver::parse(XMLElement *e, const char *tagName)
 
 void PhysicsODE::Solver::dump(int i)
 {
-    beginDump(Solver);
-    dumpField(type);
-    dumpField(minStepSize);
-    dumpField(iters);
-    dumpField(preconIters);
-    dumpField(sor);
-    dumpField(useDynamicMOIRescaling);
-    endDump(Solver);
+    BEGIN_DUMP(Solver);
+    DUMP_FIELD(type);
+    DUMP_FIELD(minStepSize);
+    DUMP_FIELD(iters);
+    DUMP_FIELD(preconIters);
+    DUMP_FIELD(sor);
+    DUMP_FIELD(useDynamicMOIRescaling);
+    END_DUMP(Solver);
 }
 
 PhysicsODE::Solver::~Solver()
@@ -3291,12 +3291,12 @@ void PhysicsODE::Constraints::parse(XMLElement *e, const char *tagName)
 
 void PhysicsODE::Constraints::dump(int i)
 {
-    beginDump(Constraints);
-    dumpField(cfm);
-    dumpField(erp);
-    dumpField(contactMaxCorrectingVel);
-    dumpField(contactSurfaceLayer);
-    endDump(Constraints);
+    BEGIN_DUMP(Constraints);
+    DUMP_FIELD(cfm);
+    DUMP_FIELD(erp);
+    DUMP_FIELD(contactMaxCorrectingVel);
+    DUMP_FIELD(contactSurfaceLayer);
+    END_DUMP(Constraints);
 }
 
 PhysicsODE::Constraints::~Constraints()
@@ -3312,7 +3312,7 @@ void Physics::parse(XMLElement *e, const char *tagName)
     default_ = getAttrBoolOpt(e, "default");
     if(!default_) default_ = false;
     static const char *validTypes[] = {"ode", "bullet", "simbody", "rtql8"};
-    type = getAttrOneOfOpt(e, "type", validTypes, arraysize(validTypes));
+    type = getAttrOneOfOpt(e, "type", validTypes, ARRAYSIZE(validTypes));
     if(!type) type = "ode";
     maxStepSize = getSubValDouble(e, "max_step_size");
     realTimeFactor = getSubValDouble(e, "real_time_factor");
@@ -3327,18 +3327,18 @@ void Physics::parse(XMLElement *e, const char *tagName)
 
 void Physics::dump(int i)
 {
-    beginDump(Physics);
-    dumpField(name);
-    dumpField(default_);
-    dumpField(type);
-    dumpField(maxStepSize);
-    dumpField(realTimeFactor);
-    dumpField(realTimeUpdateRate);
-    dumpField(maxContacts);
-    dumpField(simbody);
-    dumpField(bullet);
-    dumpField(ode);
-    endDump(Physics);
+    BEGIN_DUMP(Physics);
+    DUMP_FIELD(name);
+    DUMP_FIELD(default_);
+    DUMP_FIELD(type);
+    DUMP_FIELD(maxStepSize);
+    DUMP_FIELD(realTimeFactor);
+    DUMP_FIELD(realTimeUpdateRate);
+    DUMP_FIELD(maxContacts);
+    DUMP_FIELD(simbody);
+    DUMP_FIELD(bullet);
+    DUMP_FIELD(ode);
+    END_DUMP(Physics);
 }
 
 Physics::~Physics()
@@ -3358,10 +3358,10 @@ void JointStateField::parse(XMLElement *e, const char *tagName)
 
 void JointStateField::dump(int i)
 {
-    beginDump(JointStateField);
-    dumpField(angle);
-    dumpField(axis);
-    endDump(JointStateField);
+    BEGIN_DUMP(JointStateField);
+    DUMP_FIELD(angle);
+    DUMP_FIELD(axis);
+    END_DUMP(JointStateField);
 }
 
 JointStateField::~JointStateField()
@@ -3381,15 +3381,15 @@ void JointState::parse(XMLElement *e, const char *tagName)
 
 void JointState::dump(int i)
 {
-    beginDump(JointState);
-    dumpField(name);
-    dumpField(fields);
-    endDump(JointState);
+    BEGIN_DUMP(JointState);
+    DUMP_FIELD(name);
+    DUMP_FIELD(fields);
+    END_DUMP(JointState);
 }
 
 JointState::~JointState()
 {
-    deletevec(JointStateField, fields);
+    DELETEVEC(JointStateField, fields);
 }
 
 void CollisionState::parse(XMLElement *e, const char *tagName)
@@ -3404,9 +3404,9 @@ void CollisionState::parse(XMLElement *e, const char *tagName)
 
 void CollisionState::dump(int i)
 {
-    beginDump(CollisionState);
-    dumpField(name);
-    endDump(CollisionState);
+    BEGIN_DUMP(CollisionState);
+    DUMP_FIELD(name);
+    END_DUMP(CollisionState);
 }
 
 CollisionState::~CollisionState()
@@ -3431,21 +3431,21 @@ void LinkState::parse(XMLElement *e, const char *tagName)
 
 void LinkState::dump(int i)
 {
-    beginDump(LinkState);
-    dumpField(name);
-    dumpField(velocity);
-    dumpField(acceleration);
-    dumpField(wrench);
-    dumpField(collisions);
-    dumpField(frames);
-    dumpField(pose);
-    endDump(LinkState);
+    BEGIN_DUMP(LinkState);
+    DUMP_FIELD(name);
+    DUMP_FIELD(velocity);
+    DUMP_FIELD(acceleration);
+    DUMP_FIELD(wrench);
+    DUMP_FIELD(collisions);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    END_DUMP(LinkState);
 }
 
 LinkState::~LinkState()
 {
-    deletevec(CollisionState, collisions);
-    deletevec(Frame, frames);
+    DELETEVEC(CollisionState, collisions);
+    DELETEVEC(Frame, frames);
 }
 
 void ModelState::parse(XMLElement *e, const char *tagName)
@@ -3466,23 +3466,23 @@ void ModelState::parse(XMLElement *e, const char *tagName)
 
 void ModelState::dump(int i)
 {
-    beginDump(ModelState);
-    dumpField(name);
-    dumpField(joints);
-    dumpField(submodelstates);
-    dumpField(scale);
-    dumpField(frames);
-    dumpField(pose);
-    dumpField(links);
-    endDump(ModelState);
+    BEGIN_DUMP(ModelState);
+    DUMP_FIELD(name);
+    DUMP_FIELD(joints);
+    DUMP_FIELD(submodelstates);
+    DUMP_FIELD(scale);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    DUMP_FIELD(links);
+    END_DUMP(ModelState);
 }
 
 ModelState::~ModelState()
 {
-    deletevec(JointState, joints);
-    deletevec(ModelState, submodelstates);
-    deletevec(Frame, frames);
-    deletevec(LinkState, links);
+    DELETEVEC(JointState, joints);
+    DELETEVEC(ModelState, submodelstates);
+    DELETEVEC(Frame, frames);
+    DELETEVEC(LinkState, links);
 }
 
 void LightState::parse(XMLElement *e, const char *tagName)
@@ -3499,16 +3499,16 @@ void LightState::parse(XMLElement *e, const char *tagName)
 
 void LightState::dump(int i)
 {
-    beginDump(LightState);
-    dumpField(name);
-    dumpField(frames);
-    dumpField(pose);
-    endDump(LightState);
+    BEGIN_DUMP(LightState);
+    DUMP_FIELD(name);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    END_DUMP(LightState);
 }
 
 LightState::~LightState()
 {
-    deletevec(Frame, frames);
+    DELETEVEC(Frame, frames);
 }
 
 void ModelRef::parse(XMLElement *e, const char *tagName)
@@ -3523,9 +3523,9 @@ void ModelRef::parse(XMLElement *e, const char *tagName)
 
 void ModelRef::dump(int i)
 {
-    beginDump(ModelRef);
-    dumpField(name);
-    endDump(ModelRef);
+    BEGIN_DUMP(ModelRef);
+    DUMP_FIELD(name);
+    END_DUMP(ModelRef);
 }
 
 ModelRef::~ModelRef()
@@ -3544,13 +3544,13 @@ void StateInsertions::parse(XMLElement *e, const char *tagName)
 
 void StateInsertions::dump(int i)
 {
-    beginDump(Insertions);
-    endDump(Insertions);
+    BEGIN_DUMP(Insertions);
+    END_DUMP(Insertions);
 }
 
 StateInsertions::~StateInsertions()
 {
-    deletevec(Model, models);
+    DELETEVEC(Model, models);
 }
 
 void StateDeletions::parse(XMLElement *e, const char *tagName)
@@ -3567,14 +3567,14 @@ void StateDeletions::parse(XMLElement *e, const char *tagName)
 
 void StateDeletions::dump(int i)
 {
-    beginDump(Deletions);
-    dumpField(names);
-    endDump(Deletions);
+    BEGIN_DUMP(Deletions);
+    DUMP_FIELD(names);
+    END_DUMP(Deletions);
 }
 
 StateDeletions::~StateDeletions()
 {
-    deletevec(ModelRef, names);
+    DELETEVEC(ModelRef, names);
 }
 
 void State::parse(XMLElement *e, const char *tagName)
@@ -3597,23 +3597,23 @@ void State::parse(XMLElement *e, const char *tagName)
 
 void State::dump(int i)
 {
-    beginDump(State);
-    dumpField(worldName);
-    dumpField(simTime);
-    dumpField(wallTime);
-    dumpField(realTime);
-    dumpField(iterations);
-    dumpField(insertions);
-    dumpField(deletions);
-    dumpField(modelstates);
-    dumpField(lightstates);
-    endDump(State);
+    BEGIN_DUMP(State);
+    DUMP_FIELD(worldName);
+    DUMP_FIELD(simTime);
+    DUMP_FIELD(wallTime);
+    DUMP_FIELD(realTime);
+    DUMP_FIELD(iterations);
+    DUMP_FIELD(insertions);
+    DUMP_FIELD(deletions);
+    DUMP_FIELD(modelstates);
+    DUMP_FIELD(lightstates);
+    END_DUMP(State);
 }
 
 State::~State()
 {
-    deletevec(ModelState, modelstates);
-    deletevec(LightState, lightstates);
+    DELETEVEC(ModelState, modelstates);
+    DELETEVEC(LightState, lightstates);
 }
 
 void Population::parse(XMLElement *e, const char *tagName)
@@ -3626,8 +3626,8 @@ void Population::parse(XMLElement *e, const char *tagName)
 
 void Population::dump(int i)
 {
-    beginDump(Population);
-    endDump(Population);
+    BEGIN_DUMP(Population);
+    END_DUMP(Population);
 }
 
 Population::~Population()
@@ -3646,9 +3646,9 @@ void Audio::parse(XMLElement *e, const char *tagName)
 
 void Audio::dump(int i)
 {
-    beginDump(Audio);
-    dumpField(device);
-    endDump(Audio);
+    BEGIN_DUMP(Audio);
+    DUMP_FIELD(device);
+    END_DUMP(Audio);
 }
 
 Audio::~Audio()
@@ -3667,9 +3667,9 @@ void Wind::parse(XMLElement *e, const char *tagName)
 
 void Wind::dump(int i)
 {
-    beginDump(Wind);
-    dumpField(linearVelocity);
-    endDump(Wind);
+    BEGIN_DUMP(Wind);
+    DUMP_FIELD(linearVelocity);
+    END_DUMP(Wind);
 }
 
 Wind::~Wind()
@@ -3694,15 +3694,15 @@ void TrackVisual::parse(XMLElement *e, const char *tagName)
 
 void TrackVisual::dump(int i)
 {
-    beginDump(TrackVisual);
-    dumpField(name);
-    dumpField(minDist);
-    dumpField(maxDist);
-    dumpField(static_);
-    dumpField(useModelFrame);
-    dumpField(xyz);
-    dumpField(inheritYaw);
-    endDump(TrackVisual);
+    BEGIN_DUMP(TrackVisual);
+    DUMP_FIELD(name);
+    DUMP_FIELD(minDist);
+    DUMP_FIELD(maxDist);
+    DUMP_FIELD(static_);
+    DUMP_FIELD(useModelFrame);
+    DUMP_FIELD(xyz);
+    DUMP_FIELD(inheritYaw);
+    END_DUMP(TrackVisual);
 }
 
 TrackVisual::~TrackVisual()
@@ -3718,7 +3718,7 @@ void GUICamera::parse(XMLElement *e, const char *tagName)
     if(!name) name = "user_camera";
     viewController = getSubValStrOpt(e, "view_controller");
     static const char *projectionTypes[] = {"orthographic", "perspective"};
-    projectionType = getSubValOneOfOpt(e, "projection_type", projectionTypes, arraysize(projectionTypes));
+    projectionType = getSubValOneOfOpt(e, "projection_type", projectionTypes, ARRAYSIZE(projectionTypes));
     if(!projectionType) projectionType = "perspective";
     parse1Opt(e, "track_visual", trackVisual);
     parseMany(e, "frame", frames);
@@ -3729,19 +3729,19 @@ void GUICamera::parse(XMLElement *e, const char *tagName)
 
 void GUICamera::dump(int i)
 {
-    beginDump(Camera);
-    dumpField(name);
-    dumpField(viewController);
-    dumpField(projectionType);
-    dumpField(trackVisual);
-    dumpField(frames);
-    dumpField(pose);
-    endDump(Camera);
+    BEGIN_DUMP(Camera);
+    DUMP_FIELD(name);
+    DUMP_FIELD(viewController);
+    DUMP_FIELD(projectionType);
+    DUMP_FIELD(trackVisual);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    END_DUMP(Camera);
 }
 
 GUICamera::~GUICamera()
 {
-    deletevec(Frame, frames);
+    DELETEVEC(Frame, frames);
 }
 
 void World::parse(XMLElement *e, const char *tagName)
@@ -3773,38 +3773,38 @@ void World::parse(XMLElement *e, const char *tagName)
 
 void World::dump(int i)
 {
-    beginDump(World);
-    dumpField(name);
-    dumpField(audio);
-    dumpField(wind);
-    dumpField(includes);
-    dumpField(gravity);
-    dumpField(magneticField);
-    dumpField(atmosphere);
-    dumpField(gui);
-    dumpField(physics);
-    dumpField(scene);
-    dumpField(lights);
-    dumpField(models);
-    dumpField(actors);
-    dumpField(plugins);
-    dumpField(roads);
-    dumpField(sphericalCoordinates);
-    dumpField(states);
-    dumpField(populations);
-    endDump(World);
+    BEGIN_DUMP(World);
+    DUMP_FIELD(name);
+    DUMP_FIELD(audio);
+    DUMP_FIELD(wind);
+    DUMP_FIELD(includes);
+    DUMP_FIELD(gravity);
+    DUMP_FIELD(magneticField);
+    DUMP_FIELD(atmosphere);
+    DUMP_FIELD(gui);
+    DUMP_FIELD(physics);
+    DUMP_FIELD(scene);
+    DUMP_FIELD(lights);
+    DUMP_FIELD(models);
+    DUMP_FIELD(actors);
+    DUMP_FIELD(plugins);
+    DUMP_FIELD(roads);
+    DUMP_FIELD(sphericalCoordinates);
+    DUMP_FIELD(states);
+    DUMP_FIELD(populations);
+    END_DUMP(World);
 }
 
 World::~World()
 {
-    deletevec(Include, includes);
-    deletevec(Light, lights);
-    deletevec(Model, models);
-    deletevec(Actor, actors);
-    deletevec(Plugin, plugins);
-    deletevec(Road, roads);
-    deletevec(State, states);
-    deletevec(Population, populations);
+    DELETEVEC(Include, includes);
+    DELETEVEC(Light, lights);
+    DELETEVEC(Model, models);
+    DELETEVEC(Actor, actors);
+    DELETEVEC(Plugin, plugins);
+    DELETEVEC(Road, roads);
+    DELETEVEC(State, states);
+    DELETEVEC(Population, populations);
 }
 
 void World::Atmosphere::parse(XMLElement *e, const char *tagName)
@@ -3813,7 +3813,7 @@ void World::Atmosphere::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     static const char *atmosphereTypes[] = {"adiabatic"};
-    type = getSubValOneOf(e, "type", atmosphereTypes, arraysize(atmosphereTypes));
+    type = getSubValOneOf(e, "type", atmosphereTypes, ARRAYSIZE(atmosphereTypes));
     temperature = getSubValDoubleOpt(e, "temperature");
     pressure = getSubValDoubleOpt(e, "pressure");
     massDensity = getSubValDoubleOpt(e, "mass_density");
@@ -3824,13 +3824,13 @@ void World::Atmosphere::parse(XMLElement *e, const char *tagName)
 
 void World::Atmosphere::dump(int i)
 {
-    beginDump(Atmosphere);
-    dumpField(type);
-    dumpField(temperature);
-    dumpField(pressure);
-    dumpField(massDensity);
-    dumpField(temperatureGradient);
-    endDump(Atmosphere);
+    BEGIN_DUMP(Atmosphere);
+    DUMP_FIELD(type);
+    DUMP_FIELD(temperature);
+    DUMP_FIELD(pressure);
+    DUMP_FIELD(massDensity);
+    DUMP_FIELD(temperatureGradient);
+    END_DUMP(Atmosphere);
 }
 
 World::Atmosphere::~Atmosphere()
@@ -3852,16 +3852,16 @@ void World::GUI::parse(XMLElement *e, const char *tagName)
 
 void World::GUI::dump(int i)
 {
-    beginDump(GUI);
-    dumpField(fullScreen);
-    dumpField(camera);
-    dumpField(plugins);
-    endDump(GUI);
+    BEGIN_DUMP(GUI);
+    DUMP_FIELD(fullScreen);
+    DUMP_FIELD(camera);
+    DUMP_FIELD(plugins);
+    END_DUMP(GUI);
 }
 
 World::GUI::~GUI()
 {
-    deletevec(Plugin, plugins);
+    DELETEVEC(Plugin, plugins);
 }
 
 void World::SphericalCoordinates::parse(XMLElement *e, const char *tagName)
@@ -3880,13 +3880,13 @@ void World::SphericalCoordinates::parse(XMLElement *e, const char *tagName)
 
 void World::SphericalCoordinates::dump(int i)
 {
-    beginDump(SphericalCoordinates);
-    dumpField(surfaceModel);
-    dumpField(latitudeDeg);
-    dumpField(longitudeDeg);
-    dumpField(elevation);
-    dumpField(headingDeg);
-    endDump(SphericalCoordinates);
+    BEGIN_DUMP(SphericalCoordinates);
+    DUMP_FIELD(surfaceModel);
+    DUMP_FIELD(latitudeDeg);
+    DUMP_FIELD(longitudeDeg);
+    DUMP_FIELD(elevation);
+    DUMP_FIELD(headingDeg);
+    END_DUMP(SphericalCoordinates);
 }
 
 World::SphericalCoordinates::~SphericalCoordinates()
@@ -3905,9 +3905,9 @@ void Actor::parse(XMLElement *e, const char *tagName)
 
 void Actor::dump(int i)
 {
-    beginDump(Actor);
-    dumpField(name);
-    endDump(Actor);
+    BEGIN_DUMP(Actor);
+    DUMP_FIELD(name);
+    END_DUMP(Actor);
 }
 
 Actor::~Actor()
@@ -3929,12 +3929,12 @@ void LightAttenuation::parse(XMLElement *e, const char *tagName)
 
 void LightAttenuation::dump(int i)
 {
-    beginDump(Attenuation);
-    dumpField(range);
-    dumpField(linear);
-    dumpField(constant);
-    dumpField(quadratic);
-    endDump(Attenuation);
+    BEGIN_DUMP(Attenuation);
+    DUMP_FIELD(range);
+    DUMP_FIELD(linear);
+    DUMP_FIELD(constant);
+    DUMP_FIELD(quadratic);
+    END_DUMP(Attenuation);
 }
 
 LightAttenuation::~LightAttenuation()
@@ -3955,11 +3955,11 @@ void Spot::parse(XMLElement *e, const char *tagName)
 
 void Spot::dump(int i)
 {
-    beginDump(Spot);
-    dumpField(innerAngle);
-    dumpField(outerAngle);
-    dumpField(fallOff);
-    endDump(Spot);
+    BEGIN_DUMP(Spot);
+    DUMP_FIELD(innerAngle);
+    DUMP_FIELD(outerAngle);
+    DUMP_FIELD(fallOff);
+    END_DUMP(Spot);
 }
 
 Spot::~Spot()
@@ -3973,7 +3973,7 @@ void Light::parse(XMLElement *e, const char *tagName)
 
     name = getAttrStr(e, "name");
     static const char *lightTypes[] = {"point", "directional", "spot"};
-    type = getAttrOneOf(e, "type", lightTypes, arraysize(lightTypes));
+    type = getAttrOneOf(e, "type", lightTypes, ARRAYSIZE(lightTypes));
     castShadows = getSubValBoolOpt(e, "cast_shadows");
     parse1(e, "diffuse", diffuse);
     parse1(e, "specular", specular);
@@ -3988,22 +3988,22 @@ void Light::parse(XMLElement *e, const char *tagName)
 
 void Light::dump(int i)
 {
-    beginDump(Light);
-    dumpField(name);
-    dumpField(type);
-    dumpField(castShadows);
-    dumpField(diffuse);
-    dumpField(specular);
-    dumpField(attenuation);
-    dumpField(direction);
-    dumpField(spot);
-    dumpField(frames);
-    dumpField(pose);
-    endDump(Light);
+    BEGIN_DUMP(Light);
+    DUMP_FIELD(name);
+    DUMP_FIELD(type);
+    DUMP_FIELD(castShadows);
+    DUMP_FIELD(diffuse);
+    DUMP_FIELD(specular);
+    DUMP_FIELD(attenuation);
+    DUMP_FIELD(direction);
+    DUMP_FIELD(spot);
+    DUMP_FIELD(frames);
+    DUMP_FIELD(pose);
+    END_DUMP(Light);
 }
 
 Light::~Light()
 {
-    deletevec(Frame, frames);
+    DELETEVEC(Frame, frames);
 }
 
