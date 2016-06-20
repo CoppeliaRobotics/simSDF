@@ -45,22 +45,6 @@ struct Parser
         }
     }
 
-    template<typename T>
-    T* parseOpt(XMLElement *parent, const char *tagName)
-    {
-        XMLElement *e = parent->FirstChildElement(tagName);
-
-        if(!e) return NULL;
-
-        if(e->NextSiblingElement(tagName))
-            throw (boost::format("element %s found multiple times") % tagName).str();
-
-        T *t = new T;
-        t->parse(e);
-        t->set = true;
-        return t;
-    }
-
     virtual void parse(XMLElement *e, const char *tagName = 0);
     virtual void parseSub(XMLElement *e, const char *subElementName, bool optional = false);
     virtual void dump(int indentLevel = 0) = 0;
@@ -124,6 +108,7 @@ struct Pose : public Parser
 {
     Vector position;
     Orientation orientation;
+    std::string frame;
 
     virtual void parse(XMLElement *e, const char *tagName = "pose");
     virtual void dump(int indentLevel = 0);
@@ -176,7 +161,7 @@ struct NoiseModel : public Parser
     virtual ~NoiseModel();
 };
 
-struct Altimeter : public Parser
+struct AltimeterSensor : public Parser
 {
     struct VerticalPosition : public Parser
     {
@@ -197,7 +182,7 @@ struct Altimeter : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "altimeter");
     virtual void dump(int indentLevel = 0);
-    virtual ~Altimeter();
+    virtual ~AltimeterSensor();
 };
 
 struct Image : public Parser
@@ -221,7 +206,7 @@ struct Clip : public Parser
     virtual ~Clip();
 };
 
-struct Camera : public Parser
+struct CameraSensor : public Parser
 {
     std::string name;
     double horizontalFOV;
@@ -286,20 +271,20 @@ struct Camera : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "camera");
     virtual void dump(int indentLevel = 0);
-    virtual ~Camera();
+    virtual ~CameraSensor();
 };
 
-struct Contact : public Parser
+struct ContactSensor : public Parser
 {
     std::string collision;
     std::string topic;
 
     virtual void parse(XMLElement *e, const char *tagName = "camera");
     virtual void dump(int indentLevel = 0);
-    virtual ~Contact();
+    virtual ~ContactSensor();
 };
 
-struct GPS : public Parser
+struct GPSSensor : public Parser
 {
     struct PositionSensing : public Parser
     {
@@ -350,10 +335,10 @@ struct GPS : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "gps");
     virtual void dump(int indentLevel = 0);
-    virtual ~GPS();
+    virtual ~GPSSensor();
 };
 
-struct IMU : public Parser
+struct IMUSensor : public Parser
 {
     std::string topic;
     struct AngularVelocity : public Parser
@@ -421,10 +406,10 @@ struct IMU : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "imu");
     virtual void dump(int indentLevel = 0);
-    virtual ~IMU();
+    virtual ~IMUSensor();
 };
 
-struct LogicalCamera : public Parser
+struct LogicalCameraSensor : public Parser
 {
     double near;
     double far;
@@ -433,10 +418,10 @@ struct LogicalCamera : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "logical_camera");
     virtual void dump(int indentLevel = 0);
-    virtual ~LogicalCamera();
+    virtual ~LogicalCameraSensor();
 };
 
-struct Magnetometer : public Parser
+struct MagnetometerSensor : public Parser
 {
     struct X : public Parser
     {
@@ -465,7 +450,7 @@ struct Magnetometer : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "magnetometer");
     virtual void dump(int indentLevel = 0);
-    virtual ~Magnetometer();
+    virtual ~MagnetometerSensor();
 };
 
 struct LaserScanResolution : public Parser
@@ -480,7 +465,7 @@ struct LaserScanResolution : public Parser
     virtual ~LaserScanResolution();
 };
 
-struct Ray : public Parser
+struct RaySensor : public Parser
 {
     struct Scan : public Parser
     {
@@ -505,24 +490,24 @@ struct Ray : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "ray");
     virtual void dump(int indentLevel = 0);
-    virtual ~Ray();
+    virtual ~RaySensor();
 };
 
-struct RFIDTag : public Parser
+struct RFIDTagSensor : public Parser
 {
     virtual void parse(XMLElement *e, const char *tagName = "rfid_tag");
     virtual void dump(int indentLevel = 0);
-    virtual ~RFIDTag();
+    virtual ~RFIDTagSensor();
 };
 
-struct RFID : public Parser
+struct RFIDSensor : public Parser
 {
     virtual void parse(XMLElement *e, const char *tagName = "rfid");
     virtual void dump(int indentLevel = 0);
-    virtual ~RFID();
+    virtual ~RFIDSensor();
 };
 
-struct Sonar : public Parser
+struct SonarSensor : public Parser
 {
     double min;
     double max;
@@ -530,10 +515,10 @@ struct Sonar : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "sonar");
     virtual void dump(int indentLevel = 0);
-    virtual ~Sonar();
+    virtual ~SonarSensor();
 };
 
-struct Transceiver : public Parser
+struct TransceiverSensor : public Parser
 {
     std::string essid;
     double frequency;
@@ -545,17 +530,17 @@ struct Transceiver : public Parser
 
     virtual void parse(XMLElement *e, const char *tagName = "transceiver");
     virtual void dump(int indentLevel = 0);
-    virtual ~Transceiver();
+    virtual ~TransceiverSensor();
 };
 
-struct ForceTorque : public Parser
+struct ForceTorqueSensor : public Parser
 {
     std::string frame;
     std::string measureDirection;
 
     virtual void parse(XMLElement *e, const char *tagName = "force_torque");
     virtual void dump(int indentLevel = 0);
-    virtual ~ForceTorque();
+    virtual ~ForceTorqueSensor();
 };
 
 struct LinkInertial : public Parser
@@ -701,15 +686,15 @@ struct SphereGeometry : public Parser
 
 struct Geometry : public Parser
 {
-    EmptyGeometry *empty;
-    BoxGeometry *box;
-    CylinderGeometry *cylinder;
-    HeightMapGeometry *heightmap;
-    ImageGeometry *image;
-    MeshGeometry *mesh;
-    PlaneGeometry *plane;
-    PolylineGeometry *polyline;
-    SphereGeometry *sphere;
+    EmptyGeometry empty;
+    BoxGeometry box;
+    CylinderGeometry cylinder;
+    HeightMapGeometry heightmap;
+    ImageGeometry image;
+    MeshGeometry mesh;
+    PlaneGeometry plane;
+    PolylineGeometry polyline;
+    SphereGeometry sphere;
 
     virtual void parse(XMLElement *e, const char *tagName = "geometry");
     virtual void dump(int indentLevel = 0);
@@ -928,19 +913,19 @@ struct Sensor : public Parser
     Frame frame;
     Pose pose;
     std::vector<Plugin*> plugins;
-    Altimeter altimeter;
-    Camera camera;
-    Contact contact;
-    GPS gps;
-    IMU imu;
-    LogicalCamera logicalCamera;
-    Magnetometer magnetometer;
-    Ray ray;
-    RFIDTag rfidTag;
-    RFID rfid;
-    Sonar sonar;
-    Transceiver transceiver;
-    ForceTorque forceTorque;
+    AltimeterSensor altimeter;
+    CameraSensor camera;
+    ContactSensor contact;
+    GPSSensor gps;
+    IMUSensor imu;
+    LogicalCameraSensor logicalCamera;
+    MagnetometerSensor magnetometer;
+    RaySensor ray;
+    RFIDTagSensor rfidTag;
+    RFIDSensor rfid;
+    SonarSensor sonar;
+    TransceiverSensor transceiver;
+    ForceTorqueSensor forceTorque;
 
     virtual void parse(XMLElement *e, const char *tagName = "sensor");
     virtual void dump(int indentLevel = 0);

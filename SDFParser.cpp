@@ -445,6 +445,7 @@ void Pose::parse(XMLElement *e, const char *tagName)
         orientation.pitch = boost::lexical_cast<double>(tokens[4]);
         orientation.yaw = boost::lexical_cast<double>(tokens[5]);
     }
+    frame = getAttrStr(e, "frame", true);
 }
 
 void Pose::dump(int i)
@@ -508,7 +509,7 @@ void Frame::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     name = getSubValStr(e, "name");
-    pose.parseSub(e, "pose");
+    pose.parseSub(e, "pose", true);
 }
 
 void Frame::dump(int i)
@@ -550,7 +551,7 @@ NoiseModel::~NoiseModel()
 {
 }
 
-void Altimeter::parse(XMLElement *e, const char *tagName)
+void AltimeterSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -558,51 +559,51 @@ void Altimeter::parse(XMLElement *e, const char *tagName)
     verticalVelocity.parseSub(e, "vertical_velocity");
 }
 
-void Altimeter::dump(int i)
+void AltimeterSensor::dump(int i)
 {
-    beginDump(Altimeter);
+    beginDump(AltimeterSensor);
     dumpField(verticalPosition);
     dumpField(verticalVelocity);
-    endDump(Altimeter);
+    endDump(AltimeterSensor);
 }
 
-Altimeter::~Altimeter()
+AltimeterSensor::~AltimeterSensor()
 {
 }
 
-void Altimeter::VerticalPosition::parse(XMLElement *e, const char *tagName)
+void AltimeterSensor::VerticalPosition::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void Altimeter::VerticalPosition::dump(int i)
+void AltimeterSensor::VerticalPosition::dump(int i)
 {
     beginDump(VerticalPosition);
     dumpField(noise);
     endDump(VerticalPosition);
 }
 
-Altimeter::VerticalPosition::~VerticalPosition()
+AltimeterSensor::VerticalPosition::~VerticalPosition()
 {
 }
 
-void Altimeter::VerticalVelocity::parse(XMLElement *e, const char *tagName)
+void AltimeterSensor::VerticalVelocity::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void Altimeter::VerticalVelocity::dump(int i)
+void AltimeterSensor::VerticalVelocity::dump(int i)
 {
     beginDump(VerticalVelocity);
     dumpField(noise);
     endDump(VerticalVelocity);
 }
 
-Altimeter::VerticalVelocity::~VerticalVelocity()
+AltimeterSensor::VerticalVelocity::~VerticalVelocity()
 {
 }
 
@@ -648,7 +649,7 @@ Clip::~Clip()
 {
 }
 
-void Camera::parse(XMLElement *e, const char *tagName)
+void CameraSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -665,9 +666,9 @@ void Camera::parse(XMLElement *e, const char *tagName)
     pose.parseSub(e, "pose", true);
 }
 
-void Camera::dump(int i)
+void CameraSensor::dump(int i)
 {
-    beginDump(Camera);
+    beginDump(CameraSensor);
     dumpField(name);
     dumpField(horizontalFOV);
     dumpField(image);
@@ -679,14 +680,14 @@ void Camera::dump(int i)
     dumpField(lens);
     dumpField(frame);
     dumpField(pose);
-    endDump(Camera);
+    endDump(CameraSensor);
 }
 
-Camera::~Camera()
+CameraSensor::~CameraSensor()
 {
 }
 
-void Camera::Save::parse(XMLElement *e, const char *tagName)
+void CameraSensor::Save::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -694,7 +695,7 @@ void Camera::Save::parse(XMLElement *e, const char *tagName)
     path = getSubValStr(e, "path");
 }
 
-void Camera::Save::dump(int i)
+void CameraSensor::Save::dump(int i)
 {
     beginDump(Save);
     dumpField(enabled);
@@ -702,29 +703,29 @@ void Camera::Save::dump(int i)
     endDump(Save);
 }
 
-Camera::Save::~Save()
+CameraSensor::Save::~Save()
 {
 }
 
-void Camera::DepthCamera::parse(XMLElement *e, const char *tagName)
+void CameraSensor::DepthCamera::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     output = getSubValStr(e, "output");
 }
 
-void Camera::DepthCamera::dump(int i)
+void CameraSensor::DepthCamera::dump(int i)
 {
     beginDump(DepthCamera);
     dumpField(output);
     endDump(DepthCamera);
 }
 
-Camera::DepthCamera::~DepthCamera()
+CameraSensor::DepthCamera::~DepthCamera()
 {
 }
 
-void Camera::Distortion::parse(XMLElement *e, const char *tagName)
+void CameraSensor::Distortion::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -736,7 +737,7 @@ void Camera::Distortion::parse(XMLElement *e, const char *tagName)
     center.parseSub(e, "center");
 }
 
-void Camera::Distortion::dump(int i)
+void CameraSensor::Distortion::dump(int i)
 {
     beginDump(Distortion);
     dumpField(k1);
@@ -747,11 +748,11 @@ void Camera::Distortion::dump(int i)
     endDump(Distortion);
 }
 
-Camera::Distortion::~Distortion()
+CameraSensor::Distortion::~Distortion()
 {
 }
 
-void Camera::Distortion::Center::parse(XMLElement *e, const char *tagName)
+void CameraSensor::Distortion::Center::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -759,7 +760,7 @@ void Camera::Distortion::Center::parse(XMLElement *e, const char *tagName)
     y = getSubValDouble(e, "y");
 }
 
-void Camera::Distortion::Center::dump(int i)
+void CameraSensor::Distortion::Center::dump(int i)
 {
     beginDump(Center);
     dumpField(x);
@@ -767,11 +768,11 @@ void Camera::Distortion::Center::dump(int i)
     endDump(Center);
 }
 
-Camera::Distortion::Center::~Center()
+CameraSensor::Distortion::Center::~Center()
 {
 }
 
-void Camera::Lens::parse(XMLElement *e, const char *tagName)
+void CameraSensor::Lens::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -782,7 +783,7 @@ void Camera::Lens::parse(XMLElement *e, const char *tagName)
     envTextureSize = getSubValDouble(e, "envTextureSize", true);
 }
 
-void Camera::Lens::dump(int i)
+void CameraSensor::Lens::dump(int i)
 {
     beginDump(Lens);
     dumpField(type);
@@ -793,11 +794,11 @@ void Camera::Lens::dump(int i)
     endDump(Lens);
 }
 
-Camera::Lens::~Lens()
+CameraSensor::Lens::~Lens()
 {
 }
 
-void Camera::Lens::CustomFunction::parse(XMLElement *e, const char *tagName)
+void CameraSensor::Lens::CustomFunction::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -808,7 +809,7 @@ void Camera::Lens::CustomFunction::parse(XMLElement *e, const char *tagName)
     fun = getSubValStr(e, "fun");
 }
 
-void Camera::Lens::CustomFunction::dump(int i)
+void CameraSensor::Lens::CustomFunction::dump(int i)
 {
     beginDump(CustomFunction);
     dumpField(c1);
@@ -819,11 +820,11 @@ void Camera::Lens::CustomFunction::dump(int i)
     endDump(CustomFunction);
 }
 
-Camera::Lens::CustomFunction::~CustomFunction()
+CameraSensor::Lens::CustomFunction::~CustomFunction()
 {
 }
 
-void Contact::parse(XMLElement *e, const char *tagName)
+void ContactSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -831,19 +832,19 @@ void Contact::parse(XMLElement *e, const char *tagName)
     topic = getSubValStr(e, "topic");
 }
 
-void Contact::dump(int i)
+void ContactSensor::dump(int i)
 {
-    beginDump(Contact);
+    beginDump(ContactSensor);
     dumpField(collision);
     dumpField(topic);
-    endDump(Contact);
+    endDump(ContactSensor);
 }
 
-Contact::~Contact()
+ContactSensor::~ContactSensor()
 {
 }
 
-void GPS::parse(XMLElement *e, const char *tagName)
+void GPSSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -851,19 +852,19 @@ void GPS::parse(XMLElement *e, const char *tagName)
     velocitySensing.parseSub(e, "velocity_sensing", true);
 }
 
-void GPS::dump(int i)
+void GPSSensor::dump(int i)
 {
-    beginDump(GPS);
+    beginDump(GPSSensor);
     dumpField(positionSensing);
     dumpField(velocitySensing);
-    endDump(GPS);
+    endDump(GPSSensor);
 }
 
-GPS::~GPS()
+GPSSensor::~GPSSensor()
 {
 }
 
-void GPS::PositionSensing::parse(XMLElement *e, const char *tagName)
+void GPSSensor::PositionSensing::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -871,7 +872,7 @@ void GPS::PositionSensing::parse(XMLElement *e, const char *tagName)
     vertical.parseSub(e, "vertical", true);
 }
 
-void GPS::PositionSensing::dump(int i)
+void GPSSensor::PositionSensing::dump(int i)
 {
     beginDump(PositionSensing);
     dumpField(horizontal);
@@ -879,47 +880,47 @@ void GPS::PositionSensing::dump(int i)
     endDump(PositionSensing);
 }
 
-GPS::PositionSensing::~PositionSensing()
+GPSSensor::PositionSensing::~PositionSensing()
 {
 }
 
-void GPS::PositionSensing::Horizontal::parse(XMLElement *e, const char *tagName)
+void GPSSensor::PositionSensing::Horizontal::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void GPS::PositionSensing::Horizontal::dump(int i)
+void GPSSensor::PositionSensing::Horizontal::dump(int i)
 {
     beginDump(Horizontal);
     dumpField(noise);
     endDump(Horizontal);
 }
 
-GPS::PositionSensing::Horizontal::~Horizontal()
+GPSSensor::PositionSensing::Horizontal::~Horizontal()
 {
 }
 
-void GPS::PositionSensing::Vertical::parse(XMLElement *e, const char *tagName)
+void GPSSensor::PositionSensing::Vertical::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void GPS::PositionSensing::Vertical::dump(int i)
+void GPSSensor::PositionSensing::Vertical::dump(int i)
 {
     beginDump(Vertical);
     dumpField(noise);
     endDump(Vertical);
 }
 
-GPS::PositionSensing::Vertical::~Vertical()
+GPSSensor::PositionSensing::Vertical::~Vertical()
 {
 }
 
-void GPS::VelocitySensing::parse(XMLElement *e, const char *tagName)
+void GPSSensor::VelocitySensing::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -927,7 +928,7 @@ void GPS::VelocitySensing::parse(XMLElement *e, const char *tagName)
     vertical.parseSub(e, "vertical", true);
 }
 
-void GPS::VelocitySensing::dump(int i)
+void GPSSensor::VelocitySensing::dump(int i)
 {
     beginDump(VelocitySensing);
     dumpField(horizontal);
@@ -935,47 +936,47 @@ void GPS::VelocitySensing::dump(int i)
     endDump(VelocitySensing);
 }
 
-GPS::VelocitySensing::~VelocitySensing()
+GPSSensor::VelocitySensing::~VelocitySensing()
 {
 }
 
-void GPS::VelocitySensing::Horizontal::parse(XMLElement *e, const char *tagName)
+void GPSSensor::VelocitySensing::Horizontal::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void GPS::VelocitySensing::Horizontal::dump(int i)
+void GPSSensor::VelocitySensing::Horizontal::dump(int i)
 {
     beginDump(Horizontal);
     dumpField(noise);
     endDump(Horizontal);
 }
 
-GPS::VelocitySensing::Horizontal::~Horizontal()
+GPSSensor::VelocitySensing::Horizontal::~Horizontal()
 {
 }
 
-void GPS::VelocitySensing::Vertical::parse(XMLElement *e, const char *tagName)
+void GPSSensor::VelocitySensing::Vertical::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void GPS::VelocitySensing::Vertical::dump(int i)
+void GPSSensor::VelocitySensing::Vertical::dump(int i)
 {
     beginDump(Vertical);
     dumpField(noise);
     endDump(Vertical);
 }
 
-GPS::VelocitySensing::Vertical::~Vertical()
+GPSSensor::VelocitySensing::Vertical::~Vertical()
 {
 }
 
-void IMU::parse(XMLElement *e, const char *tagName)
+void IMUSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -984,20 +985,20 @@ void IMU::parse(XMLElement *e, const char *tagName)
     linearAcceleration.parseSub(e, "linear_acceleration", true);
 }
 
-void IMU::dump(int i)
+void IMUSensor::dump(int i)
 {
-    beginDump(IMU);
+    beginDump(IMUSensor);
     dumpField(topic);
     dumpField(angularVelocity);
     dumpField(linearAcceleration);
-    endDump(IMU);
+    endDump(IMUSensor);
 }
 
-IMU::~IMU()
+IMUSensor::~IMUSensor()
 {
 }
 
-void IMU::AngularVelocity::parse(XMLElement *e, const char *tagName)
+void IMUSensor::AngularVelocity::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1006,7 +1007,7 @@ void IMU::AngularVelocity::parse(XMLElement *e, const char *tagName)
     z.parseSub(e, "z", true);
 }
 
-void IMU::AngularVelocity::dump(int i)
+void IMUSensor::AngularVelocity::dump(int i)
 {
     beginDump(AngularVelocity);
     dumpField(x);
@@ -1015,65 +1016,65 @@ void IMU::AngularVelocity::dump(int i)
     endDump(AngularVelocity);
 }
 
-IMU::AngularVelocity::~AngularVelocity()
+IMUSensor::AngularVelocity::~AngularVelocity()
 {
 }
 
-void IMU::AngularVelocity::X::parse(XMLElement *e, const char *tagName)
+void IMUSensor::AngularVelocity::X::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void IMU::AngularVelocity::X::dump(int i)
+void IMUSensor::AngularVelocity::X::dump(int i)
 {
     beginDump(X);
     dumpField(noise);
     endDump(X);
 }
 
-IMU::AngularVelocity::X::~X()
+IMUSensor::AngularVelocity::X::~X()
 {
 }
 
-void IMU::AngularVelocity::Y::parse(XMLElement *e, const char *tagName)
+void IMUSensor::AngularVelocity::Y::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void IMU::AngularVelocity::Y::dump(int i)
+void IMUSensor::AngularVelocity::Y::dump(int i)
 {
     beginDump(Y);
     dumpField(noise);
     endDump(Y);
 }
 
-IMU::AngularVelocity::Y::~Y()
+IMUSensor::AngularVelocity::Y::~Y()
 {
 }
 
-void IMU::AngularVelocity::Z::parse(XMLElement *e, const char *tagName)
+void IMUSensor::AngularVelocity::Z::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void IMU::AngularVelocity::Z::dump(int i)
+void IMUSensor::AngularVelocity::Z::dump(int i)
 {
     beginDump(Z);
     dumpField(noise);
     endDump(Z);
 }
 
-IMU::AngularVelocity::Z::~Z()
+IMUSensor::AngularVelocity::Z::~Z()
 {
 }
 
-void IMU::LinearAcceleration::parse(XMLElement *e, const char *tagName)
+void IMUSensor::LinearAcceleration::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1082,7 +1083,7 @@ void IMU::LinearAcceleration::parse(XMLElement *e, const char *tagName)
     z.parseSub(e, "z", true);
 }
 
-void IMU::LinearAcceleration::dump(int i)
+void IMUSensor::LinearAcceleration::dump(int i)
 {
     beginDump(LinearAcceleration);
     dumpField(x);
@@ -1091,65 +1092,65 @@ void IMU::LinearAcceleration::dump(int i)
     endDump(LinearAcceleration);
 }
 
-IMU::LinearAcceleration::~LinearAcceleration()
+IMUSensor::LinearAcceleration::~LinearAcceleration()
 {
 }
 
-void IMU::LinearAcceleration::X::parse(XMLElement *e, const char *tagName)
+void IMUSensor::LinearAcceleration::X::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void IMU::LinearAcceleration::X::dump(int i)
+void IMUSensor::LinearAcceleration::X::dump(int i)
 {
     beginDump(X);
     dumpField(noise);
     endDump(X);
 }
 
-IMU::LinearAcceleration::X::~X()
+IMUSensor::LinearAcceleration::X::~X()
 {
 }
 
-void IMU::LinearAcceleration::Y::parse(XMLElement *e, const char *tagName)
+void IMUSensor::LinearAcceleration::Y::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void IMU::LinearAcceleration::Y::dump(int i)
+void IMUSensor::LinearAcceleration::Y::dump(int i)
 {
     beginDump(Y);
     dumpField(noise);
     endDump(Y);
 }
 
-IMU::LinearAcceleration::Y::~Y()
+IMUSensor::LinearAcceleration::Y::~Y()
 {
 }
 
-void IMU::LinearAcceleration::Z::parse(XMLElement *e, const char *tagName)
+void IMUSensor::LinearAcceleration::Z::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void IMU::LinearAcceleration::Z::dump(int i)
+void IMUSensor::LinearAcceleration::Z::dump(int i)
 {
     beginDump(Z);
     dumpField(noise);
     endDump(Z);
 }
 
-IMU::LinearAcceleration::Z::~Z()
+IMUSensor::LinearAcceleration::Z::~Z()
 {
 }
 
-void LogicalCamera::parse(XMLElement *e, const char *tagName)
+void LogicalCameraSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1159,21 +1160,21 @@ void LogicalCamera::parse(XMLElement *e, const char *tagName)
     horizontalFOV = getSubValDouble(e, "horizontal_fov");
 }
 
-void LogicalCamera::dump(int i)
+void LogicalCameraSensor::dump(int i)
 {
-    beginDump(LogicalCamera);
+    beginDump(LogicalCameraSensor);
     dumpField(near);
     dumpField(far);
     dumpField(aspectRatio);
     dumpField(horizontalFOV);
-    endDump(LogicalCamera);
+    endDump(LogicalCameraSensor);
 }
 
-LogicalCamera::~LogicalCamera()
+LogicalCameraSensor::~LogicalCameraSensor()
 {
 }
 
-void Magnetometer::parse(XMLElement *e, const char *tagName)
+void MagnetometerSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1182,70 +1183,70 @@ void Magnetometer::parse(XMLElement *e, const char *tagName)
     z.parseSub(e, "z", true);
 }
 
-void Magnetometer::dump(int i)
+void MagnetometerSensor::dump(int i)
 {
-    beginDump(Magnetometer);
+    beginDump(MagnetometerSensor);
     dumpField(x);
     dumpField(y);
     dumpField(z);
-    endDump(Magnetometer);
+    endDump(MagnetometerSensor);
 }
 
-Magnetometer::~Magnetometer()
+MagnetometerSensor::~MagnetometerSensor()
 {
 }
 
-void Magnetometer::X::parse(XMLElement *e, const char *tagName)
+void MagnetometerSensor::X::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void Magnetometer::X::dump(int i)
+void MagnetometerSensor::X::dump(int i)
 {
     beginDump(X);
     dumpField(noise);
     endDump(X);
 }
 
-Magnetometer::X::~X()
+MagnetometerSensor::X::~X()
 {
 }
 
-void Magnetometer::Y::parse(XMLElement *e, const char *tagName)
+void MagnetometerSensor::Y::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void Magnetometer::Y::dump(int i)
+void MagnetometerSensor::Y::dump(int i)
 {
     beginDump(Y);
     dumpField(noise);
     endDump(Y);
 }
 
-Magnetometer::Y::~Y()
+MagnetometerSensor::Y::~Y()
 {
 }
 
-void Magnetometer::Z::parse(XMLElement *e, const char *tagName)
+void MagnetometerSensor::Z::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     noise.parseSub(e, "noise");
 }
 
-void Magnetometer::Z::dump(int i)
+void MagnetometerSensor::Z::dump(int i)
 {
     beginDump(Z);
     dumpField(noise);
     endDump(Z);
 }
 
-Magnetometer::Z::~Z()
+MagnetometerSensor::Z::~Z()
 {
 }
 
@@ -1273,7 +1274,7 @@ LaserScanResolution::~LaserScanResolution()
 {
 }
 
-void Ray::parse(XMLElement *e, const char *tagName)
+void RaySensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1282,20 +1283,20 @@ void Ray::parse(XMLElement *e, const char *tagName)
     noise.parseSub(e, "noise", true);
 }
 
-void Ray::dump(int i)
+void RaySensor::dump(int i)
 {
-    beginDump(Ray);
+    beginDump(RaySensor);
     dumpField(scan);
     dumpField(range);
     dumpField(noise);
-    endDump(Ray);
+    endDump(RaySensor);
 }
 
-Ray::~Ray()
+RaySensor::~RaySensor()
 {
 }
 
-void Ray::Scan::parse(XMLElement *e, const char *tagName)
+void RaySensor::Scan::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1303,7 +1304,7 @@ void Ray::Scan::parse(XMLElement *e, const char *tagName)
     vertical.parseSub(e, "vertical", true);
 }
 
-void Ray::Scan::dump(int i)
+void RaySensor::Scan::dump(int i)
 {
     beginDump(Scan);
     dumpField(horizontal);
@@ -1311,11 +1312,11 @@ void Ray::Scan::dump(int i)
     endDump(Scan);
 }
 
-Ray::Scan::~Scan()
+RaySensor::Scan::~Scan()
 {
 }
 
-void Ray::Range::parse(XMLElement *e, const char *tagName)
+void RaySensor::Range::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1324,7 +1325,7 @@ void Ray::Range::parse(XMLElement *e, const char *tagName)
     resolution = getSubValDouble(e, "resolution", true);
 }
 
-void Ray::Range::dump(int i)
+void RaySensor::Range::dump(int i)
 {
     beginDump(Range);
     dumpField(min);
@@ -1332,41 +1333,41 @@ void Ray::Range::dump(int i)
     endDump(Range);
 }
 
-Ray::Range::~Range()
+RaySensor::Range::~Range()
 {
 }
 
-void RFIDTag::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-}
-
-void RFIDTag::dump(int i)
-{
-    beginDump(RFIDTag);
-    endDump(RFIDTag);
-}
-
-RFIDTag::~RFIDTag()
-{
-}
-
-void RFID::parse(XMLElement *e, const char *tagName)
+void RFIDTagSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 }
 
-void RFID::dump(int i)
+void RFIDTagSensor::dump(int i)
 {
-    beginDump(RFID);
-    endDump(RFID);
+    beginDump(RFIDTagSensor);
+    endDump(RFIDTagSensor);
 }
 
-RFID::~RFID()
+RFIDTagSensor::~RFIDTagSensor()
 {
 }
 
-void Sonar::parse(XMLElement *e, const char *tagName)
+void RFIDSensor::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void RFIDSensor::dump(int i)
+{
+    beginDump(RFIDSensor);
+    endDump(RFIDSensor);
+}
+
+RFIDSensor::~RFIDSensor()
+{
+}
+
+void SonarSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1375,20 +1376,20 @@ void Sonar::parse(XMLElement *e, const char *tagName)
     radius = getSubValDouble(e, "radius");
 }
 
-void Sonar::dump(int i)
+void SonarSensor::dump(int i)
 {
-    beginDump(Sonar);
+    beginDump(SonarSensor);
     dumpField(min);
     dumpField(max);
     dumpField(radius);
-    endDump(Sonar);
+    endDump(SonarSensor);
 }
 
-Sonar::~Sonar()
+SonarSensor::~SonarSensor()
 {
 }
 
-void Transceiver::parse(XMLElement *e, const char *tagName)
+void TransceiverSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1401,9 +1402,9 @@ void Transceiver::parse(XMLElement *e, const char *tagName)
     sensitivity = getSubValDouble(e, "sensitivity", true);
 }
 
-void Transceiver::dump(int i)
+void TransceiverSensor::dump(int i)
 {
-    beginDump(Transceiver);
+    beginDump(TransceiverSensor);
     dumpField(essid);
     dumpField(frequency);
     dumpField(minFrequency);
@@ -1411,14 +1412,14 @@ void Transceiver::dump(int i)
     dumpField(gain);
     dumpField(power);
     dumpField(sensitivity);
-    endDump(Transceiver);
+    endDump(TransceiverSensor);
 }
 
-Transceiver::~Transceiver()
+TransceiverSensor::~TransceiverSensor()
 {
 }
 
-void ForceTorque::parse(XMLElement *e, const char *tagName)
+void ForceTorqueSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
@@ -1427,15 +1428,15 @@ void ForceTorque::parse(XMLElement *e, const char *tagName)
     measureDirection = getSubValOneOf(e, "frame", measureDirectionValues, arraysize(measureDirectionValues), true);
 }
 
-void ForceTorque::dump(int i)
+void ForceTorqueSensor::dump(int i)
 {
-    beginDump(ForceTorque);
+    beginDump(ForceTorqueSensor);
     dumpField(frame);
     dumpField(measureDirection);
-    endDump(ForceTorque);
+    endDump(ForceTorqueSensor);
 }
 
-ForceTorque::~ForceTorque()
+ForceTorqueSensor::~ForceTorqueSensor()
 {
 }
 
@@ -1537,25 +1538,27 @@ void Geometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    int count = 0;
-    empty = parseOpt<EmptyGeometry>(e, "empty");
-    if(empty) count++;
-    box = parseOpt<BoxGeometry>(e, "box");
-    if(box) count++;
-    cylinder = parseOpt<CylinderGeometry>(e, "cylinder");
-    if(cylinder) count++;
-    heightmap = parseOpt<HeightMapGeometry>(e, "heightmap");
-    if(heightmap) count++;
-    image = parseOpt<ImageGeometry>(e, "image");
-    if(image) count++;
-    mesh = parseOpt<MeshGeometry>(e, "mesh");
-    if(mesh) count++;
-    plane = parseOpt<PlaneGeometry>(e, "plane");
-    if(plane) count++;
-    polyline = parseOpt<PolylineGeometry>(e, "polyline");
-    if(polyline) count++;
-    sphere = parseOpt<SphereGeometry>(e, "sphere");
-    if(sphere) count++;
+    empty.parseSub(e, "empty", true);
+    box.parseSub(e, "box", true);
+    cylinder.parseSub(e, "cylinder", true);
+    heightmap.parseSub(e, "heightmap", true);
+    image.parseSub(e, "image", true);
+    mesh.parseSub(e, "mesh", true);
+    plane.parseSub(e, "plane", true);
+    polyline.parseSub(e, "polyline", true);
+    sphere.parseSub(e, "sphere", true);
+
+    int count = 0
+        + (empty.set ? 1 : 0)
+        + (box.set ? 1 : 0)
+        + (cylinder.set ? 1 : 0)
+        + (heightmap.set ? 1 : 0)
+        + (image.set ? 1 : 0)
+        + (mesh.set ? 1 : 0)
+        + (plane.set ? 1 : 0)
+        + (polyline.set ? 1 : 0)
+        + (sphere.set ? 1 : 0);
+
     if(count < 1)
         throw std::string("a geometry must be specified");
     if(count > 1)
@@ -1579,15 +1582,6 @@ void Geometry::dump(int i)
 
 Geometry::~Geometry()
 {
-    if(empty) delete empty;
-    if(box) delete box;
-    if(cylinder) delete cylinder;
-    if(heightmap) delete heightmap;
-    if(image) delete image;
-    if(mesh) delete mesh;
-    if(plane) delete plane;
-    if(polyline) delete polyline;
-    if(sphere) delete sphere;
 }
 
 void EmptyGeometry::parse(XMLElement *e, const char *tagName)
