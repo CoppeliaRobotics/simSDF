@@ -129,28 +129,36 @@ PARSER_CLASS(SDF)
 
 PARSER_CLASS(Vector)
 {
-    double x, y, z;
+    double x;
+    double y;
+    double z;
 
     PARSER_METHODS(Vector)
 };
 
 PARSER_CLASS(Time)
 {
-    long seconds, nanoseconds;
+    long seconds;
+    long nanoseconds;
 
     PARSER_METHODS(Time)
 };
 
 PARSER_CLASS(Color)
 {
-    double r, g, b, a;
+    double r;
+    double g;
+    double b;
+    double a;
 
     PARSER_METHODS(Color)
 };
 
 PARSER_CLASS(Orientation)
 {
-    double roll, pitch, yaw;
+    double roll;
+    double pitch;
+    double yaw;
 
     PARSER_METHODS(Orientation)
 };
@@ -239,7 +247,10 @@ PARSER_CLASS(Clip)
 
 PARSER_CLASS(CustomFunction)
 {
-    optional<double> c1, c2, c3, f;
+    optional<double> c1;
+    optional<double> c2;
+    optional<double> c3;
+    optional<double> f;
     string fun;
 
     PARSER_METHODS(CustomFunction)
@@ -267,10 +278,15 @@ PARSER_CLASS(CameraSensor)
     NoiseModel noise;
     PARSER_CLASS(Distortion)
     {
-        double k1, k2, k3, p1, p2;
+        double k1;
+        double k2;
+        double k3;
+        double p1;
+        double p2;
         PARSER_CLASS(Center)
         {
-            double x, y;
+            double x;
+            double y;
 
             PARSER_METHODS(Center)
         } center;
@@ -452,7 +468,12 @@ PARSER_CLASS(ForceTorqueSensor)
 
 PARSER_CLASS(InertiaMatrix)
 {
-    double ixx, ixy, ixz, iyy, iyz, izz;
+    double ixx;
+    double ixy;
+    double ixz;
+    double iyy;
+    double iyz;
+    double izz;
 
     PARSER_METHODS(InertiaMatrix)
 };
