@@ -83,40 +83,111 @@ using namespace tinyxml2;
 void importWorld(const World& world)
 {
     std::cout << "Importing world '" << world.name << "'..." << std::endl;
+    std::cout << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
-void importModelLinkInertial(const Model& model, const Link& link, const LinkInertial& inertial)
+simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, double mass)
 {
-}
-
-void importModelLinkCollision(const Model& model, const Link& link, const LinkCollision& collision)
-{
-}
-
-void importModelLinkVisual(const Model& model, const Link& link, const LinkVisual& visual)
-{
+    if(geometry.empty)
+    {
+        return simCreateDummy(0, NULL);
+    }
+    else if(geometry.box || geometry.sphere || geometry.cylinder)
+    {
+        // pure shape
+        simInt primitiveType =
+            geometry.box ? 0 :
+            geometry.sphere ? 1 :
+            geometry.cylinder ? 2 :
+            -1;
+        simInt options = 0
+            + 1 // backface culling
+            + 2 // show edges
+            + (respondable ? 8 : 0)
+            + (static_ ? 16 : 0) // static shape?
+            ;
+        simFloat sizes[3];
+        if(geometry.box)
+        {
+            sizes[0] = geometry.box->size.x;
+            sizes[1] = geometry.box->size.y;
+            sizes[2] = geometry.box->size.z;
+        }
+        else if(geometry.sphere)
+        {
+            sizes[0] = sizes[1] = sizes[2] = geometry.sphere->radius;
+        }
+        else if(geometry.cylinder)
+        {
+            sizes[0] = sizes[1] = geometry.cylinder->radius;
+            sizes[2] = geometry.cylinder->length;
+        }
+        return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
+    }
+    else if(geometry.heightmap)
+    {
+        simInt options = 0
+            + 1 // backface culling
+            + 2 // overlay mesh visible
+            + (respondable ? 0 : 8)
+            ;
+        simFloat shadingAngle = 45;
+        simInt xPointCount;
+        simInt yPointCount;
+        simFloat xSize;
+        simFloat *heights;
+        return simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
+    }
+    else if(geometry.mesh)
+    {
+        simInt options = 0
+            + 1 // backface culling
+            + 2 // show edges
+            ;
+        simFloat shadingAngle = 45;
+        simFloat *vertices;
+        simInt verticesSize;
+        simInt *indices;
+        simInt indicesSize;
+        return simCreateMeshShape(options, shadingAngle, vertices, verticesSize, indices, indicesSize, NULL);
+    }
+    else if(geometry.image)
+    {
+        std::cout << "ERROR: image geometry not currently supported" << std::endl;
+    }
+    else if(geometry.plane)
+    {
+        std::cout << "ERROR: plane geometry not currently supported" << std::endl;
+    }
+    else if(geometry.polyline)
+    {
+        std::cout << "ERROR: polyline geometry not currently supported" << std::endl;
+    }
 }
 
 void importModelLink(const Model& model, const Link& link)
 {
     std::cout << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
+    double mass = 0;
     if(link.inertial)
     {
-        importModelLinkInertial(model, link, *link.inertial);
+        if(link.inertial->mass)
+            mass = *link.inertial->mass;
     }
     BOOST_FOREACH(const LinkCollision& x, link.collisions)
     {
-        importModelLinkCollision(model, link, x);
+        simInt shapeHandle = importGeometry(x.geometry, false, true, mass);
     }
     BOOST_FOREACH(const LinkVisual& x, link.visuals)
     {
-        importModelLinkVisual(model, link, x);
+        simInt shapeHandle = importGeometry(x.geometry, true, false, 0);
     }
 }
 
 void importModelJoint(const Model& model, const Joint& joint)
 {
     std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
+    std::cout << "ERROR: importing joints not implemented yet" << std::endl;
 }
 
 void importModel(const Model& model)
@@ -139,12 +210,13 @@ void importModel(const Model& model)
 void importActor(const Actor& actor)
 {
     std::cout << "Importing actor '" << actor.name << "'..." << std::endl;
-    std::cout << "WARNING: actors are not currently supported" << std::endl;
+    std::cout << "ERROR: actors are not currently supported" << std::endl;
 }
 
 void importLight(const Light& light)
 {
     std::cout << "Importing light '" << light.name << "'..." << std::endl;
+    std::cout << "ERROR: importing lights not currently supported" << std::endl;
 }
 
 void importSDF(const SDF& sdf)
