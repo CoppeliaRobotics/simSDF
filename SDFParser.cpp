@@ -38,11 +38,7 @@ void dumpField1(int i, const char *n, Parser& p)
 
 void dumpField1(int i, const char *n, Parser *p)
 {
-    if(!p)
-    {
-        //std::cout << indent(i) << n << ": NULL" << std::endl;
-    }
-    else
+    if(p)
     {
         std::cout << indent(i) << n << ": ";
         p->dump(i);
