@@ -32,7 +32,6 @@ void dumpField1(int i, const char *n, double v)
 
 void dumpField1(int i, const char *n, Parser& p)
 {
-    if(!p.set) return;
     std::cout << indent(i) << n << ": ";
     p.dump(i);
 }
@@ -45,7 +44,6 @@ void dumpField1(int i, const char *n, Parser *p)
     }
     else
     {
-        if(!p->set) return;
         std::cout << indent(i) << n << ": ";
         p->dump(i);
     }
@@ -268,21 +266,6 @@ void Parser::parse(XMLElement *e, const char *tagName)
         throw (boost::format("element %s not recognized") % elemNameStr).str();
 }
 
-void Parser::parseSub(XMLElement *e, const char *subElementName, bool opt)
-{
-    set = false;
-    e = e->FirstChildElement(subElementName);
-    if(!e)
-    {
-        if(opt)
-            return;
-        else
-            throw (boost::format("sub element %s not found") % subElementName).str();
-    }
-    parse(e, subElementName);
-    set = true;
-}
-
 void SDF::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -468,8 +451,8 @@ void Pose::parse(XMLElement *e, const char *tagName)
 
     try
     {
-        position.parseSub(e, "position");
-        orientation.parseSub(e, "orientation");
+        parse1(e, "position", position);
+        parse1(e, "orientation", orientation);
     }
     catch(string& ex)
     {
@@ -506,7 +489,7 @@ void Include::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     uri = getSubValStr(e, "uri");
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
     name = getSubValStrOpt(e, "name");
     static_ = getSubValBoolOpt(e, "static");
 }
@@ -550,7 +533,7 @@ void Frame::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     name = getSubValStr(e, "name");
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
 }
 
 void Frame::dump(int i)
@@ -596,8 +579,8 @@ void AltimeterSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    verticalPosition.parseSub(e, "vertical_position");
-    verticalVelocity.parseSub(e, "vertical_velocity");
+    parse1(e, "vertical_position", verticalPosition);
+    parse1(e, "vertical_velocity", verticalVelocity);
 }
 
 void AltimeterSensor::dump(int i)
@@ -616,7 +599,7 @@ void AltimeterSensor::VerticalPosition::parse(XMLElement *e, const char *tagName
 {
     Parser::parse(e, tagName);
 
-    noise.parseSub(e, "noise");
+    parse1(e, "noise", noise);
 }
 
 void AltimeterSensor::VerticalPosition::dump(int i)
@@ -634,7 +617,7 @@ void AltimeterSensor::VerticalVelocity::parse(XMLElement *e, const char *tagName
 {
     Parser::parse(e, tagName);
 
-    noise.parseSub(e, "noise");
+    parse1(e, "noise", noise);
 }
 
 void AltimeterSensor::VerticalVelocity::dump(int i)
@@ -690,21 +673,47 @@ Clip::~Clip()
 {
 }
 
+void CustomFunction::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    c1 = getSubValDoubleOpt(e, "c1");
+    c2 = getSubValDoubleOpt(e, "c2");
+    c3 = getSubValDoubleOpt(e, "c3");
+    f = getSubValDoubleOpt(e, "f");
+    fun = getSubValStr(e, "fun");
+}
+
+void CustomFunction::dump(int i)
+{
+    beginDump(CustomFunction);
+    dumpField(c1);
+    dumpField(c2);
+    dumpField(c3);
+    dumpField(f);
+    dumpField(fun);
+    endDump(CustomFunction);
+}
+
+CustomFunction::~CustomFunction()
+{
+}
+
 void CameraSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
     horizontalFOV = getSubValDouble(e, "horizontal_fov");
-    image.parseSub(e, "image");
-    clip.parseSub(e, "clip");
-    save.parseSub(e, "save");
-    depthCamera.parseSub(e, "depth_camera");
-    noise.parseSub(e, "noise");
-    distortion.parseSub(e, "distortion");
-    lens.parseSub(e, "lens");
+    parse1(e, "image", image);
+    parse1(e, "clip", clip);
+    parse1(e, "save", save);
+    parse1(e, "depth_camera", depthCamera);
+    parse1(e, "noise", noise);
+    parse1(e, "distortion", distortion);
+    parse1(e, "lens", lens);
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
 }
 
 void CameraSensor::dump(int i)
@@ -776,7 +785,7 @@ void CameraSensor::Distortion::parse(XMLElement *e, const char *tagName)
     k3 = getSubValDouble(e, "k3");
     p1 = getSubValDouble(e, "p1");
     p2 = getSubValDouble(e, "p2");
-    center.parseSub(e, "center");
+    parse1(e, "center", center);
 }
 
 void CameraSensor::Distortion::dump(int i)
@@ -820,7 +829,7 @@ void CameraSensor::Lens::parse(XMLElement *e, const char *tagName)
 
     type = getSubValStr(e, "type");
     scaleToHFOV = getSubValBool(e, "scale_to_hfov");
-    customFunction.parseSub(e, "custom_function", true);
+    parse1Opt(e, "custom_function", customFunction);
     cutoffAngle = getSubValDoubleOpt(e, "cutoffAngle");
     envTextureSize = getSubValDoubleOpt(e, "envTextureSize");
 }
@@ -837,32 +846,6 @@ void CameraSensor::Lens::dump(int i)
 }
 
 CameraSensor::Lens::~Lens()
-{
-}
-
-void CameraSensor::Lens::CustomFunction::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    c1 = getSubValDoubleOpt(e, "c1");
-    c2 = getSubValDoubleOpt(e, "c2");
-    c3 = getSubValDoubleOpt(e, "c3");
-    f = getSubValDoubleOpt(e, "f");
-    fun = getSubValStr(e, "fun");
-}
-
-void CameraSensor::Lens::CustomFunction::dump(int i)
-{
-    beginDump(CustomFunction);
-    dumpField(c1);
-    dumpField(c2);
-    dumpField(c3);
-    dumpField(f);
-    dumpField(fun);
-    endDump(CustomFunction);
-}
-
-CameraSensor::Lens::CustomFunction::~CustomFunction()
 {
 }
 
@@ -886,12 +869,70 @@ ContactSensor::~ContactSensor()
 {
 }
 
+void VariableWithNoise::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1(e, "noise", noise);
+}
+
+void VariableWithNoise::dump(int i)
+{
+    beginDump(Horizontal);
+    dumpField(noise);
+    endDump(Horizontal);
+}
+
+VariableWithNoise::~VariableWithNoise()
+{
+}
+
+void PositionSensing::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1Opt(e, "horizontal", horizontal);
+    parse1Opt(e, "vertical", vertical);
+}
+
+void PositionSensing::dump(int i)
+{
+    beginDump(PositionSensing);
+    dumpField(horizontal);
+    dumpField(vertical);
+    endDump(PositionSensing);
+}
+
+PositionSensing::~PositionSensing()
+{
+}
+
+void VelocitySensing::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1Opt(e, "horizontal", horizontal);
+    parse1Opt(e, "vertical", vertical);
+}
+
+void VelocitySensing::dump(int i)
+{
+    beginDump(VelocitySensing);
+    dumpField(horizontal);
+    dumpField(vertical);
+    endDump(VelocitySensing);
+}
+
+VelocitySensing::~VelocitySensing()
+{
+}
+
 void GPSSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    positionSensing.parseSub(e, "position_sensing", true);
-    velocitySensing.parseSub(e, "velocity_sensing", true);
+    parse1Opt(e, "position_sensing", positionSensing);
+    parse1Opt(e, "velocity_sensing", velocitySensing);
 }
 
 void GPSSensor::dump(int i)
@@ -906,115 +947,47 @@ GPSSensor::~GPSSensor()
 {
 }
 
-void GPSSensor::PositionSensing::parse(XMLElement *e, const char *tagName)
+void AngularVelocity::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    horizontal.parseSub(e, "horizontal", true);
-    vertical.parseSub(e, "vertical", true);
+    parse1Opt(e, "x", x);
+    parse1Opt(e, "y", y);
+    parse1Opt(e, "z", z);
 }
 
-void GPSSensor::PositionSensing::dump(int i)
+void AngularVelocity::dump(int i)
 {
-    beginDump(PositionSensing);
-    dumpField(horizontal);
-    dumpField(vertical);
-    endDump(PositionSensing);
+    beginDump(AngularVelocity);
+    dumpField(x);
+    dumpField(y);
+    dumpField(z);
+    endDump(AngularVelocity);
 }
 
-GPSSensor::PositionSensing::~PositionSensing()
-{
-}
-
-void GPSSensor::PositionSensing::Horizontal::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void GPSSensor::PositionSensing::Horizontal::dump(int i)
-{
-    beginDump(Horizontal);
-    dumpField(noise);
-    endDump(Horizontal);
-}
-
-GPSSensor::PositionSensing::Horizontal::~Horizontal()
+AngularVelocity::~AngularVelocity()
 {
 }
 
-void GPSSensor::PositionSensing::Vertical::parse(XMLElement *e, const char *tagName)
+void LinearAcceleration::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    noise.parseSub(e, "noise");
+    parse1Opt(e, "x", x);
+    parse1Opt(e, "y", y);
+    parse1Opt(e, "z", z);
 }
 
-void GPSSensor::PositionSensing::Vertical::dump(int i)
+void LinearAcceleration::dump(int i)
 {
-    beginDump(Vertical);
-    dumpField(noise);
-    endDump(Vertical);
+    beginDump(LinearAcceleration);
+    dumpField(x);
+    dumpField(y);
+    dumpField(z);
+    endDump(LinearAcceleration);
 }
 
-GPSSensor::PositionSensing::Vertical::~Vertical()
-{
-}
-
-void GPSSensor::VelocitySensing::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    horizontal.parseSub(e, "horizontal", true);
-    vertical.parseSub(e, "vertical", true);
-}
-
-void GPSSensor::VelocitySensing::dump(int i)
-{
-    beginDump(VelocitySensing);
-    dumpField(horizontal);
-    dumpField(vertical);
-    endDump(VelocitySensing);
-}
-
-GPSSensor::VelocitySensing::~VelocitySensing()
-{
-}
-
-void GPSSensor::VelocitySensing::Horizontal::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void GPSSensor::VelocitySensing::Horizontal::dump(int i)
-{
-    beginDump(Horizontal);
-    dumpField(noise);
-    endDump(Horizontal);
-}
-
-GPSSensor::VelocitySensing::Horizontal::~Horizontal()
-{
-}
-
-void GPSSensor::VelocitySensing::Vertical::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void GPSSensor::VelocitySensing::Vertical::dump(int i)
-{
-    beginDump(Vertical);
-    dumpField(noise);
-    endDump(Vertical);
-}
-
-GPSSensor::VelocitySensing::Vertical::~Vertical()
+LinearAcceleration::~LinearAcceleration()
 {
 }
 
@@ -1023,8 +996,8 @@ void IMUSensor::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     topic = getSubValStrOpt(e, "topic");
-    angularVelocity.parseSub(e, "angular_velocity", true);
-    linearAcceleration.parseSub(e, "linear_acceleration", true);
+    parse1Opt(e, "angular_velocity", angularVelocity);
+    parse1Opt(e, "linear_acceleration", linearAcceleration);
 }
 
 void IMUSensor::dump(int i)
@@ -1037,158 +1010,6 @@ void IMUSensor::dump(int i)
 }
 
 IMUSensor::~IMUSensor()
-{
-}
-
-void IMUSensor::AngularVelocity::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    x.parseSub(e, "x", true);
-    y.parseSub(e, "y", true);
-    z.parseSub(e, "z", true);
-}
-
-void IMUSensor::AngularVelocity::dump(int i)
-{
-    beginDump(AngularVelocity);
-    dumpField(x);
-    dumpField(y);
-    dumpField(z);
-    endDump(AngularVelocity);
-}
-
-IMUSensor::AngularVelocity::~AngularVelocity()
-{
-}
-
-void IMUSensor::AngularVelocity::X::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void IMUSensor::AngularVelocity::X::dump(int i)
-{
-    beginDump(X);
-    dumpField(noise);
-    endDump(X);
-}
-
-IMUSensor::AngularVelocity::X::~X()
-{
-}
-
-void IMUSensor::AngularVelocity::Y::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void IMUSensor::AngularVelocity::Y::dump(int i)
-{
-    beginDump(Y);
-    dumpField(noise);
-    endDump(Y);
-}
-
-IMUSensor::AngularVelocity::Y::~Y()
-{
-}
-
-void IMUSensor::AngularVelocity::Z::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void IMUSensor::AngularVelocity::Z::dump(int i)
-{
-    beginDump(Z);
-    dumpField(noise);
-    endDump(Z);
-}
-
-IMUSensor::AngularVelocity::Z::~Z()
-{
-}
-
-void IMUSensor::LinearAcceleration::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    x.parseSub(e, "x", true);
-    y.parseSub(e, "y", true);
-    z.parseSub(e, "z", true);
-}
-
-void IMUSensor::LinearAcceleration::dump(int i)
-{
-    beginDump(LinearAcceleration);
-    dumpField(x);
-    dumpField(y);
-    dumpField(z);
-    endDump(LinearAcceleration);
-}
-
-IMUSensor::LinearAcceleration::~LinearAcceleration()
-{
-}
-
-void IMUSensor::LinearAcceleration::X::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void IMUSensor::LinearAcceleration::X::dump(int i)
-{
-    beginDump(X);
-    dumpField(noise);
-    endDump(X);
-}
-
-IMUSensor::LinearAcceleration::X::~X()
-{
-}
-
-void IMUSensor::LinearAcceleration::Y::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void IMUSensor::LinearAcceleration::Y::dump(int i)
-{
-    beginDump(Y);
-    dumpField(noise);
-    endDump(Y);
-}
-
-IMUSensor::LinearAcceleration::Y::~Y()
-{
-}
-
-void IMUSensor::LinearAcceleration::Z::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void IMUSensor::LinearAcceleration::Z::dump(int i)
-{
-    beginDump(Z);
-    dumpField(noise);
-    endDump(Z);
-}
-
-IMUSensor::LinearAcceleration::Z::~Z()
 {
 }
 
@@ -1220,9 +1041,9 @@ void MagnetometerSensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    x.parseSub(e, "x", true);
-    y.parseSub(e, "y", true);
-    z.parseSub(e, "z", true);
+    parse1Opt(e, "x", x);
+    parse1Opt(e, "y", y);
+    parse1Opt(e, "z", z);
 }
 
 void MagnetometerSensor::dump(int i)
@@ -1235,60 +1056,6 @@ void MagnetometerSensor::dump(int i)
 }
 
 MagnetometerSensor::~MagnetometerSensor()
-{
-}
-
-void MagnetometerSensor::X::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void MagnetometerSensor::X::dump(int i)
-{
-    beginDump(X);
-    dumpField(noise);
-    endDump(X);
-}
-
-MagnetometerSensor::X::~X()
-{
-}
-
-void MagnetometerSensor::Y::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void MagnetometerSensor::Y::dump(int i)
-{
-    beginDump(Y);
-    dumpField(noise);
-    endDump(Y);
-}
-
-MagnetometerSensor::Y::~Y()
-{
-}
-
-void MagnetometerSensor::Z::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    noise.parseSub(e, "noise");
-}
-
-void MagnetometerSensor::Z::dump(int i)
-{
-    beginDump(Z);
-    dumpField(noise);
-    endDump(Z);
-}
-
-MagnetometerSensor::Z::~Z()
 {
 }
 
@@ -1320,9 +1087,9 @@ void RaySensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    scan.parseSub(e, "scan");
-    range.parseSub(e, "range");
-    noise.parseSub(e, "noise", true);
+    parse1(e, "scan", scan);
+    parse1(e, "range", range);
+    parse1Opt(e, "noise", noise);
 }
 
 void RaySensor::dump(int i)
@@ -1342,8 +1109,8 @@ void RaySensor::Scan::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    horizontal.parseSub(e, "horizontal");
-    vertical.parseSub(e, "vertical", true);
+    parse1(e, "horizontal", horizontal);
+    parse1Opt(e, "vertical", vertical);
 }
 
 void RaySensor::Scan::dump(int i)
@@ -1482,14 +1249,42 @@ ForceTorqueSensor::~ForceTorqueSensor()
 {
 }
 
+void InertiaMatrix::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    ixx = getSubValDouble(e, "ixx");
+    ixy = getSubValDouble(e, "ixy");
+    ixz = getSubValDouble(e, "ixz");
+    iyy = getSubValDouble(e, "iyy");
+    iyz = getSubValDouble(e, "iyz");
+    izz = getSubValDouble(e, "izz");
+}
+
+void InertiaMatrix::dump(int i)
+{
+    beginDump(InertiaMatrix);
+    dumpField(ixx);
+    dumpField(ixy);
+    dumpField(ixz);
+    dumpField(iyy);
+    dumpField(iyz);
+    dumpField(izz);
+    endDump(InertiaMatrix);
+}
+
+InertiaMatrix::~InertiaMatrix()
+{
+}
+
 void LinkInertial::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     mass = getSubValDoubleOpt(e, "mass");
-    inertia.parseSub(e, "inertia", true);
+    parse1Opt(e, "inertia", inertia);
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
 }
 
 void LinkInertial::dump(int i)
@@ -1505,34 +1300,6 @@ void LinkInertial::dump(int i)
 LinkInertial::~LinkInertial()
 {
     deletevec(Frame, frames);
-}
-
-void LinkInertial::InertiaMatrix::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    ixx = getSubValDouble(e, "ixx");
-    ixy = getSubValDouble(e, "ixy");
-    ixz = getSubValDouble(e, "ixz");
-    iyy = getSubValDouble(e, "iyy");
-    iyz = getSubValDouble(e, "iyz");
-    izz = getSubValDouble(e, "izz");
-}
-
-void LinkInertial::InertiaMatrix::dump(int i)
-{
-    beginDump(InertiaMatrix);
-    dumpField(ixx);
-    dumpField(ixy);
-    dumpField(ixz);
-    dumpField(iyy);
-    dumpField(iyz);
-    dumpField(izz);
-    endDump(InertiaMatrix);
-}
-
-LinkInertial::InertiaMatrix::~InertiaMatrix()
-{
 }
 
 void Texture::parse(XMLElement *e, const char *tagName)
@@ -1581,26 +1348,26 @@ void Geometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    empty.parseSub(e, "empty", true);
-    box.parseSub(e, "box", true);
-    cylinder.parseSub(e, "cylinder", true);
-    heightmap.parseSub(e, "heightmap", true);
-    image.parseSub(e, "image", true);
-    mesh.parseSub(e, "mesh", true);
-    plane.parseSub(e, "plane", true);
-    polyline.parseSub(e, "polyline", true);
-    sphere.parseSub(e, "sphere", true);
+    parse1Opt(e, "empty", empty);
+    parse1Opt(e, "box", box);
+    parse1Opt(e, "cylinder", cylinder);
+    parse1Opt(e, "heightmap", heightmap);
+    parse1Opt(e, "image", image);
+    parse1Opt(e, "mesh", mesh);
+    parse1Opt(e, "plane", plane);
+    parse1Opt(e, "polyline", polyline);
+    parse1Opt(e, "sphere", sphere);
 
     int count = 0
-        + (empty.set ? 1 : 0)
-        + (box.set ? 1 : 0)
-        + (cylinder.set ? 1 : 0)
-        + (heightmap.set ? 1 : 0)
-        + (image.set ? 1 : 0)
-        + (mesh.set ? 1 : 0)
-        + (plane.set ? 1 : 0)
-        + (polyline.set ? 1 : 0)
-        + (sphere.set ? 1 : 0);
+        + (empty ? 1 : 0)
+        + (box ? 1 : 0)
+        + (cylinder ? 1 : 0)
+        + (heightmap ? 1 : 0)
+        + (image ? 1 : 0)
+        + (mesh ? 1 : 0)
+        + (plane ? 1 : 0)
+        + (polyline ? 1 : 0)
+        + (sphere ? 1 : 0);
 
     if(count < 1)
         throw string("a geometry must be specified");
@@ -1646,7 +1413,7 @@ void BoxGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    size.parseSub(e, "size");
+    parse1(e, "size", size);
 }
 
 void BoxGeometry::dump(int i)
@@ -1685,8 +1452,8 @@ void HeightMapGeometry::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     uri = getSubValStr(e, "uri");
-    size.parseSub(e, "size", true);
-    pos.parseSub(e, "pos", true);
+    parse1Opt(e, "size", size);
+    parse1Opt(e, "pos", pos);
     parseMany(e, "texture", textures);
     parseMany(e, "blend", blends);
     if(textures.size() - 1 != blends.size())
@@ -1737,12 +1504,32 @@ ImageGeometry::~ImageGeometry()
 {
 }
 
+void SubMesh::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getSubValStr(e, "name");
+    center = getSubValBoolOpt(e, "center");
+}
+
+void SubMesh::dump(int i)
+{
+    beginDump(SubMesh);
+    dumpField(name);
+    dumpField(center);
+    endDump(SubMesh);
+}
+
+SubMesh::~SubMesh()
+{
+}
+
 void MeshGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     uri = getSubValStr(e, "uri");
-    submesh.parseSub(e, "submesh", true);
+    parse1Opt(e, "submesh", submesh);
     scale = getSubValDouble(e, "scale");
 }
 
@@ -1759,32 +1546,12 @@ MeshGeometry::~MeshGeometry()
 {
 }
 
-void MeshGeometry::SubMesh::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    name = getSubValStr(e, "name");
-    center = getSubValBoolOpt(e, "center");
-}
-
-void MeshGeometry::SubMesh::dump(int i)
-{
-    beginDump(SubMesh);
-    dumpField(name);
-    dumpField(center);
-    endDump(SubMesh);
-}
-
-MeshGeometry::SubMesh::~SubMesh()
-{
-}
-
 void PlaneGeometry::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    normal.parseSub(e, "normal");
-    size.parseSub(e, "size");
+    parse1(e, "normal", normal);
+    parse1(e, "size", size);
 }
 
 void PlaneGeometry::dump(int i)
@@ -1840,6 +1607,296 @@ SphereGeometry::~SphereGeometry()
 {
 }
 
+void SurfaceBounce::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    restitutionCoefficient = getSubValDoubleOpt(e, "restitution_coefficient");
+    threshold = getSubValDoubleOpt(e, "threshold");
+}
+
+void SurfaceBounce::dump(int i)
+{
+    beginDump(Bounce);
+    dumpField(restitutionCoefficient);
+    dumpField(threshold);
+    endDump(Bounce);
+}
+
+SurfaceBounce::~SurfaceBounce()
+{
+}
+
+void SurfaceFrictionTorsionalODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    slip = getSubValDoubleOpt(e, "slip");
+}
+
+void SurfaceFrictionTorsionalODE::dump(int i)
+{
+    beginDump(ODE);
+    dumpField(slip);
+    endDump(ODE);
+}
+
+SurfaceFrictionTorsionalODE::~SurfaceFrictionTorsionalODE()
+{
+}
+
+void SurfaceFrictionTorsional::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    coefficient = getSubValDoubleOpt(e, "coefficient");
+    usePatchRadius = getSubValBoolOpt(e, "use_patch_radius");
+    patchRadius = getSubValDoubleOpt(e, "patch_radius");
+    surfaceRadius = getSubValDoubleOpt(e, "surface_radius");
+    parse1Opt(e, "ode", ode);
+}
+
+void SurfaceFrictionTorsional::dump(int i)
+{
+    beginDump(Torsional);
+    dumpField(coefficient);
+    dumpField(usePatchRadius);
+    dumpField(patchRadius);
+    dumpField(surfaceRadius);
+    dumpField(ode);
+    endDump(Torsional);
+}
+
+SurfaceFrictionTorsional::~SurfaceFrictionTorsional()
+{
+}
+
+void SurfaceFrictionODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    mu = getSubValDoubleOpt(e, "mu");
+    mu2 = getSubValDoubleOpt(e, "mu2");
+    fdir1 = getSubValDoubleOpt(e, "fdir1");
+    slip1 = getSubValDoubleOpt(e, "slip1");
+    slip2 = getSubValDoubleOpt(e, "slip2");
+}
+
+void SurfaceFrictionODE::dump(int i)
+{
+    beginDump(ODE);
+    dumpField(mu);
+    dumpField(mu2);
+    dumpField(fdir1);
+    dumpField(slip1);
+    dumpField(slip2);
+    endDump(ODE);
+}
+
+SurfaceFrictionODE::~SurfaceFrictionODE()
+{
+}
+
+void SurfaceFrictionBullet::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    friction = getSubValDoubleOpt(e, "friction");
+    friction2 = getSubValDoubleOpt(e, "friction2");
+    fdir1 = getSubValDoubleOpt(e, "fdir1");
+    rollingFriction = getSubValDoubleOpt(e, "rolling_friction");
+}
+
+void SurfaceFrictionBullet::dump(int i)
+{
+    beginDump(Bullet);
+    dumpField(friction);
+    dumpField(friction2);
+    dumpField(fdir1);
+    dumpField(rollingFriction);
+    endDump(Bullet);
+}
+
+SurfaceFrictionBullet::~SurfaceFrictionBullet()
+{
+}
+
+void SurfaceFriction::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1Opt(e, "torsional", torsional);
+    parse1Opt(e, "ode", ode);
+    parse1Opt(e, "bullet", bullet);
+}
+
+void SurfaceFriction::dump(int i)
+{
+    beginDump(Friction);
+    dumpField(torsional);
+    dumpField(ode);
+    dumpField(bullet);
+    endDump(Friction);
+}
+
+SurfaceFriction::~SurfaceFriction()
+{
+}
+
+void SurfaceContactODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    softCFM = getSubValDoubleOpt(e, "soft_cfm");
+    softERP = getSubValDoubleOpt(e, "soft_erp");
+    kp = getSubValDoubleOpt(e, "kp");
+    kd = getSubValDoubleOpt(e, "kd");
+    maxVel = getSubValDoubleOpt(e, "max_vel");
+    minDepth = getSubValDoubleOpt(e, "min_depth");
+}
+
+void SurfaceContactODE::dump(int i)
+{
+    beginDump(ODE);
+    dumpField(softCFM);
+    dumpField(softERP);
+    dumpField(kp);
+    dumpField(kd);
+    dumpField(maxVel);
+    dumpField(minDepth);
+    endDump(ODE);
+}
+
+SurfaceContactODE::~SurfaceContactODE()
+{
+}
+
+void SurfaceContactBullet::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    softCFM = getSubValDoubleOpt(e, "soft_cfm");
+    softERP = getSubValDoubleOpt(e, "soft_erp");
+    kp = getSubValDoubleOpt(e, "kp");
+    kd = getSubValDoubleOpt(e, "kd");
+    splitImpulse = getSubValDoubleOpt(e, "split_impulse");
+    splitImpulsePenetrationThreshold = getSubValDoubleOpt(e, "split_impulse_penetration_threshold");
+    minDepth = getSubValDoubleOpt(e, "min_depth");
+}
+
+void SurfaceContactBullet::dump(int i)
+{
+    beginDump(Bullet);
+    dumpField(softCFM);
+    dumpField(softERP);
+    dumpField(kp);
+    dumpField(kd);
+    dumpField(splitImpulse);
+    dumpField(splitImpulsePenetrationThreshold);
+    dumpField(minDepth);
+    endDump(Bullet);
+}
+
+SurfaceContactBullet::~SurfaceContactBullet()
+{
+}
+
+void SurfaceContact::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    collideWithoutContact = getSubValBoolOpt(e, "collide_without_contact");
+    collideWithoutContactBitmask = getSubValIntOpt(e, "collide_without_contact_bitmask");
+    collideBitmask = getSubValIntOpt(e, "collide_bitmask");
+    poissonsRatio = getSubValDoubleOpt(e, "poissons_ratio");
+    elasticModulus = getSubValDoubleOpt(e, "elasticModulus");
+    parse1Opt(e, "ode", ode);
+    parse1Opt(e, "bullet", bullet);
+}
+
+void SurfaceContact::dump(int i)
+{
+    beginDump(Contact);
+    dumpField(collideWithoutContact);
+    dumpField(collideWithoutContactBitmask);
+    dumpField(collideBitmask);
+    dumpField(poissonsRatio);
+    dumpField(elasticModulus);
+    dumpField(ode);
+    dumpField(bullet);
+    endDump(Contact);
+}
+
+SurfaceContact::~SurfaceContact()
+{
+}
+
+void SurfaceSoftContactDart::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    boneAttachment = getSubValDouble(e, "bone_attachment");
+    stiffness = getSubValDouble(e, "stiffness");
+    damping = getSubValDouble(e, "damping");
+    fleshMassFraction = getSubValDouble(e, "flesh_mass_fraction");
+}
+
+void SurfaceSoftContactDart::dump(int i)
+{
+    beginDump(Dart);
+    dumpField(boneAttachment);
+    dumpField(stiffness);
+    dumpField(damping);
+    dumpField(fleshMassFraction);
+    endDump(Dart);
+}
+
+SurfaceSoftContactDart::~SurfaceSoftContactDart()
+{
+}
+
+void SurfaceSoftContact::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1Opt(e, "dart", dart);
+}
+
+void SurfaceSoftContact::dump(int i)
+{
+    beginDump(SoftContact);
+    dumpField(dart);
+    endDump(SoftContact);
+}
+
+SurfaceSoftContact::~SurfaceSoftContact()
+{
+}
+
+void Surface::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1Opt(e, "bounce", bounce);
+    parse1Opt(e, "friction", friction);
+    parse1Opt(e, "contact", contact);
+    parse1Opt(e, "soft_contact", softContact);
+}
+
+void Surface::dump(int i)
+{
+    beginDump(Surface);
+    dumpField(bounce);
+    dumpField(friction);
+    dumpField(contact);
+    dumpField(softContact);
+    endDump(Surface);
+}
+
+Surface::~Surface()
+{
+}
+
 void LinkCollision::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -1848,9 +1905,9 @@ void LinkCollision::parse(XMLElement *e, const char *tagName)
     laserRetro = getSubValDoubleOpt(e, "laser_retro");
     maxContacts = getSubValIntOpt(e, "max_contacts");
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
-    geometry.parseSub(e, "geometry");
-    surface.parseSub(e, "surface", true);
+    parse1Opt(e, "pose", pose);
+    parse1(e, "geometry", geometry);
+    parse1Opt(e, "surface", surface);
 }
 
 void LinkCollision::dump(int i)
@@ -1871,296 +1928,6 @@ LinkCollision::~LinkCollision()
     deletevec(Frame, frames);
 }
 
-void LinkCollision::Surface::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    bounce.parseSub(e, "bounce", true);
-    friction.parseSub(e, "friction", true);
-    contact.parseSub(e, "contact", true);
-    softContact.parseSub(e, "soft_contact", true);
-}
-
-void LinkCollision::Surface::dump(int i)
-{
-    beginDump(Surface);
-    dumpField(bounce);
-    dumpField(friction);
-    dumpField(contact);
-    dumpField(softContact);
-    endDump(Surface);
-}
-
-LinkCollision::Surface::~Surface()
-{
-}
-
-void LinkCollision::Surface::Bounce::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    restitutionCoefficient = getSubValDoubleOpt(e, "restitution_coefficient");
-    threshold = getSubValDoubleOpt(e, "threshold");
-}
-
-void LinkCollision::Surface::Bounce::dump(int i)
-{
-    beginDump(Bounce);
-    dumpField(restitutionCoefficient);
-    dumpField(threshold);
-    endDump(Bounce);
-}
-
-LinkCollision::Surface::Bounce::~Bounce()
-{
-}
-
-void LinkCollision::Surface::Friction::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    torsional.parseSub(e, "torsional", true);
-    ode.parseSub(e, "ode", true);
-    bullet.parseSub(e, "bullet", true);
-}
-
-void LinkCollision::Surface::Friction::dump(int i)
-{
-    beginDump(Friction);
-    dumpField(torsional);
-    dumpField(ode);
-    dumpField(bullet);
-    endDump(Friction);
-}
-
-LinkCollision::Surface::Friction::~Friction()
-{
-}
-
-void LinkCollision::Surface::Friction::Torsional::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    coefficient = getSubValDoubleOpt(e, "coefficient");
-    usePatchRadius = getSubValBoolOpt(e, "use_patch_radius");
-    patchRadius = getSubValDoubleOpt(e, "patch_radius");
-    surfaceRadius = getSubValDoubleOpt(e, "surface_radius");
-    ode.parseSub(e, "ode", true);
-}
-
-void LinkCollision::Surface::Friction::Torsional::dump(int i)
-{
-    beginDump(Torsional);
-    dumpField(coefficient);
-    dumpField(usePatchRadius);
-    dumpField(patchRadius);
-    dumpField(surfaceRadius);
-    dumpField(ode);
-    endDump(Torsional);
-}
-
-LinkCollision::Surface::Friction::Torsional::~Torsional()
-{
-}
-
-void LinkCollision::Surface::Friction::Torsional::ODE::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    slip = getSubValDoubleOpt(e, "slip");
-}
-
-void LinkCollision::Surface::Friction::Torsional::ODE::dump(int i)
-{
-    beginDump(ODE);
-    dumpField(slip);
-    endDump(ODE);
-}
-
-LinkCollision::Surface::Friction::Torsional::ODE::~ODE()
-{
-}
-
-void LinkCollision::Surface::Friction::ODE::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    mu = getSubValDoubleOpt(e, "mu");
-    mu2 = getSubValDoubleOpt(e, "mu2");
-    fdir1 = getSubValDoubleOpt(e, "fdir1");
-    slip1 = getSubValDoubleOpt(e, "slip1");
-    slip2 = getSubValDoubleOpt(e, "slip2");
-}
-
-void LinkCollision::Surface::Friction::ODE::dump(int i)
-{
-    beginDump(ODE);
-    dumpField(mu);
-    dumpField(mu2);
-    dumpField(fdir1);
-    dumpField(slip1);
-    dumpField(slip2);
-    endDump(ODE);
-}
-
-LinkCollision::Surface::Friction::ODE::~ODE()
-{
-}
-
-void LinkCollision::Surface::Friction::Bullet::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    friction = getSubValDoubleOpt(e, "friction");
-    friction2 = getSubValDoubleOpt(e, "friction2");
-    fdir1 = getSubValDoubleOpt(e, "fdir1");
-    rollingFriction = getSubValDoubleOpt(e, "rolling_friction");
-}
-
-void LinkCollision::Surface::Friction::Bullet::dump(int i)
-{
-    beginDump(Bullet);
-    dumpField(friction);
-    dumpField(friction2);
-    dumpField(fdir1);
-    dumpField(rollingFriction);
-    endDump(Bullet);
-}
-
-LinkCollision::Surface::Friction::Bullet::~Bullet()
-{
-}
-
-void LinkCollision::Surface::Contact::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    collideWithoutContact = getSubValBoolOpt(e, "collide_without_contact");
-    collideWithoutContactBitmask = getSubValIntOpt(e, "collide_without_contact_bitmask");
-    collideBitmask = getSubValIntOpt(e, "collide_bitmask");
-    poissonsRatio = getSubValDoubleOpt(e, "poissons_ratio");
-    elasticModulus = getSubValDoubleOpt(e, "elasticModulus");
-    ode.parseSub(e, "ode", true);
-    bullet.parseSub(e, "bullet", true);
-}
-
-void LinkCollision::Surface::Contact::dump(int i)
-{
-    beginDump(Contact);
-    dumpField(collideWithoutContact);
-    dumpField(collideWithoutContactBitmask);
-    dumpField(collideBitmask);
-    dumpField(poissonsRatio);
-    dumpField(elasticModulus);
-    dumpField(ode);
-    dumpField(bullet);
-    endDump(Contact);
-}
-
-LinkCollision::Surface::Contact::~Contact()
-{
-}
-
-void LinkCollision::Surface::Contact::ODE::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    softCFM = getSubValDoubleOpt(e, "soft_cfm");
-    softERP = getSubValDoubleOpt(e, "soft_erp");
-    kp = getSubValDoubleOpt(e, "kp");
-    kd = getSubValDoubleOpt(e, "kd");
-    maxVel = getSubValDoubleOpt(e, "max_vel");
-    minDepth = getSubValDoubleOpt(e, "min_depth");
-}
-
-void LinkCollision::Surface::Contact::ODE::dump(int i)
-{
-    beginDump(ODE);
-    dumpField(softCFM);
-    dumpField(softERP);
-    dumpField(kp);
-    dumpField(kd);
-    dumpField(maxVel);
-    dumpField(minDepth);
-    endDump(ODE);
-}
-
-LinkCollision::Surface::Contact::ODE::~ODE()
-{
-}
-
-void LinkCollision::Surface::Contact::Bullet::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    softCFM = getSubValDoubleOpt(e, "soft_cfm");
-    softERP = getSubValDoubleOpt(e, "soft_erp");
-    kp = getSubValDoubleOpt(e, "kp");
-    kd = getSubValDoubleOpt(e, "kd");
-    splitImpulse = getSubValDoubleOpt(e, "split_impulse");
-    splitImpulsePenetrationThreshold = getSubValDoubleOpt(e, "split_impulse_penetration_threshold");
-    minDepth = getSubValDoubleOpt(e, "min_depth");
-}
-
-void LinkCollision::Surface::Contact::Bullet::dump(int i)
-{
-    beginDump(Bullet);
-    dumpField(softCFM);
-    dumpField(softERP);
-    dumpField(kp);
-    dumpField(kd);
-    dumpField(splitImpulse);
-    dumpField(splitImpulsePenetrationThreshold);
-    dumpField(minDepth);
-    endDump(Bullet);
-}
-
-LinkCollision::Surface::Contact::Bullet::~Bullet()
-{
-}
-
-void LinkCollision::Surface::SoftContact::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    dart.parseSub(e, "dart", true);
-}
-
-void LinkCollision::Surface::SoftContact::dump(int i)
-{
-    beginDump(SoftContact);
-    dumpField(dart);
-    endDump(SoftContact);
-}
-
-LinkCollision::Surface::SoftContact::~SoftContact()
-{
-}
-
-void LinkCollision::Surface::SoftContact::Dart::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    boneAttachment = getSubValDouble(e, "bone_attachment");
-    stiffness = getSubValDouble(e, "stiffness");
-    damping = getSubValDouble(e, "damping");
-    fleshMassFraction = getSubValDouble(e, "flesh_mass_fraction");
-}
-
-void LinkCollision::Surface::SoftContact::Dart::dump(int i)
-{
-    beginDump(Dart);
-    dumpField(boneAttachment);
-    dumpField(stiffness);
-    dumpField(damping);
-    dumpField(fleshMassFraction);
-    endDump(Dart);
-}
-
-LinkCollision::Surface::SoftContact::Dart::~Dart()
-{
-}
-
 void URI::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -2179,17 +1946,59 @@ URI::~URI()
 {
 }
 
+void Script::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parseMany(e, "uri", uris);
+    name = getSubValStr(e, "name");
+}
+
+void Script::dump(int i)
+{
+    beginDump(Script);
+    dumpField(uris);
+    dumpField(name);
+    endDump(Script);
+}
+
+Script::~Script()
+{
+    deletevec(URI, uris);
+}
+
+void Shader::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    static const char *validTypes[] = {"vertex", "pixel", "normal_map_objectspace", "normal_map_tangentspace"};
+    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
+    normalMap = getSubValStr(e, "normal_map");
+}
+
+void Shader::dump(int i)
+{
+    beginDump(Shader);
+    dumpField(type);
+    dumpField(normalMap);
+    endDump(Shader);
+}
+
+Shader::~Shader()
+{
+}
+
 void Material::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    script.parseSub(e, "script", true);
-    shader.parseSub(e, "shader", true);
+    parse1Opt(e, "script", script);
+    parse1Opt(e, "shader", shader);
     lighting = getSubValBoolOpt(e, "lighting");
-    ambient.parseSub(e, "ambient", true);
-    diffuse.parseSub(e, "diffuse", true);
-    specular.parseSub(e, "specular", true);
-    emissive.parseSub(e, "emissive", true);
+    parse1Opt(e, "ambient", ambient);
+    parse1Opt(e, "diffuse", diffuse);
+    parse1Opt(e, "specular", specular);
+    parse1Opt(e, "emissive", emissive);
 }
 
 void Material::dump(int i)
@@ -2209,45 +2018,21 @@ Material::~Material()
 {
 }
 
-void Material::Script::parse(XMLElement *e, const char *tagName)
+void LinkVisualMeta::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    parseMany(e, "uri", uris);
-    name = getSubValStr(e, "name");
+    layer = getSubValStrOpt(e, "layer");
 }
 
-void Material::Script::dump(int i)
+void LinkVisualMeta::dump(int i)
 {
-    beginDump(Script);
-    dumpField(uris);
-    dumpField(name);
-    endDump(Script);
+    beginDump(Meta);
+    dumpField(layer);
+    endDump(Meta);
 }
 
-Material::Script::~Script()
-{
-    deletevec(URI, uris);
-}
-
-void Material::Shader::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    static const char *validTypes[] = {"vertex", "pixel", "normal_map_objectspace", "normal_map_tangentspace"};
-    type = getAttrOneOf(e, "type", validTypes, arraysize(validTypes));
-    normalMap = getSubValStr(e, "normal_map");
-}
-
-void Material::Shader::dump(int i)
-{
-    beginDump(Shader);
-    dumpField(type);
-    dumpField(normalMap);
-    endDump(Shader);
-}
-
-Material::Shader::~Shader()
+LinkVisualMeta::~LinkVisualMeta()
 {
 }
 
@@ -2259,11 +2044,11 @@ void LinkVisual::parse(XMLElement *e, const char *tagName)
     castShadows = getSubValBoolOpt(e, "cast_shadows");
     laserRetro = getSubValDoubleOpt(e, "laser_retro");
     transparency = getSubValDoubleOpt(e, "transparency");
-    meta.parseSub(e, "meta", true);
+    parse1Opt(e, "meta", meta);
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
-    material.parseSub(e, "material", true);
-    geometry.parseSub(e, "geometry");
+    parse1Opt(e, "pose", pose);
+    parse1Opt(e, "material", material);
+    parse1(e, "geometry", geometry);
     parseMany(e, "plugin", plugins);
 }
 
@@ -2289,24 +2074,6 @@ LinkVisual::~LinkVisual()
     deletevec(Plugin, plugins);
 }
 
-void LinkVisual::Meta::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    layer = getSubValStrOpt(e, "layer");
-}
-
-void LinkVisual::Meta::dump(int i)
-{
-    beginDump(Meta);
-    dumpField(layer);
-    endDump(Meta);
-}
-
-LinkVisual::Meta::~Meta()
-{
-}
-
 void Sensor::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -2319,21 +2086,21 @@ void Sensor::parse(XMLElement *e, const char *tagName)
     visualize = getSubValBoolOpt(e, "visualize");
     topic = getSubValStrOpt(e, "topic");
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
     parseMany(e, "plugin", plugins);
-    altimeter.parseSub(e, "altimeter", true);
-    camera.parseSub(e, "camera", true);
-    contact.parseSub(e, "contact", true);
-    gps.parseSub(e, "gps", true);
-    imu.parseSub(e, "imu", true);
-    logicalCamera.parseSub(e, "logical_camera", true);
-    magnetometer.parseSub(e, "magnetometer", true);
-    ray.parseSub(e, "ray", true);
-    rfidTag.parseSub(e, "rfidtag", true);
-    rfid.parseSub(e, "rfid", true);
-    sonar.parseSub(e, "sonar", true);
-    transceiver.parseSub(e, "transceiver", true);
-    forceTorque.parseSub(e, "force_torque", true);
+    parse1Opt(e, "altimeter", altimeter);
+    parse1Opt(e, "camera", camera);
+    parse1Opt(e, "contact", contact);
+    parse1Opt(e, "gps", gps);
+    parse1Opt(e, "imu", imu);
+    parse1Opt(e, "logical_camera", logicalCamera);
+    parse1Opt(e, "magnetometer", magnetometer);
+    parse1Opt(e, "ray", ray);
+    parse1Opt(e, "rfidtag", rfidTag);
+    parse1Opt(e, "rfid", rfid);
+    parse1Opt(e, "sonar", sonar);
+    parse1Opt(e, "transceiver", transceiver);
+    parse1Opt(e, "force_torque", forceTorque);
 }
 
 void Sensor::dump(int i)
@@ -2380,7 +2147,7 @@ void Projector::parse(XMLElement *e, const char *tagName)
     nearClip = getSubValDoubleOpt(e, "near_clip");
     farClip = getSubValDoubleOpt(e, "far_clip");
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
     parseMany(e, "plugin", plugins);
 }
 
@@ -2422,6 +2189,25 @@ ContactCollision::~ContactCollision()
 {
 }
 
+void AudioSourceContact::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parseMany(e, "collision", collisions);
+}
+
+void AudioSourceContact::dump(int i)
+{
+    beginDump(Contact);
+    dumpField(collisions);
+    endDump(Contact);
+}
+
+AudioSourceContact::~AudioSourceContact()
+{
+    deletevec(ContactCollision, collisions);
+}
+
 void AudioSource::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -2429,10 +2215,10 @@ void AudioSource::parse(XMLElement *e, const char *tagName)
     uri = getSubValStr(e, "uri");
     pitch = getSubValDoubleOpt(e, "pitch");
     gain = getSubValDoubleOpt(e, "gain");
-    contact.parseSub(e, "contact", true);
+    parse1Opt(e, "contact", contact);
     loop = getSubValBoolOpt(e, "loop");
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
 }
 
 void AudioSource::dump(int i)
@@ -2451,25 +2237,6 @@ void AudioSource::dump(int i)
 AudioSource::~AudioSource()
 {
     deletevec(Frame, frames);
-}
-
-void AudioSource::Contact::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    parseMany(e, "collision", collisions);
-}
-
-void AudioSource::Contact::dump(int i)
-{
-    beginDump(Contact);
-    dumpField(collisions);
-    endDump(Contact);
-}
-
-AudioSource::Contact::~Contact()
-{
-    deletevec(ContactCollision, collisions);
 }
 
 void AudioSink::parse(XMLElement *e, const char *tagName)
@@ -2507,6 +2274,21 @@ Battery::~Battery()
 {
 }
 
+void VelocityDecay::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+}
+
+void VelocityDecay::dump(int i)
+{
+    beginDump(VelocityDecay);
+    endDump(VelocityDecay);
+}
+
+VelocityDecay::~VelocityDecay()
+{
+}
+
 void Link::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -2517,14 +2299,14 @@ void Link::parse(XMLElement *e, const char *tagName)
     selfCollide = getSubValBoolOpt(e, "self_collide");
     kinematic = getSubValBoolOpt(e, "kinematic");
     mustBeBaseLink = getSubValBoolOpt(e, "must_be_base_link");
-    velocityDecay.parseSub(e, "velocity_decay", true);
+    parse1Opt(e, "velocity_decay", velocityDecay);
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
-    inertial.parseSub(e, "inertial", true);
+    parse1Opt(e, "pose", pose);
+    parse1Opt(e, "inertial", inertial);
     parseMany(e, "collision", collisions);
     parseMany(e, "visual", visuals);
-    sensor.parseSub(e, "sensor", true);
-    projector.parseSub(e, "projector", true);
+    parse1Opt(e, "sensor", sensor);
+    parse1Opt(e, "projector", projector);
     parseMany(e, "audio_source", audioSources);
     parseMany(e, "audio_sink", audioSinks);
     parseMany(e, "battery", batteries);
@@ -2563,18 +2345,27 @@ Link::~Link()
     deletevec(Battery, batteries);
 }
 
-void Link::VelocityDecay::parse(XMLElement *e, const char *tagName)
+void AxisDynamics::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    damping = getSubValDoubleOpt(e, "damping");
+    friction = getSubValDoubleOpt(e, "friction");
+    springReference = getSubValDouble(e, "spring_reference");
+    springStiffness = getSubValDouble(e, "spring_stiffness");
 }
 
-void Link::VelocityDecay::dump(int i)
+void AxisDynamics::dump(int i)
 {
-    beginDump(VelocityDecay);
-    endDump(VelocityDecay);
+    beginDump(Dynamics);
+    dumpField(damping);
+    dumpField(friction);
+    dumpField(springReference);
+    dumpField(springStiffness);
+    endDump(Dynamics);
 }
 
-Link::VelocityDecay::~VelocityDecay()
+AxisDynamics::~AxisDynamics()
 {
 }
 
@@ -2582,10 +2373,10 @@ void Axis::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    xyz.parseSub(e, "xyz");
+    parse1(e, "xyz", xyz);
     useParentModelFrame = getSubValBool(e, "use_parent_model_frame");
-    dynamics.parseSub(e, "dynamics", true);
-    limit.parseSub(e, "limit");
+    parse1Opt(e, "dynamics", dynamics);
+    parse1(e, "limit", limit);
 }
 
 void Axis::dump(int i)
@@ -2599,30 +2390,6 @@ void Axis::dump(int i)
 }
 
 Axis::~Axis()
-{
-}
-
-void Axis::Dynamics::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    damping = getSubValDoubleOpt(e, "damping");
-    friction = getSubValDoubleOpt(e, "friction");
-    springReference = getSubValDouble(e, "spring_reference");
-    springStiffness = getSubValDouble(e, "spring_stiffness");
-}
-
-void Axis::Dynamics::dump(int i)
-{
-    beginDump(Dynamics);
-    dumpField(damping);
-    dumpField(friction);
-    dumpField(springReference);
-    dumpField(springStiffness);
-    endDump(Dynamics);
-}
-
-Axis::Dynamics::~Dynamics()
 {
 }
 
@@ -2654,6 +2421,104 @@ Axis::Limit::~Limit()
 {
 }
 
+void JointPhysicsSimbody::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    mustBeLoopJoint = getSubValBoolOpt(e, "must_be_loop_joint");
+}
+
+void JointPhysicsSimbody::dump(int i)
+{
+    beginDump(Simbody);
+    dumpField(mustBeLoopJoint);
+    endDump(Simbody);
+}
+
+JointPhysicsSimbody::~JointPhysicsSimbody()
+{
+}
+
+void CFMERP::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    cfm = getSubValDoubleOpt(e, "cfm");
+    erp = getSubValDoubleOpt(e, "erp");
+}
+
+void CFMERP::dump(int i)
+{
+    beginDump(Limit);
+    dumpField(cfm);
+    dumpField(erp);
+    endDump(Limit);
+}
+
+CFMERP::~CFMERP()
+{
+}
+
+void JointPhysicsODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    provideFeedback = getSubValBoolOpt(e, "provide_feedback");
+    cfmDamping = getSubValBoolOpt(e, "cfm_damping");
+    implicitSpringDamper = getSubValBoolOpt(e, "implicit_spring_damper");
+    fudgeFactor = getSubValDoubleOpt(e, "fudge_factor");
+    cfm = getSubValDoubleOpt(e, "cfm");
+    erp = getSubValDoubleOpt(e, "erp");
+    bounce = getSubValDoubleOpt(e, "bounce");
+    maxForce = getSubValDoubleOpt(e, "max_force");
+    velocity = getSubValDoubleOpt(e, "velocity");
+    parse1Opt(e, "limit", limit);
+    parse1Opt(e, "suspension", suspension);
+}
+
+void JointPhysicsODE::dump(int i)
+{
+    beginDump(ODE);
+    dumpField(provideFeedback);
+    dumpField(cfmDamping);
+    dumpField(implicitSpringDamper);
+    dumpField(fudgeFactor);
+    dumpField(cfm);
+    dumpField(erp);
+    dumpField(bounce);
+    dumpField(maxForce);
+    dumpField(velocity);
+    dumpField(limit);
+    dumpField(suspension);
+    endDump(ODE);
+}
+
+JointPhysicsODE::~JointPhysicsODE()
+{
+}
+
+void JointPhysics::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1Opt(e, "simbody", simbody);
+    parse1Opt(e, "ode", ode);
+    provideFeedback = getSubValBoolOpt(e, "provide_feedback");
+}
+
+void JointPhysics::dump(int i)
+{
+    beginDump(Physics);
+    dumpField(simbody);
+    dumpField(ode);
+    dumpField(provideFeedback);
+    endDump(Physics);
+}
+
+JointPhysics::~JointPhysics()
+{
+}
+
 void Joint::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -2666,12 +2531,12 @@ void Joint::parse(XMLElement *e, const char *tagName)
     gearboxRatio = getSubValDoubleOpt(e, "gearbox_ratio");
     gearboxReferenceBody = getSubValStrOpt(e, "gearbox_reference_body");
     threadPitch = getSubValDoubleOpt(e, "thread_pitch");
-    axis.parseSub(e, "axis", true);
-    axis2.parseSub(e, "axis2", true);
-    physics.parseSub(e, "physics", true);
+    parse1Opt(e, "axis", axis);
+    parse1Opt(e, "axis2", axis2);
+    parse1Opt(e, "physics", physics);
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
-    sensor.parseSub(e, "sensor", true);
+    parse1Opt(e, "pose", pose);
+    parse1Opt(e, "sensor", sensor);
 }
 
 void Joint::dump(int i)
@@ -2696,124 +2561,6 @@ void Joint::dump(int i)
 Joint::~Joint()
 {
     deletevec(Frame, frames);
-}
-
-void Joint::Physics::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    simbody.parseSub(e, "simbody", true);
-    ode.parseSub(e, "ode", true);
-    provideFeedback = getSubValBoolOpt(e, "provide_feedback");
-}
-
-void Joint::Physics::dump(int i)
-{
-    beginDump(Physics);
-    dumpField(simbody);
-    dumpField(ode);
-    dumpField(provideFeedback);
-    endDump(Physics);
-}
-
-Joint::Physics::~Physics()
-{
-}
-
-void Joint::Physics::Simbody::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    mustBeLoopJoint = getSubValBoolOpt(e, "must_be_loop_joint");
-}
-
-void Joint::Physics::Simbody::dump(int i)
-{
-    beginDump(Simbody);
-    dumpField(mustBeLoopJoint);
-    endDump(Simbody);
-}
-
-Joint::Physics::Simbody::~Simbody()
-{
-}
-
-void Joint::Physics::ODE::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    provideFeedback = getSubValBoolOpt(e, "provide_feedback");
-    cfmDamping = getSubValBoolOpt(e, "cfm_damping");
-    implicitSpringDamper = getSubValBoolOpt(e, "implicit_spring_damper");
-    fudgeFactor = getSubValDoubleOpt(e, "fudge_factor");
-    cfm = getSubValDoubleOpt(e, "cfm");
-    erp = getSubValDoubleOpt(e, "erp");
-    bounce = getSubValDoubleOpt(e, "bounce");
-    maxForce = getSubValDoubleOpt(e, "max_force");
-    velocity = getSubValDoubleOpt(e, "velocity");
-    limit.parseSub(e, "limit", true);
-    suspension.parseSub(e, "suspension", true);
-}
-
-void Joint::Physics::ODE::dump(int i)
-{
-    beginDump(ODE);
-    dumpField(provideFeedback);
-    dumpField(cfmDamping);
-    dumpField(implicitSpringDamper);
-    dumpField(fudgeFactor);
-    dumpField(cfm);
-    dumpField(erp);
-    dumpField(bounce);
-    dumpField(maxForce);
-    dumpField(velocity);
-    dumpField(limit);
-    dumpField(suspension);
-    endDump(ODE);
-}
-
-Joint::Physics::ODE::~ODE()
-{
-}
-
-void Joint::Physics::ODE::Limit::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    cfm = getSubValDoubleOpt(e, "cfm");
-    erp = getSubValDoubleOpt(e, "erp");
-}
-
-void Joint::Physics::ODE::Limit::dump(int i)
-{
-    beginDump(Limit);
-    dumpField(cfm);
-    dumpField(erp);
-    endDump(Limit);
-}
-
-Joint::Physics::ODE::Limit::~Limit()
-{
-}
-
-void Joint::Physics::ODE::Suspension::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    cfm = getSubValDoubleOpt(e, "cfm");
-    erp = getSubValDoubleOpt(e, "erp");
-}
-
-void Joint::Physics::ODE::Suspension::dump(int i)
-{
-    beginDump(Suspension);
-    dumpField(cfm);
-    dumpField(erp);
-    endDump(Suspension);
-}
-
-Joint::Physics::ODE::Suspension::~Suspension()
-{
 }
 
 void Gripper::parse(XMLElement *e, const char *tagName)
@@ -2858,7 +2605,7 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "model", submodels);
     enableWind = getSubValBoolOpt(e, "enable_wind");
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
     parseMany(e, "link", links);
     parseMany(e, "joint", joints);
     parseMany(e, "plugin", plugins);
@@ -2910,15 +2657,93 @@ Road::~Road()
 {
 }
 
+void Clouds::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    speed = getSubValDoubleOpt(e, "speed");
+    parse1Opt(e, "direction", direction);
+    humidity = getSubValDoubleOpt(e, "humidity");
+    meanSize = getSubValDoubleOpt(e, "mean_size");
+    parse1Opt(e, "ambient", ambient);
+}
+
+void Clouds::dump(int i)
+{
+    beginDump(Clouds);
+    dumpField(speed);
+    dumpField(direction);
+    dumpField(humidity);
+    dumpField(meanSize);
+    dumpField(ambient);
+    endDump(Clouds);
+}
+
+Clouds::~Clouds()
+{
+}
+
+void Sky::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    time = getSubValDoubleOpt(e, "time");
+    sunrise = getSubValDoubleOpt(e, "sunrise");
+    sunset = getSubValDoubleOpt(e, "sunset");
+    parse1Opt(e, "clouds", clouds);
+}
+
+void Sky::dump(int i)
+{
+    beginDump(Sky);
+    dumpField(time);
+    dumpField(sunrise);
+    dumpField(sunset);
+    dumpField(clouds);
+    endDump(Sky);
+}
+
+Sky::~Sky()
+{
+}
+
+void Fog::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1Opt(e, "color", color);
+    static const char *fogTypes[] = {"constant", "linear", "quadratic"};
+    type = getSubValOneOfOpt(e, "type", fogTypes, arraysize(fogTypes));
+    if(!type) type = "constant";
+    start = getSubValDoubleOpt(e, "start");
+    end = getSubValDoubleOpt(e, "end");
+    density = getSubValDoubleOpt(e, "density");
+}
+
+void Fog::dump(int i)
+{
+    beginDump(Fog);
+    dumpField(color);
+    dumpField(type);
+    dumpField(start);
+    dumpField(end);
+    dumpField(density);
+    endDump(Fog);
+}
+
+Fog::~Fog()
+{
+}
+
 void Scene::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    ambient.parseSub(e, "ambient");
-    background.parseSub(e, "background");
-    sky.parseSub(e, "sky", true);
+    parse1(e, "ambient", ambient);
+    parse1(e, "background", background);
+    parse1Opt(e, "sky", sky);
     shadows = getSubValBool(e, "shadows");
-    fog.parseSub(e, "fog", true);
+    parse1Opt(e, "fog", fog);
     grid = getSubValBool(e, "grid");
     originVisual = getSubValBool(e, "origin_visual");
 }
@@ -2940,81 +2765,205 @@ Scene::~Scene()
 {
 }
 
-void Scene::Sky::parse(XMLElement *e, const char *tagName)
+void PhysicsSimbodyContact::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    time = getSubValDoubleOpt(e, "time");
-    sunrise = getSubValDoubleOpt(e, "sunrise");
-    sunset = getSubValDoubleOpt(e, "sunset");
-    clouds.parseSub(e, "clouds", true);
+    stiffness = getSubValDoubleOpt(e, "stiffness");
+    dissipation = getSubValDoubleOpt(e, "dissipation");
+    plasticCoefRestitution = getSubValDoubleOpt(e, "plastic_coef_restitution");
+    plasticImpactVelocity = getSubValDoubleOpt(e, "plastic_impact_velocity");
+    staticFriction = getSubValDoubleOpt(e, "static_friction");
+    dynamicFriction = getSubValDoubleOpt(e, "dynamic_friction");
+    viscousFriction = getSubValDoubleOpt(e, "viscous_friction");
+    overrideImpactCaptureVelocity = getSubValDoubleOpt(e, "override_impact_capture_velocity");
+    overrideStictionTransitionVelocity = getSubValDoubleOpt(e, "override_stiction_transition_velocity");
 }
 
-void Scene::Sky::dump(int i)
+void PhysicsSimbodyContact::dump(int i)
 {
-    beginDump(Sky);
-    dumpField(time);
-    dumpField(sunrise);
-    dumpField(sunset);
-    dumpField(clouds);
-    endDump(Sky);
+    beginDump(Contact);
+    dumpField(stiffness);
+    dumpField(dissipation);
+    dumpField(plasticCoefRestitution);
+    dumpField(plasticImpactVelocity);
+    dumpField(staticFriction);
+    dumpField(dynamicFriction);
+    dumpField(viscousFriction);
+    dumpField(overrideImpactCaptureVelocity);
+    dumpField(overrideStictionTransitionVelocity);
+    endDump(Contact);
 }
 
-Scene::Sky::~Sky()
-{
-}
-
-void Scene::Sky::Clouds::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    speed = getSubValDoubleOpt(e, "speed");
-    direction.parseSub(e, "direction", true);
-    humidity = getSubValDoubleOpt(e, "humidity");
-    meanSize = getSubValDoubleOpt(e, "mean_size");
-    ambient.parseSub(e, "ambient", true);
-}
-
-void Scene::Sky::Clouds::dump(int i)
-{
-    beginDump(Clouds);
-    dumpField(speed);
-    dumpField(direction);
-    dumpField(humidity);
-    dumpField(meanSize);
-    dumpField(ambient);
-    endDump(Clouds);
-}
-
-Scene::Sky::Clouds::~Clouds()
+PhysicsSimbodyContact::~PhysicsSimbodyContact()
 {
 }
 
-void Scene::Fog::parse(XMLElement *e, const char *tagName)
+void PhysicsSimbody::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
-    color.parseSub(e, "color", true);
-    static const char *fogTypes[] = {"constant", "linear", "quadratic"};
-    type = getSubValOneOfOpt(e, "type", fogTypes, arraysize(fogTypes));
-    if(!type) type = "constant";
-    start = getSubValDoubleOpt(e, "start");
-    end = getSubValDoubleOpt(e, "end");
-    density = getSubValDoubleOpt(e, "density");
+    minStepSize = getSubValDoubleOpt(e, "min_step_size");
+    accuracy = getSubValDoubleOpt(e, "accuracy");
+    maxTransientVelocity = getSubValDoubleOpt(e, "max_transient_velocity");
+    parse1Opt(e, "contact", contact);
 }
 
-void Scene::Fog::dump(int i)
+void PhysicsSimbody::dump(int i)
 {
-    beginDump(Fog);
-    dumpField(color);
+    beginDump(Simbody);
+    dumpField(minStepSize);
+    dumpField(accuracy);
+    dumpField(maxTransientVelocity);
+    dumpField(contact);
+    endDump(Simbody);
+}
+
+PhysicsSimbody::~PhysicsSimbody()
+{
+}
+
+void PhysicsBullet::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1(e, "solver", solver);
+    parse1(e, "constraints", constraints);
+}
+
+void PhysicsBullet::dump(int i)
+{
+    beginDump(Bullet);
+    dumpField(solver);
+    dumpField(constraints);
+    endDump(Bullet);
+}
+
+PhysicsBullet::~PhysicsBullet()
+{
+}
+
+void PhysicsBullet::Solver::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    static const char *validTypes[] = {"sequential_impulse"};
+    type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
+    minStepSize = getSubValDoubleOpt(e, "min_step_size");
+    iters = getSubValInt(e, "iters");
+    sor = getSubValDouble(e, "sor");
+}
+
+void PhysicsBullet::Solver::dump(int i)
+{
+    beginDump(Solver);
     dumpField(type);
-    dumpField(start);
-    dumpField(end);
-    dumpField(density);
-    endDump(Fog);
+    dumpField(minStepSize);
+    dumpField(iters);
+    dumpField(sor);
+    endDump(Solver);
 }
 
-Scene::Fog::~Fog()
+PhysicsBullet::Solver::~Solver()
+{
+}
+
+void PhysicsBullet::Constraints::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    cfm = getSubValDouble(e, "cfm");
+    erp = getSubValDouble(e, "erp");
+    contactSurfaceLayer = getSubValDouble(e, "contact_surface_layer");
+    splitImpulse = getSubValDouble(e, "split_impulse");
+    splitImpulsePenetrationThreshold = getSubValDouble(e, "split_impulse_penetration_threshold");
+}
+
+void PhysicsBullet::Constraints::dump(int i)
+{
+    beginDump(Constraints);
+    dumpField(cfm);
+    dumpField(erp);
+    dumpField(contactSurfaceLayer);
+    dumpField(splitImpulse);
+    dumpField(splitImpulsePenetrationThreshold);
+    endDump(Constraints);
+}
+
+PhysicsBullet::Constraints::~Constraints()
+{
+}
+
+void PhysicsODE::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parse1(e, "solver", solver);
+    parse1(e, "constraints", constraints);
+}
+
+void PhysicsODE::dump(int i)
+{
+    beginDump(ODE);
+    dumpField(solver);
+    dumpField(constraints);
+    endDump(ODE);
+}
+
+PhysicsODE::~PhysicsODE()
+{
+}
+
+void PhysicsODE::Solver::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    static const char *validTypes[] = {"world", "quick"};
+    type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
+    minStepSize = getSubValDoubleOpt(e, "min_step_size");
+    iters = getSubValInt(e, "iters");
+    preconIters = getSubValIntOpt(e, "precon_iters");
+    sor = getSubValDouble(e, "sor");
+    useDynamicMOIRescaling = getSubValBool(e, "use_dynamic_moi_rescaling");
+}
+
+void PhysicsODE::Solver::dump(int i)
+{
+    beginDump(Solver);
+    dumpField(type);
+    dumpField(minStepSize);
+    dumpField(iters);
+    dumpField(preconIters);
+    dumpField(sor);
+    dumpField(useDynamicMOIRescaling);
+    endDump(Solver);
+}
+
+PhysicsODE::Solver::~Solver()
+{
+}
+
+void PhysicsODE::Constraints::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    cfm = getSubValDouble(e, "cfm");
+    erp = getSubValDouble(e, "erp");
+    contactMaxCorrectingVel = getSubValDouble(e, "contact_max_correcting_vel");
+    contactSurfaceLayer = getSubValDouble(e, "contact_surface_layer");
+}
+
+void PhysicsODE::Constraints::dump(int i)
+{
+    beginDump(Constraints);
+    dumpField(cfm);
+    dumpField(erp);
+    dumpField(contactMaxCorrectingVel);
+    dumpField(contactSurfaceLayer);
+    endDump(Constraints);
+}
+
+PhysicsODE::Constraints::~Constraints()
 {
 }
 
@@ -3032,9 +2981,9 @@ void Physics::parse(XMLElement *e, const char *tagName)
     realTimeFactor = getSubValDouble(e, "real_time_factor");
     realTimeUpdateRate = getSubValDouble(e, "real_time_update_rate");
     maxContacts = getSubValIntOpt(e, "max_contacts");
-    simbody.parseSub(e, "simbody", true);
-    bullet.parseSub(e, "bullet", true);
-    ode.parseSub(e, "ode", true);
+    parse1Opt(e, "simbody", simbody);
+    parse1Opt(e, "bullet", bullet);
+    parse1Opt(e, "ode", ode);
 }
 
 void Physics::dump(int i)
@@ -3054,208 +3003,6 @@ void Physics::dump(int i)
 }
 
 Physics::~Physics()
-{
-}
-
-void Physics::Simbody::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    minStepSize = getSubValDoubleOpt(e, "min_step_size");
-    accuracy = getSubValDoubleOpt(e, "accuracy");
-    maxTransientVelocity = getSubValDoubleOpt(e, "max_transient_velocity");
-    contact.parseSub(e, "contact", true);
-}
-
-void Physics::Simbody::dump(int i)
-{
-    beginDump(Simbody);
-    dumpField(minStepSize);
-    dumpField(accuracy);
-    dumpField(maxTransientVelocity);
-    dumpField(contact);
-    endDump(Simbody);
-}
-
-Physics::Simbody::~Simbody()
-{
-}
-
-void Physics::Simbody::Contact::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    stiffness = getSubValDoubleOpt(e, "stiffness");
-    dissipation = getSubValDoubleOpt(e, "dissipation");
-    plasticCoefRestitution = getSubValDoubleOpt(e, "plastic_coef_restitution");
-    plasticImpactVelocity = getSubValDoubleOpt(e, "plastic_impact_velocity");
-    staticFriction = getSubValDoubleOpt(e, "static_friction");
-    dynamicFriction = getSubValDoubleOpt(e, "dynamic_friction");
-    viscousFriction = getSubValDoubleOpt(e, "viscous_friction");
-    overrideImpactCaptureVelocity = getSubValDoubleOpt(e, "override_impact_capture_velocity");
-    overrideStictionTransitionVelocity = getSubValDoubleOpt(e, "override_stiction_transition_velocity");
-}
-
-void Physics::Simbody::Contact::dump(int i)
-{
-    beginDump(Contact);
-    dumpField(stiffness);
-    dumpField(dissipation);
-    dumpField(plasticCoefRestitution);
-    dumpField(plasticImpactVelocity);
-    dumpField(staticFriction);
-    dumpField(dynamicFriction);
-    dumpField(viscousFriction);
-    dumpField(overrideImpactCaptureVelocity);
-    dumpField(overrideStictionTransitionVelocity);
-    endDump(Contact);
-}
-
-Physics::Simbody::Contact::~Contact()
-{
-}
-
-void Physics::Bullet::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    solver.parseSub(e, "solver");
-    constraints.parseSub(e, "constraints");
-}
-
-void Physics::Bullet::dump(int i)
-{
-    beginDump(Bullet);
-    dumpField(solver);
-    dumpField(constraints);
-    endDump(Bullet);
-}
-
-Physics::Bullet::~Bullet()
-{
-}
-
-void Physics::Bullet::Solver::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    static const char *validTypes[] = {"sequential_impulse"};
-    type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
-    minStepSize = getSubValDoubleOpt(e, "min_step_size");
-    iters = getSubValInt(e, "iters");
-    sor = getSubValDouble(e, "sor");
-}
-
-void Physics::Bullet::Solver::dump(int i)
-{
-    beginDump(Solver);
-    dumpField(type);
-    dumpField(minStepSize);
-    dumpField(iters);
-    dumpField(sor);
-    endDump(Solver);
-}
-
-Physics::Bullet::Solver::~Solver()
-{
-}
-
-void Physics::Bullet::Constraints::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    cfm = getSubValDouble(e, "cfm");
-    erp = getSubValDouble(e, "erp");
-    contactSurfaceLayer = getSubValDouble(e, "contact_surface_layer");
-    splitImpulse = getSubValDouble(e, "split_impulse");
-    splitImpulsePenetrationThreshold = getSubValDouble(e, "split_impulse_penetration_threshold");
-}
-
-void Physics::Bullet::Constraints::dump(int i)
-{
-    beginDump(Constraints);
-    dumpField(cfm);
-    dumpField(erp);
-    dumpField(contactSurfaceLayer);
-    dumpField(splitImpulse);
-    dumpField(splitImpulsePenetrationThreshold);
-    endDump(Constraints);
-}
-
-Physics::Bullet::Constraints::~Constraints()
-{
-}
-
-void Physics::ODE::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    solver.parseSub(e, "solver");
-    constraints.parseSub(e, "constraints");
-}
-
-void Physics::ODE::dump(int i)
-{
-    beginDump(ODE);
-    dumpField(solver);
-    dumpField(constraints);
-    endDump(ODE);
-}
-
-Physics::ODE::~ODE()
-{
-}
-
-void Physics::ODE::Solver::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    static const char *validTypes[] = {"world", "quick"};
-    type = getSubValOneOf(e, "type", validTypes, arraysize(validTypes));
-    minStepSize = getSubValDoubleOpt(e, "min_step_size");
-    iters = getSubValInt(e, "iters");
-    preconIters = getSubValIntOpt(e, "precon_iters");
-    sor = getSubValDouble(e, "sor");
-    useDynamicMOIRescaling = getSubValBool(e, "use_dynamic_moi_rescaling");
-}
-
-void Physics::ODE::Solver::dump(int i)
-{
-    beginDump(Solver);
-    dumpField(type);
-    dumpField(minStepSize);
-    dumpField(iters);
-    dumpField(preconIters);
-    dumpField(sor);
-    dumpField(useDynamicMOIRescaling);
-    endDump(Solver);
-}
-
-Physics::ODE::Solver::~Solver()
-{
-}
-
-void Physics::ODE::Constraints::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    cfm = getSubValDouble(e, "cfm");
-    erp = getSubValDouble(e, "erp");
-    contactMaxCorrectingVel = getSubValDouble(e, "contact_max_correcting_vel");
-    contactSurfaceLayer = getSubValDouble(e, "contact_surface_layer");
-}
-
-void Physics::ODE::Constraints::dump(int i)
-{
-    beginDump(Constraints);
-    dumpField(cfm);
-    dumpField(erp);
-    dumpField(contactMaxCorrectingVel);
-    dumpField(contactSurfaceLayer);
-    endDump(Constraints);
-}
-
-Physics::ODE::Constraints::~Constraints()
 {
 }
 
@@ -3323,12 +3070,12 @@ void LinkState::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
-    velocity.parseSub(e, "velocity", true);
-    acceleration.parseSub(e, "acceleration", true);
-    wrench.parseSub(e, "wrench", true);
+    parse1Opt(e, "velocity", velocity);
+    parse1Opt(e, "acceleration", acceleration);
+    parse1Opt(e, "wrench", wrench);
     parseMany(e, "collision", collisions);
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
 }
 
 void LinkState::dump(int i)
@@ -3357,9 +3104,9 @@ void ModelState::parse(XMLElement *e, const char *tagName)
     name = getAttrStr(e, "name");
     parseMany(e, "joint", joints);
     parseMany(e, "model", submodelstates);
-    scale.parseSub(e, "scale", true);
+    parse1Opt(e, "scale", scale);
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
     parseMany(e, "link", links);
 }
 
@@ -3390,7 +3137,7 @@ void LightState::parse(XMLElement *e, const char *tagName)
 
     name = getAttrStr(e, "name");
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
 }
 
 void LightState::dump(int i)
@@ -3425,17 +3172,56 @@ ModelRef::~ModelRef()
 {
 }
 
+void StateInsertions::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parseMany(e, "model", models);
+}
+
+void StateInsertions::dump(int i)
+{
+    beginDump(Insertions);
+    endDump(Insertions);
+}
+
+StateInsertions::~StateInsertions()
+{
+    deletevec(Model, models);
+}
+
+void StateDeletions::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    parseMany(e, "name", names);
+    if(names.size() < 1)
+        throw string("deletions element should contain at least one name");
+}
+
+void StateDeletions::dump(int i)
+{
+    beginDump(Deletions);
+    dumpField(names);
+    endDump(Deletions);
+}
+
+StateDeletions::~StateDeletions()
+{
+    deletevec(ModelRef, names);
+}
+
 void State::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     worldName = getAttrStr(e, "world_name");
-    simTime.parseSub(e, "sim_time", true);
-    wallTime.parseSub(e, "wall_time", true);
-    realTime.parseSub(e, "real_time", true);
+    parse1Opt(e, "sim_time", simTime);
+    parse1Opt(e, "wall_time", wallTime);
+    parse1Opt(e, "real_time", realTime);
     iterations = getSubValInt(e, "iterations");
-    insertions.parseSub(e, "insertions", true);
-    deletions.parseSub(e, "deletions", true);
+    parse1Opt(e, "insertions", insertions);
+    parse1Opt(e, "deletions", deletions);
     parseMany(e, "model", modelstates);
     parseMany(e, "light", lightstates);
 }
@@ -3461,45 +3247,6 @@ State::~State()
     deletevec(LightState, lightstates);
 }
 
-void State::Insertions::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    parseMany(e, "model", models);
-}
-
-void State::Insertions::dump(int i)
-{
-    beginDump(Insertions);
-    endDump(Insertions);
-}
-
-State::Insertions::~Insertions()
-{
-    deletevec(Model, models);
-}
-
-void State::Deletions::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    parseMany(e, "name", names);
-    if(names.size() < 1)
-        throw string("deletions element should contain at least one name");
-}
-
-void State::Deletions::dump(int i)
-{
-    beginDump(Deletions);
-    dumpField(names);
-    endDump(Deletions);
-}
-
-State::Deletions::~Deletions()
-{
-    deletevec(ModelRef, names);
-}
-
 void Population::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -3515,26 +3262,124 @@ Population::~Population()
 {
 }
 
+void Audio::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    device = getSubValStr(e, "device");
+}
+
+void Audio::dump(int i)
+{
+    beginDump(Audio);
+    dumpField(device);
+    endDump(Audio);
+}
+
+Audio::~Audio()
+{
+}
+
+void Wind::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    linearVelocity = getSubValDouble(e, "linear_velocity");
+}
+
+void Wind::dump(int i)
+{
+    beginDump(Wind);
+    dumpField(linearVelocity);
+    endDump(Wind);
+}
+
+Wind::~Wind()
+{
+}
+
+void TrackVisual::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+    
+    name = getSubValStrOpt(e, "name");
+    minDist = getSubValDoubleOpt(e, "min_dist");
+    maxDist = getSubValDoubleOpt(e, "max_dist");
+    static_ = getSubValBoolOpt(e, "static");
+    useModelFrame = getSubValBoolOpt(e, "use_model_frame");
+    parse1Opt(e, "xyz", xyz);
+    inheritYaw = getSubValBoolOpt(e, "inherit_yaw");
+}
+
+void TrackVisual::dump(int i)
+{
+    beginDump(TrackVisual);
+    dumpField(name);
+    dumpField(minDist);
+    dumpField(maxDist);
+    dumpField(static_);
+    dumpField(useModelFrame);
+    dumpField(xyz);
+    dumpField(inheritYaw);
+    endDump(TrackVisual);
+}
+
+TrackVisual::~TrackVisual()
+{
+}
+
+void GUICamera::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    name = getSubValStrOpt(e, "name");
+    if(!name) name = "user_camera";
+    viewController = getSubValStrOpt(e, "view_controller");
+    static const char *projectionTypes[] = {"orthographic", "perspective"};
+    projectionType = getSubValOneOfOpt(e, "projection_type", projectionTypes, arraysize(projectionTypes));
+    if(!projectionType) projectionType = "perspective";
+    parse1Opt(e, "track_visual", trackVisual);
+    parseMany(e, "frame", frames);
+    parse1Opt(e, "pose", pose);
+}
+
+void GUICamera::dump(int i)
+{
+    beginDump(Camera);
+    dumpField(name);
+    dumpField(viewController);
+    dumpField(projectionType);
+    dumpField(trackVisual);
+    dumpField(frames);
+    dumpField(pose);
+    endDump(Camera);
+}
+
+GUICamera::~GUICamera()
+{
+    deletevec(Frame, frames);
+}
+
 void World::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
 
     name = getAttrStr(e, "name");
-    audio.parseSub(e, "audio", true);
-    wind.parseSub(e, "wind", true);
+    parse1Opt(e, "audio", audio);
+    parse1Opt(e, "wind", wind);
     parseMany(e, "include", includes);
-    gravity.parseSub(e, "gravity");
-    magneticField.parseSub(e, "magnetic_field");
-    atmosphere.parseSub(e, "atmosphere");
-    gui.parseSub(e, "gui");
-    physics.parseSub(e, "physics");
-    scene.parseSub(e, "scene");
+    parse1(e, "gravity", gravity);
+    parse1(e, "magnetic_field", magneticField);
+    parse1(e, "atmosphere", atmosphere);
+    parse1(e, "gui", gui);
+    parse1(e, "physics", physics);
+    parse1(e, "scene", scene);
     parseMany(e, "light", lights);
     parseMany(e, "model", models);
     parseMany(e, "actor", actors);
     parseMany(e, "plugin", plugins);
     parseMany(e, "road", roads);
-    sphericalCoordinates.parseSub(e, "spherical_coordinates");
+    parse1(e, "spherical_coordinates", sphericalCoordinates);
     parseMany(e, "state", states);
     parseMany(e, "population", populations);
 }
@@ -3575,42 +3420,6 @@ World::~World()
     deletevec(Population, populations);
 }
 
-void World::Audio::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    device = getSubValStr(e, "device");
-}
-
-void World::Audio::dump(int i)
-{
-    beginDump(Audio);
-    dumpField(device);
-    endDump(Audio);
-}
-
-World::Audio::~Audio()
-{
-}
-
-void World::Wind::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    linearVelocity = getSubValDouble(e, "linear_velocity");
-}
-
-void World::Wind::dump(int i)
-{
-    beginDump(Wind);
-    dumpField(linearVelocity);
-    endDump(Wind);
-}
-
-World::Wind::~Wind()
-{
-}
-
 void World::Atmosphere::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -3644,7 +3453,7 @@ void World::GUI::parse(XMLElement *e, const char *tagName)
 
     fullScreen = getSubValBoolOpt(e, "full_screen");
     if(!fullScreen) fullScreen = false;
-    camera.parseSub(e, "camera", true);
+    parse1Opt(e, "camera", camera);
     parseMany(e, "plugin", plugins);
 }
 
@@ -3660,68 +3469,6 @@ void World::GUI::dump(int i)
 World::GUI::~GUI()
 {
     deletevec(Plugin, plugins);
-}
-
-void World::GUI::Camera::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    name = getSubValStrOpt(e, "name");
-    if(!name) name = "user_camera";
-    viewController = getSubValStrOpt(e, "view_controller");
-    static const char *projectionTypes[] = {"orthographic", "perspective"};
-    projectionType = getSubValOneOfOpt(e, "projection_type", projectionTypes, arraysize(projectionTypes));
-    if(!projectionType) projectionType = "perspective";
-    trackVisual.parseSub(e, "track_visual", true);
-    parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
-}
-
-void World::GUI::Camera::dump(int i)
-{
-    beginDump(Camera);
-    dumpField(name);
-    dumpField(viewController);
-    dumpField(projectionType);
-    dumpField(trackVisual);
-    dumpField(frames);
-    dumpField(pose);
-    endDump(Camera);
-}
-
-World::GUI::Camera::~Camera()
-{
-    deletevec(Frame, frames);
-}
-
-void World::GUI::Camera::TrackVisual::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-    
-    name = getSubValStrOpt(e, "name");
-    minDist = getSubValDoubleOpt(e, "min_dist");
-    maxDist = getSubValDoubleOpt(e, "max_dist");
-    static_ = getSubValBoolOpt(e, "static");
-    useModelFrame = getSubValBoolOpt(e, "use_model_frame");
-    xyz.parseSub(e, "xyz", true);
-    inheritYaw = getSubValBoolOpt(e, "inherit_yaw");
-}
-
-void World::GUI::Camera::TrackVisual::dump(int i)
-{
-    beginDump(TrackVisual);
-    dumpField(name);
-    dumpField(minDist);
-    dumpField(maxDist);
-    dumpField(static_);
-    dumpField(useModelFrame);
-    dumpField(xyz);
-    dumpField(inheritYaw);
-    endDump(TrackVisual);
-}
-
-World::GUI::Camera::TrackVisual::~TrackVisual()
-{
 }
 
 void World::SphericalCoordinates::parse(XMLElement *e, const char *tagName)
@@ -3768,6 +3515,52 @@ Actor::~Actor()
 {
 }
 
+void LightAttenuation::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    range = getSubValDouble(e, "range");
+    linear = getSubValDoubleOpt(e, "linear");
+    constant = getSubValDoubleOpt(e, "constant");
+    quadratic = getSubValDoubleOpt(e, "quadratic");
+}
+
+void LightAttenuation::dump(int i)
+{
+    beginDump(Attenuation);
+    dumpField(range);
+    dumpField(linear);
+    dumpField(constant);
+    dumpField(quadratic);
+    endDump(Attenuation);
+}
+
+LightAttenuation::~LightAttenuation()
+{
+}
+
+void Spot::parse(XMLElement *e, const char *tagName)
+{
+    Parser::parse(e, tagName);
+
+    innerAngle = getSubValDouble(e, "inner_angle");
+    outerAngle = getSubValDouble(e, "outer_angle");
+    fallOff = getSubValDouble(e, "falloff");
+}
+
+void Spot::dump(int i)
+{
+    beginDump(Spot);
+    dumpField(innerAngle);
+    dumpField(outerAngle);
+    dumpField(fallOff);
+    endDump(Spot);
+}
+
+Spot::~Spot()
+{
+}
+
 void Light::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
@@ -3776,13 +3569,13 @@ void Light::parse(XMLElement *e, const char *tagName)
     static const char *lightTypes[] = {"point", "directional", "spot"};
     type = getAttrOneOf(e, "type", lightTypes, arraysize(lightTypes));
     castShadows = getSubValBoolOpt(e, "cast_shadows");
-    diffuse.parseSub(e, "diffuse");
-    specular.parseSub(e, "specular");
-    attenuation.parseSub(e, "attenuation", true);
-    direction.parseSub(e, "direction");
-    spot.parseSub(e, "spot", true);
+    parse1(e, "diffuse", diffuse);
+    parse1(e, "specular", specular);
+    parse1Opt(e, "attenuation", attenuation);
+    parse1(e, "direction", direction);
+    parse1Opt(e, "spot", spot);
     parseMany(e, "frame", frames);
-    pose.parseSub(e, "pose", true);
+    parse1Opt(e, "pose", pose);
 }
 
 void Light::dump(int i)
@@ -3804,51 +3597,5 @@ void Light::dump(int i)
 Light::~Light()
 {
     deletevec(Frame, frames);
-}
-
-void Light::Attenuation::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    range = getSubValDouble(e, "range");
-    linear = getSubValDoubleOpt(e, "linear");
-    constant = getSubValDoubleOpt(e, "constant");
-    quadratic = getSubValDoubleOpt(e, "quadratic");
-}
-
-void Light::Attenuation::dump(int i)
-{
-    beginDump(Attenuation);
-    dumpField(range);
-    dumpField(linear);
-    dumpField(constant);
-    dumpField(quadratic);
-    endDump(Attenuation);
-}
-
-Light::Attenuation::~Attenuation()
-{
-}
-
-void Light::Spot::parse(XMLElement *e, const char *tagName)
-{
-    Parser::parse(e, tagName);
-
-    innerAngle = getSubValDouble(e, "inner_angle");
-    outerAngle = getSubValDouble(e, "outer_angle");
-    fallOff = getSubValDouble(e, "falloff");
-}
-
-void Light::Spot::dump(int i)
-{
-    beginDump(Spot);
-    dumpField(innerAngle);
-    dumpField(outerAngle);
-    dumpField(fallOff);
-    endDump(Spot);
-}
-
-Light::Spot::~Spot()
-{
 }
 

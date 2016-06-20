@@ -72,17 +72,35 @@ void parseMany(XMLElement *parent, const char *tagName, vector<T*>& vec, bool at
     {
         T *t = new T;
         t->parse(e);
-        t->set = true;
         vec.push_back(t);
     }
 }
 
+template<typename T>
+void parse1(XMLElement *parent, const char *subElementName, T& t)
+{
+    XMLElement *e = parent->FirstChildElement(subElementName);
+    if(!e)
+        throw (boost::format("sub element %s not found") % subElementName).str();
+    if(e->NextSiblingElement(subElementName))
+        throw (boost::format("sub element %s found more than once") % subElementName).str();
+    t.parse(e, subElementName);
+}
+
+template<typename T>
+void parse1Opt(XMLElement *parent, const char *subElementName, optional<T>& t)
+{
+    XMLElement *e = parent->FirstChildElement(subElementName);
+    if(!e)
+        return;
+    T t1;
+    t1.parse(e, subElementName);
+    t = t1;
+}
+
 struct Parser
 {
-    bool set;
-
     virtual void parse(XMLElement *e, const char *tagName = 0);
-    virtual void parseSub(XMLElement *e, const char *subElementName, bool opt = false);
     virtual void dump(int indentLevel = 0) = 0;
 };
 
@@ -154,7 +172,7 @@ struct Pose : public Parser
 struct Include : public Parser
 {
     string uri;
-    Pose pose;
+    optional<Pose> pose;
     optional<string> name;
     optional<bool> static_;
 
@@ -176,7 +194,7 @@ struct Plugin : public Parser
 struct Frame : public Parser
 {
     string name;
-    Pose pose;
+    optional<Pose> pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "frame");
     virtual void dump(int indentLevel = 0);
@@ -242,6 +260,16 @@ struct Clip : public Parser
     virtual ~Clip();
 };
 
+struct CustomFunction : public Parser
+{
+    optional<double> c1, c2, c3, f;
+    string fun;
+
+    virtual void parse(XMLElement *e, const char *tagName = "custom_function");
+    virtual void dump(int indentLevel = 0);
+    virtual ~CustomFunction();
+};
+
 struct CameraSensor : public Parser
 {
     string name;
@@ -286,15 +314,7 @@ struct CameraSensor : public Parser
     {
         string type;
         bool scaleToHFOV;
-        struct CustomFunction : public Parser
-        {
-            optional<double> c1, c2, c3, f;
-            string fun;
-
-            virtual void parse(XMLElement *e, const char *tagName = "custom_function");
-            virtual void dump(int indentLevel = 0);
-            virtual ~CustomFunction();
-        } customFunction;
+        optional<CustomFunction> customFunction;
         optional<double> cutoffAngle;
         optional<double> envTextureSize;
 
@@ -303,7 +323,7 @@ struct CameraSensor : public Parser
         virtual ~Lens();
     } lens;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "camera");
     virtual void dump(int indentLevel = 0);
@@ -320,125 +340,72 @@ struct ContactSensor : public Parser
     virtual ~ContactSensor();
 };
 
+struct VariableWithNoise : public Parser
+{
+    NoiseModel noise;
+
+    virtual void parse(XMLElement *e, const char *tagName = "__var_");
+    virtual void dump(int indentLevel = 0);
+    virtual ~VariableWithNoise();
+};
+
+struct PositionSensing : public Parser
+{
+    optional<VariableWithNoise> horizontal;
+    optional<VariableWithNoise> vertical;
+
+    virtual void parse(XMLElement *e, const char *tagName = "position_sensing");
+    virtual void dump(int indentLevel = 0);
+    virtual ~PositionSensing();
+};
+
+struct VelocitySensing : public Parser
+{
+    optional<VariableWithNoise> horizontal;
+    optional<VariableWithNoise> vertical;
+
+    virtual void parse(XMLElement *e, const char *tagName = "velocity_sensing");
+    virtual void dump(int indentLevel = 0);
+    virtual ~VelocitySensing();
+};
+
 struct GPSSensor : public Parser
 {
-    struct PositionSensing : public Parser
-    {
-        struct Horizontal : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "horizontal");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Horizontal();
-        } horizontal;
-        struct Vertical : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "vertical");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Vertical();
-        } vertical;
-
-        virtual void parse(XMLElement *e, const char *tagName = "position_sensing");
-        virtual void dump(int indentLevel = 0);
-        virtual ~PositionSensing();
-    } positionSensing;
-    struct VelocitySensing : public Parser
-    {
-        struct Horizontal : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "horizontal");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Horizontal();
-        } horizontal;
-        struct Vertical : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "vertical");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Vertical();
-        } vertical;
-
-        virtual void parse(XMLElement *e, const char *tagName = "velocity_sensing");
-        virtual void dump(int indentLevel = 0);
-        virtual ~VelocitySensing();
-    } velocitySensing;
+    optional<PositionSensing> positionSensing;
+    optional<VelocitySensing> velocitySensing;
 
     virtual void parse(XMLElement *e, const char *tagName = "gps");
     virtual void dump(int indentLevel = 0);
     virtual ~GPSSensor();
 };
 
+struct AngularVelocity : public Parser
+{
+    optional<VariableWithNoise> x;
+    optional<VariableWithNoise> y;
+    optional<VariableWithNoise> z;
+
+    virtual void parse(XMLElement *e, const char *tagName = "angular_velocity");
+    virtual void dump(int indentLevel = 0);
+    virtual ~AngularVelocity();
+};
+
+struct LinearAcceleration : public Parser
+{
+    optional<VariableWithNoise> x;
+    optional<VariableWithNoise> y;
+    optional<VariableWithNoise> z;
+
+    virtual void parse(XMLElement *e, const char *tagName = "linear_acceleration");
+    virtual void dump(int indentLevel = 0);
+    virtual ~LinearAcceleration();
+};
+
 struct IMUSensor : public Parser
 {
     optional<string> topic;
-    struct AngularVelocity : public Parser
-    {
-        struct X : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "x");
-            virtual void dump(int indentLevel = 0);
-            virtual ~X();
-        } x;
-        struct Y : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "y");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Y();
-        } y;
-        struct Z : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "z");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Z();
-        } z;
-
-        virtual void parse(XMLElement *e, const char *tagName = "angular_velocity");
-        virtual void dump(int indentLevel = 0);
-        virtual ~AngularVelocity();
-    } angularVelocity;
-    struct LinearAcceleration : public Parser
-    {
-        struct X : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "x");
-            virtual void dump(int indentLevel = 0);
-            virtual ~X();
-        } x;
-        struct Y : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "y");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Y();
-        } y;
-        struct Z : public Parser
-        {
-            NoiseModel noise;
-
-            virtual void parse(XMLElement *e, const char *tagName = "z");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Z();
-        } z;
-
-        virtual void parse(XMLElement *e, const char *tagName = "linear_acceleration");
-        virtual void dump(int indentLevel = 0);
-        virtual ~LinearAcceleration();
-    } linearAcceleration;
+    optional<AngularVelocity> angularVelocity;
+    optional<LinearAcceleration> linearAcceleration;
 
     virtual void parse(XMLElement *e, const char *tagName = "imu");
     virtual void dump(int indentLevel = 0);
@@ -459,30 +426,9 @@ struct LogicalCameraSensor : public Parser
 
 struct MagnetometerSensor : public Parser
 {
-    struct X : public Parser
-    {
-        NoiseModel noise;
-
-        virtual void parse(XMLElement *e, const char *tagName = "x");
-        virtual void dump(int indentLevel = 0);
-        virtual ~X();
-    } x;
-    struct Y : public Parser
-    {
-        NoiseModel noise;
-
-        virtual void parse(XMLElement *e, const char *tagName = "y");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Y();
-    } y;
-    struct Z : public Parser
-    {
-        NoiseModel noise;
-
-        virtual void parse(XMLElement *e, const char *tagName = "z");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Z();
-    } z;
+    optional<VariableWithNoise> x;
+    optional<VariableWithNoise> y;
+    optional<VariableWithNoise> z;
 
     virtual void parse(XMLElement *e, const char *tagName = "magnetometer");
     virtual void dump(int indentLevel = 0);
@@ -506,7 +452,7 @@ struct RaySensor : public Parser
     struct Scan : public Parser
     {
         LaserScanResolution horizontal;
-        LaserScanResolution vertical;
+        optional<LaserScanResolution> vertical;
 
         virtual void parse(XMLElement *e, const char *tagName = "scan");
         virtual void dump(int indentLevel = 0);
@@ -522,7 +468,7 @@ struct RaySensor : public Parser
         virtual void dump(int indentLevel = 0);
         virtual ~Range();
     } range;
-    NoiseModel noise;
+    optional<NoiseModel> noise;
 
     virtual void parse(XMLElement *e, const char *tagName = "ray");
     virtual void dump(int indentLevel = 0);
@@ -579,19 +525,21 @@ struct ForceTorqueSensor : public Parser
     virtual ~ForceTorqueSensor();
 };
 
+struct InertiaMatrix : public Parser
+{
+    double ixx, ixy, ixz, iyy, iyz, izz;
+
+    virtual void parse(XMLElement *e, const char *tagName = "inertia");
+    virtual void dump(int indentLevel = 0);
+    virtual ~InertiaMatrix();
+};
+
 struct LinkInertial : public Parser
 {
     optional<double> mass;
-    struct InertiaMatrix : public Parser
-    {
-        double ixx, ixy, ixz, iyy, iyz, izz;
-
-        virtual void parse(XMLElement *e, const char *tagName = "inertia");
-        virtual void dump(int indentLevel = 0);
-        virtual ~InertiaMatrix();
-    } inertia;
+    optional<InertiaMatrix> inertia;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "link_inertial");
     virtual void dump(int indentLevel = 0);
@@ -648,8 +596,8 @@ struct CylinderGeometry : public Parser
 struct HeightMapGeometry : public Parser
 {
     string uri;
-    Vector size;
-    Vector pos;
+    optional<Vector> size;
+    optional<Vector> pos;
     vector<Texture*> textures;
     vector<TextureBlend*> blends;
     optional<bool> useTerrainPaging;
@@ -672,18 +620,20 @@ struct ImageGeometry : public Parser
     virtual ~ImageGeometry();
 };
 
+struct SubMesh : public Parser
+{
+    string name;
+    optional<bool> center;
+
+    virtual void parse(XMLElement *e, const char *tagName = "submesh");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SubMesh();
+};
+
 struct MeshGeometry : public Parser
 {
     string uri;
-    struct SubMesh : public Parser
-    {
-        string name;
-        optional<bool> center;
-
-        virtual void parse(XMLElement *e, const char *tagName = "submesh");
-        virtual void dump(int indentLevel = 0);
-        virtual ~SubMesh();
-    } submesh;
+    optional<SubMesh> submesh;
     double scale;
 
     virtual void parse(XMLElement *e, const char *tagName = "mesh");
@@ -722,19 +672,164 @@ struct SphereGeometry : public Parser
 
 struct Geometry : public Parser
 {
-    EmptyGeometry empty;
-    BoxGeometry box;
-    CylinderGeometry cylinder;
-    HeightMapGeometry heightmap;
-    ImageGeometry image;
-    MeshGeometry mesh;
-    PlaneGeometry plane;
-    PolylineGeometry polyline;
-    SphereGeometry sphere;
+    optional<EmptyGeometry> empty;
+    optional<BoxGeometry> box;
+    optional<CylinderGeometry> cylinder;
+    optional<HeightMapGeometry> heightmap;
+    optional<ImageGeometry> image;
+    optional<MeshGeometry> mesh;
+    optional<PlaneGeometry> plane;
+    optional<PolylineGeometry> polyline;
+    optional<SphereGeometry> sphere;
 
     virtual void parse(XMLElement *e, const char *tagName = "geometry");
     virtual void dump(int indentLevel = 0);
     virtual ~Geometry();
+};
+
+struct SurfaceBounce : public Parser
+{
+    optional<double> restitutionCoefficient;
+    optional<double> threshold;
+
+    virtual void parse(XMLElement *e, const char *tagName = "bounce");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceBounce();
+};
+
+struct SurfaceFrictionTorsionalODE : public Parser
+{
+    optional<double> slip;
+    
+    virtual void parse(XMLElement *e, const char *tagName = "ode");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceFrictionTorsionalODE();
+};
+
+struct SurfaceFrictionTorsional : public Parser
+{
+    optional<double> coefficient;
+    optional<bool> usePatchRadius;
+    optional<double> patchRadius;
+    optional<double> surfaceRadius;
+    optional<SurfaceFrictionTorsionalODE> ode;
+
+    virtual void parse(XMLElement *e, const char *tagName = "torsional");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceFrictionTorsional();
+};
+
+struct SurfaceFrictionODE : public Parser
+{
+    optional<double> mu;
+    optional<double> mu2;
+    optional<double> fdir1;
+    optional<double> slip1;
+    optional<double> slip2;
+
+    virtual void parse(XMLElement *e, const char *tagName = "ode");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceFrictionODE();
+};
+
+struct SurfaceFrictionBullet : public Parser
+{
+    optional<double> friction;
+    optional<double> friction2;
+    optional<double> fdir1;
+    optional<double> rollingFriction;
+
+    virtual void parse(XMLElement *e, const char *tagName = "bullet");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceFrictionBullet();
+};
+
+struct SurfaceFriction : public Parser
+{
+    optional<SurfaceFrictionTorsional> torsional;
+    optional<SurfaceFrictionODE> ode;
+    optional<SurfaceFrictionBullet> bullet;
+
+    virtual void parse(XMLElement *e, const char *tagName = "friction");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceFriction();
+};
+
+struct SurfaceContactODE : public Parser
+{
+    optional<double> softCFM;
+    optional<double> softERP;
+    optional<double> kp;
+    optional<double> kd;
+    optional<double> maxVel;
+    optional<double> minDepth;
+
+    virtual void parse(XMLElement *e, const char *tagName = "ode");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceContactODE();
+};
+
+struct SurfaceContactBullet : public Parser
+{
+    optional<double> softCFM;
+    optional<double> softERP;
+    optional<double> kp;
+    optional<double> kd;
+    optional<double> splitImpulse;
+    optional<double> splitImpulsePenetrationThreshold;
+    optional<double> minDepth;
+
+    virtual void parse(XMLElement *e, const char *tagName = "bullet");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceContactBullet();
+};
+
+struct SurfaceContact : public Parser
+{
+    optional<bool> collideWithoutContact;
+    optional<int> collideWithoutContactBitmask;
+    optional<int> collideBitmask;
+    optional<double> poissonsRatio;
+    optional<double> elasticModulus;
+    optional<SurfaceContactODE> ode;
+    optional<SurfaceContactBullet> bullet;
+
+    virtual void parse(XMLElement *e, const char *tagName = "contact");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceContact();
+};
+
+struct SurfaceSoftContactDart : public Parser
+{
+    double boneAttachment;
+    double stiffness;
+    double damping;
+    double fleshMassFraction;
+
+    virtual void parse(XMLElement *e, const char *tagName = "dart");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceSoftContactDart();
+};
+
+struct SurfaceSoftContact : public Parser
+{
+    optional<SurfaceSoftContactDart> dart;
+
+    virtual void parse(XMLElement *e, const char *tagName = "soft_contact");
+    virtual void dump(int indentLevel = 0);
+    virtual ~SurfaceSoftContact();
+};
+
+struct Surface : public Parser
+{
+    optional<SurfaceBounce> bounce;
+    optional<SurfaceFriction> friction;
+    optional<SurfaceContact> contact;
+    optional<SurfaceSoftContact> softContact;
+
+    virtual void parse(XMLElement *e, const char *tagName = "surface");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Surface();
 };
 
 struct LinkCollision : public Parser
@@ -743,130 +838,9 @@ struct LinkCollision : public Parser
     optional<double> laserRetro;
     optional<int> maxContacts;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
     Geometry geometry;
-    struct Surface : public Parser
-    {
-        struct Bounce : public Parser
-        {
-            optional<double> restitutionCoefficient;
-            optional<double> threshold;
-
-            virtual void parse(XMLElement *e, const char *tagName = "bounce");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Bounce();
-        } bounce;
-        struct Friction : public Parser
-        {
-            struct Torsional : public Parser
-            {
-                optional<double> coefficient;
-                optional<bool> usePatchRadius;
-                optional<double> patchRadius;
-                optional<double> surfaceRadius;
-                struct ODE : public Parser
-                {
-                    optional<double> slip;
-                    
-                    virtual void parse(XMLElement *e, const char *tagName = "ode");
-                    virtual void dump(int indentLevel = 0);
-                    virtual ~ODE();
-                } ode;
-
-                virtual void parse(XMLElement *e, const char *tagName = "torsional");
-                virtual void dump(int indentLevel = 0);
-                virtual ~Torsional();
-            } torsional;
-            struct ODE : public Parser
-            {
-                optional<double> mu;
-                optional<double> mu2;
-                optional<double> fdir1;
-                optional<double> slip1;
-                optional<double> slip2;
-
-                virtual void parse(XMLElement *e, const char *tagName = "ode");
-                virtual void dump(int indentLevel = 0);
-                virtual ~ODE();
-            } ode;
-            struct Bullet : public Parser
-            {
-                optional<double> friction;
-                optional<double> friction2;
-                optional<double> fdir1;
-                optional<double> rollingFriction;
-
-                virtual void parse(XMLElement *e, const char *tagName = "bullet");
-                virtual void dump(int indentLevel = 0);
-                virtual ~Bullet();
-            } bullet;
-
-            virtual void parse(XMLElement *e, const char *tagName = "friction");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Friction();
-        } friction;
-        struct Contact : public Parser
-        {
-            optional<bool> collideWithoutContact;
-            optional<int> collideWithoutContactBitmask;
-            optional<int> collideBitmask;
-            optional<double> poissonsRatio;
-            optional<double> elasticModulus;
-            struct ODE : public Parser
-            {
-                optional<double> softCFM;
-                optional<double> softERP;
-                optional<double> kp;
-                optional<double> kd;
-                optional<double> maxVel;
-                optional<double> minDepth;
-
-                virtual void parse(XMLElement *e, const char *tagName = "ode");
-                virtual void dump(int indentLevel = 0);
-                virtual ~ODE();
-            } ode;
-            struct Bullet : public Parser
-            {
-                optional<double> softCFM;
-                optional<double> softERP;
-                optional<double> kp;
-                optional<double> kd;
-                optional<double> splitImpulse;
-                optional<double> splitImpulsePenetrationThreshold;
-                optional<double> minDepth;
-
-                virtual void parse(XMLElement *e, const char *tagName = "bullet");
-                virtual void dump(int indentLevel = 0);
-                virtual ~Bullet();
-            } bullet;
-
-            virtual void parse(XMLElement *e, const char *tagName = "contact");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Contact();
-        } contact;
-        struct SoftContact : public Parser
-        {
-            struct Dart : public Parser
-            {
-                double boneAttachment;
-                double stiffness;
-                double damping;
-                double fleshMassFraction;
-
-                virtual void parse(XMLElement *e, const char *tagName = "dart");
-                virtual void dump(int indentLevel = 0);
-                virtual ~Dart();
-            } dart;
-
-            virtual void parse(XMLElement *e, const char *tagName = "soft_contact");
-            virtual void dump(int indentLevel = 0);
-            virtual ~SoftContact();
-        } softContact;
-
-        virtual void parse(XMLElement *e, const char *tagName = "surface");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Surface();
-    } surface;
+    optional<Surface> surface;
 
     virtual void parse(XMLElement *e, const char *tagName = "collision");
     virtual void dump(int indentLevel = 0);
@@ -882,35 +856,48 @@ struct URI : public Parser
     virtual ~URI();
 };
 
+struct Script : public Parser
+{
+    vector<URI*> uris;
+    string name;
+
+    virtual void parse(XMLElement *e, const char *tagName = "script");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Script();
+};
+
+struct Shader : public Parser
+{
+    string type;
+    string normalMap;
+
+    virtual void parse(XMLElement *e, const char *tagName = "shader");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Shader();
+};
+
 struct Material : public Parser
 {
-    struct Script : public Parser
-    {
-        vector<URI*> uris;
-        string name;
-
-        virtual void parse(XMLElement *e, const char *tagName = "script");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Script();
-    } script;
-    struct Shader : public Parser
-    {
-        string type;
-        string normalMap;
-
-        virtual void parse(XMLElement *e, const char *tagName = "shader");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Shader();
-    } shader;
+    optional<Script> script;
+    optional<Shader> shader;
     optional<bool> lighting;
-    Color ambient;
-    Color diffuse;
-    Color specular;
-    Color emissive;
+    optional<Color> ambient;
+    optional<Color> diffuse;
+    optional<Color> specular;
+    optional<Color> emissive;
 
     virtual void parse(XMLElement *e, const char *tagName = "material");
     virtual void dump(int indentLevel = 0);
     virtual ~Material();
+};
+
+struct LinkVisualMeta : public Parser
+{
+    optional<string> layer;
+
+    virtual void parse(XMLElement *e, const char *tagName = "meta");
+    virtual void dump(int indentLevel = 0);
+    virtual ~LinkVisualMeta();
 };
 
 struct LinkVisual : public Parser
@@ -919,17 +906,10 @@ struct LinkVisual : public Parser
     optional<bool> castShadows;
     optional<double> laserRetro;
     optional<double> transparency;
-    struct Meta : public Parser
-    {
-        optional<string> layer;
-
-        virtual void parse(XMLElement *e, const char *tagName = "meta");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Meta();
-    } meta;
+    optional<LinkVisualMeta> meta;
     vector<Frame*> frames;
-    Pose pose;
-    Material material;
+    optional<Pose> pose;
+    optional<Material> material;
     Geometry geometry;
     vector<Plugin*> plugins;
 
@@ -947,21 +927,21 @@ struct Sensor : public Parser
     optional<bool> visualize;
     optional<string> topic;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
     vector<Plugin*> plugins;
-    AltimeterSensor altimeter;
-    CameraSensor camera;
-    ContactSensor contact;
-    GPSSensor gps;
-    IMUSensor imu;
-    LogicalCameraSensor logicalCamera;
-    MagnetometerSensor magnetometer;
-    RaySensor ray;
-    RFIDTagSensor rfidTag;
-    RFIDSensor rfid;
-    SonarSensor sonar;
-    TransceiverSensor transceiver;
-    ForceTorqueSensor forceTorque;
+    optional<AltimeterSensor> altimeter;
+    optional<CameraSensor> camera;
+    optional<ContactSensor> contact;
+    optional<GPSSensor> gps;
+    optional<IMUSensor> imu;
+    optional<LogicalCameraSensor> logicalCamera;
+    optional<MagnetometerSensor> magnetometer;
+    optional<RaySensor> ray;
+    optional<RFIDTagSensor> rfidTag;
+    optional<RFIDSensor> rfid;
+    optional<SonarSensor> sonar;
+    optional<TransceiverSensor> transceiver;
+    optional<ForceTorqueSensor> forceTorque;
 
     virtual void parse(XMLElement *e, const char *tagName = "sensor");
     virtual void dump(int indentLevel = 0);
@@ -976,7 +956,7 @@ struct Projector : public Parser
     optional<double> nearClip;
     optional<double> farClip;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
     vector<Plugin*> plugins;
 
     virtual void parse(XMLElement *e, const char *tagName = "projector");
@@ -993,22 +973,24 @@ struct ContactCollision : public Parser
     virtual ~ContactCollision();
 };
 
+struct AudioSourceContact : public Parser
+{
+    vector<ContactCollision*> collisions;
+
+    virtual void parse(XMLElement *e, const char *tagName = "contact");
+    virtual void dump(int indentLevel = 0);
+    virtual ~AudioSourceContact();
+};
+
 struct AudioSource : public Parser
 {
     string uri;
     optional<double> pitch;
     optional<double> gain;
-    struct Contact : public Parser
-    {
-        vector<ContactCollision*> collisions;
-
-        virtual void parse(XMLElement *e, const char *tagName = "contact");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Contact();
-    } contact;
+    optional<AudioSourceContact> contact;
     optional<bool> loop;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "audio_source");
     virtual void dump(int indentLevel = 0);
@@ -1032,6 +1014,16 @@ struct Battery : public Parser
     virtual ~Battery();
 };
 
+struct VelocityDecay : public Parser
+{
+    double linear;
+    double angular;
+
+    virtual void parse(XMLElement *e, const char *tagName = "velocity_decay");
+virtual void dump(int indentLevel = 0);
+    virtual ~VelocityDecay();
+};
+
 struct Link : public Parser
 {
     string name;
@@ -1040,22 +1032,14 @@ struct Link : public Parser
     optional<bool> selfCollide;
     optional<bool> kinematic;
     optional<bool> mustBeBaseLink;
-    struct VelocityDecay : public Parser
-    {
-        double linear;
-        double angular;
-
-        virtual void parse(XMLElement *e, const char *tagName = "velocity_decay");
-    virtual void dump(int indentLevel = 0);
-        virtual ~VelocityDecay();
-    } velocityDecay;
+    optional<VelocityDecay> velocityDecay;
     vector<Frame*> frames;
-    Pose pose;
-    LinkInertial inertial;
+    optional<Pose> pose;
+    optional<LinkInertial> inertial;
     vector<LinkCollision*> collisions;
     vector<LinkVisual*> visuals;
-    Sensor sensor;
-    Projector projector;
+    optional<Sensor> sensor;
+    optional<Projector> projector;
     vector<AudioSource*> audioSources;
     vector<AudioSink*> audioSinks;
     vector<Battery*> batteries;
@@ -1065,21 +1049,23 @@ struct Link : public Parser
     virtual ~Link();
 };
 
+struct AxisDynamics : public Parser
+{
+    optional<double> damping;
+    optional<double> friction;
+    double springReference;
+    double springStiffness;
+
+    virtual void parse(XMLElement *e, const char *tagName = "dynamics");
+    virtual void dump(int indentLevel = 0);
+    virtual ~AxisDynamics();
+};
+
 struct Axis : public Parser
 {
     Vector xyz;
     bool useParentModelFrame;
-    struct Dynamics : public Parser
-    {
-        optional<double> damping;
-        optional<double> friction;
-        double springReference;
-        double springStiffness;
-
-        virtual void parse(XMLElement *e, const char *tagName = "dynamics");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Dynamics();
-    } dynamics;
+    optional<AxisDynamics> dynamics;
     struct Limit : public Parser
     {
         double lower;
@@ -1099,6 +1085,55 @@ struct Axis : public Parser
     virtual ~Axis();
 };
 
+struct JointPhysicsSimbody : public Parser
+{
+    optional<bool> mustBeLoopJoint;
+
+    virtual void parse(XMLElement *e, const char *tagName = "simbody");
+    virtual void dump(int indentLevel = 0);
+    virtual ~JointPhysicsSimbody();
+};
+
+struct CFMERP : public Parser
+{
+    optional<double> cfm;
+    optional<double> erp;
+    
+    virtual void parse(XMLElement *e, const char *tagName = "limit");
+    virtual void dump(int indentLevel = 0);
+    virtual ~CFMERP();
+};
+
+struct JointPhysicsODE : public Parser
+{
+    optional<bool> provideFeedback;
+    optional<bool> cfmDamping;
+    optional<bool> implicitSpringDamper;
+    optional<double> fudgeFactor;
+    optional<double> cfm;
+    optional<double> erp;
+    optional<double> bounce;
+    optional<double> maxForce;
+    optional<double> velocity;
+    optional<CFMERP> limit;
+    optional<CFMERP> suspension;
+    
+    virtual void parse(XMLElement *e, const char *tagName = "ode");
+    virtual void dump(int indentLevel = 0);
+    virtual ~JointPhysicsODE();
+};
+
+struct JointPhysics : public Parser
+{
+    optional<JointPhysicsSimbody> simbody;
+    optional<JointPhysicsODE> ode;
+    optional<bool> provideFeedback;
+
+    virtual void parse(XMLElement *e, const char *tagName = "physics");
+    virtual void dump(int indentLevel = 0);
+    virtual ~JointPhysics();
+};
+
 struct Joint : public Parser
 {
     string name;
@@ -1108,61 +1143,12 @@ struct Joint : public Parser
     optional<double> gearboxRatio;
     optional<string> gearboxReferenceBody;
     optional<double> threadPitch;
-    Axis axis;
-    Axis axis2;
-    struct Physics : public Parser
-    {
-        struct Simbody : public Parser
-        {
-            optional<bool> mustBeLoopJoint;
-
-            virtual void parse(XMLElement *e, const char *tagName = "simbody");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Simbody();
-        } simbody;
-        struct ODE : public Parser
-        {
-            optional<bool> provideFeedback;
-            optional<bool> cfmDamping;
-            optional<bool> implicitSpringDamper;
-            optional<double> fudgeFactor;
-            optional<double> cfm;
-            optional<double> erp;
-            optional<double> bounce;
-            optional<double> maxForce;
-            optional<double> velocity;
-            struct Limit : public Parser
-            {
-                optional<double> cfm;
-                optional<double> erp;
-                
-                virtual void parse(XMLElement *e, const char *tagName = "limit");
-                virtual void dump(int indentLevel = 0);
-                virtual ~Limit();
-            } limit;
-            struct Suspension : public Parser
-            {
-                optional<double> cfm;
-                optional<double> erp;
-                
-                virtual void parse(XMLElement *e, const char *tagName = "suspension");
-                virtual void dump(int indentLevel = 0);
-                virtual ~Suspension();
-            } suspension;
-            
-            virtual void parse(XMLElement *e, const char *tagName = "ode");
-            virtual void dump(int indentLevel = 0);
-            virtual ~ODE();
-        } ode;
-        optional<bool> provideFeedback;
-
-        virtual void parse(XMLElement *e, const char *tagName = "physics");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Physics();
-    } physics;
+    optional<Axis> axis;
+    optional<Axis> axis2;
+    optional<JointPhysics> physics;
     vector<Frame*> frames;
-    Pose pose;
-    Sensor sensor;
+    optional<Pose> pose;
+    optional<Sensor> sensor;
 
     virtual void parse(XMLElement *e, const char *tagName = "joint");
     virtual void dump(int indentLevel = 0);
@@ -1200,7 +1186,7 @@ struct Model : public Parser
     vector<Model*> submodels;
     optional<bool> enableWind;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
     vector<Link*> links;
     vector<Joint*> joints;
     vector<Plugin*> plugins;
@@ -1218,51 +1204,149 @@ struct Road : public Parser
     virtual ~Road();
 };
 
+struct Clouds : public Parser
+{
+    optional<double> speed;
+    optional<Vector> direction;
+    optional<double> humidity;
+    optional<double> meanSize;
+    optional<Color> ambient;
+
+    virtual void parse(XMLElement *e, const char *tagName = "clouds");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Clouds();
+};
+
+struct Sky : public Parser
+{
+    optional<double> time;
+    optional<double> sunrise;
+    optional<double> sunset;
+    optional<Clouds> clouds;
+
+    virtual void parse(XMLElement *e, const char *tagName = "sky");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Sky();
+};
+
+struct Fog : public Parser
+{
+    optional<Color> color;
+    optional<string> type;
+    optional<double> start;
+    optional<double> end;
+    optional<double> density;
+
+    virtual void parse(XMLElement *e, const char *tagName = "fog");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Fog();
+};
+
 struct Scene : public Parser
 {
     Color ambient;
     Color background;
-    struct Sky : public Parser
-    {
-        optional<double> time;
-        optional<double> sunrise;
-        optional<double> sunset;
-        struct Clouds : public Parser
-        {
-            optional<double> speed;
-            Vector direction;
-            optional<double> humidity;
-            optional<double> meanSize;
-            Color ambient;
-
-            virtual void parse(XMLElement *e, const char *tagName = "clouds");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Clouds();
-        } clouds;
-
-        virtual void parse(XMLElement *e, const char *tagName = "sky");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Sky();
-    } sky;
+    optional<Sky> sky;
     bool shadows;
-    struct Fog : public Parser
-    {
-        Color color;
-        optional<string> type;
-        optional<double> start;
-        optional<double> end;
-        optional<double> density;
-
-        virtual void parse(XMLElement *e, const char *tagName = "fog");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Fog();
-    } fog;
+    optional<Fog> fog;
     bool grid;
     bool originVisual;
 
     virtual void parse(XMLElement *e, const char *tagName = "scene");
     virtual void dump(int indentLevel = 0);
     virtual ~Scene();
+};
+
+struct PhysicsSimbodyContact : public Parser
+{
+    optional<double> stiffness;
+    optional<double> dissipation;
+    optional<double> plasticCoefRestitution;
+    optional<double> plasticImpactVelocity;
+    optional<double> staticFriction;
+    optional<double> dynamicFriction;
+    optional<double> viscousFriction;
+    optional<double> overrideImpactCaptureVelocity;
+    optional<double> overrideStictionTransitionVelocity;
+
+    virtual void parse(XMLElement *e, const char *tagName = "contact");
+    virtual void dump(int indentLevel = 0);
+    virtual ~PhysicsSimbodyContact();
+};
+
+struct PhysicsSimbody : public Parser
+{
+    optional<double> minStepSize;
+    optional<double> accuracy;
+    optional<double> maxTransientVelocity;
+    optional<PhysicsSimbodyContact> contact;
+
+    virtual void parse(XMLElement *e, const char *tagName = "simbody");
+    virtual void dump(int indentLevel = 0);
+    virtual ~PhysicsSimbody();
+};
+
+struct PhysicsBullet : public Parser
+{
+    struct Solver : public Parser
+    {
+        string type;
+        optional<double> minStepSize;
+        int iters;
+        double sor;
+
+        virtual void parse(XMLElement *e, const char *tagName = "solver");
+        virtual void dump(int indentLevel = 0);
+        virtual ~Solver();
+    } solver;
+    struct Constraints : public Parser
+    {
+        double cfm;
+        double erp;
+        double contactSurfaceLayer;
+        double splitImpulse;
+        double splitImpulsePenetrationThreshold;
+
+        virtual void parse(XMLElement *e, const char *tagName = "constraints");
+        virtual void dump(int indentLevel = 0);
+        virtual ~Constraints();
+    } constraints;
+
+    virtual void parse(XMLElement *e, const char *tagName = "bullet");
+    virtual void dump(int indentLevel = 0);
+    virtual ~PhysicsBullet();
+};
+
+struct PhysicsODE : public Parser
+{
+    struct Solver : public Parser
+    {
+        string type;
+        optional<double> minStepSize;
+        int iters;
+        optional<int> preconIters;
+        double sor;
+        bool useDynamicMOIRescaling;
+
+        virtual void parse(XMLElement *e, const char *tagName = "solver");
+        virtual void dump(int indentLevel = 0);
+        virtual ~Solver();
+    } solver;
+    struct Constraints : public Parser
+    {
+        double cfm;
+        double erp;
+        double contactMaxCorrectingVel;
+        double contactSurfaceLayer;
+
+        virtual void parse(XMLElement *e, const char *tagName = "constraints");
+        virtual void dump(int indentLevel = 0);
+        virtual ~Constraints();
+    } constraints;
+
+    virtual void parse(XMLElement *e, const char *tagName = "ode");
+    virtual void dump(int indentLevel = 0);
+    virtual ~PhysicsODE();
 };
 
 struct Physics : public Parser
@@ -1274,93 +1358,9 @@ struct Physics : public Parser
     double realTimeFactor;
     double realTimeUpdateRate;
     optional<int> maxContacts;
-    struct Simbody : public Parser
-    {
-        optional<double> minStepSize;
-        optional<double> accuracy;
-        optional<double> maxTransientVelocity;
-        struct Contact : public Parser
-        {
-            optional<double> stiffness;
-            optional<double> dissipation;
-            optional<double> plasticCoefRestitution;
-            optional<double> plasticImpactVelocity;
-            optional<double> staticFriction;
-            optional<double> dynamicFriction;
-            optional<double> viscousFriction;
-            optional<double> overrideImpactCaptureVelocity;
-            optional<double> overrideStictionTransitionVelocity;
-
-            virtual void parse(XMLElement *e, const char *tagName = "contact");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Contact();
-        } contact;
-
-        virtual void parse(XMLElement *e, const char *tagName = "simbody");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Simbody();
-    } simbody;
-    struct Bullet : public Parser
-    {
-        struct Solver : public Parser
-        {
-            string type;
-            optional<double> minStepSize;
-            int iters;
-            double sor;
-
-            virtual void parse(XMLElement *e, const char *tagName = "solver");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Solver();
-        } solver;
-        struct Constraints : public Parser
-        {
-            double cfm;
-            double erp;
-            double contactSurfaceLayer;
-            double splitImpulse;
-            double splitImpulsePenetrationThreshold;
-
-            virtual void parse(XMLElement *e, const char *tagName = "constraints");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Constraints();
-        } constraints;
-
-        virtual void parse(XMLElement *e, const char *tagName = "bullet");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Bullet();
-    } bullet;
-    struct ODE : public Parser
-    {
-        struct Solver : public Parser
-        {
-            string type;
-            optional<double> minStepSize;
-            int iters;
-            optional<int> preconIters;
-            double sor;
-            bool useDynamicMOIRescaling;
-
-            virtual void parse(XMLElement *e, const char *tagName = "solver");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Solver();
-        } solver;
-        struct Constraints : public Parser
-        {
-            double cfm;
-            double erp;
-            double contactMaxCorrectingVel;
-            double contactSurfaceLayer;
-
-            virtual void parse(XMLElement *e, const char *tagName = "constraints");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Constraints();
-        } constraints;
-
-        virtual void parse(XMLElement *e, const char *tagName = "ode");
-        virtual void dump(int indentLevel = 0);
-        virtual ~ODE();
-    } ode;
+    optional<PhysicsSimbody> simbody;
+    optional<PhysicsBullet> bullet;
+    optional<PhysicsODE> ode;
 
     virtual void parse(XMLElement *e, const char *tagName = "physics");
     virtual void dump(int indentLevel = 0);
@@ -1399,12 +1399,12 @@ struct CollisionState : public Parser
 struct LinkState : public Parser
 {
     string name;
-    Pose velocity;
-    Pose acceleration;
-    Pose wrench;
+    optional<Pose> velocity;
+    optional<Pose> acceleration;
+    optional<Pose> wrench;
     vector<CollisionState*> collisions;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "link");
     virtual void dump(int indentLevel = 0);
@@ -1416,9 +1416,9 @@ struct ModelState : public Parser
     string name;
     vector<JointState*> joints;
     vector<ModelState*> submodelstates;
-    Vector scale;
+    optional<Vector> scale;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
     vector<LinkState*> links;
 
     virtual void parse(XMLElement *e, const char *tagName = "model");
@@ -1430,7 +1430,7 @@ struct LightState : public Parser
 {
     string name;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "light");
     virtual void dump(int indentLevel = 0);
@@ -1446,29 +1446,33 @@ struct ModelRef : public Parser
     virtual ~ModelRef();
 };
 
+struct StateInsertions : public Parser
+{
+    vector<Model*> models;
+
+    virtual void parse(XMLElement *e, const char *tagName = "insertions");
+    virtual void dump(int indentLevel = 0);
+    virtual ~StateInsertions();
+};
+
+struct StateDeletions : public Parser
+{
+    vector<ModelRef*> names;
+
+    virtual void parse(XMLElement *e, const char *tagName = "deletions");
+    virtual void dump(int indentLevel = 0);
+    virtual ~StateDeletions();
+};
+
 struct State : public Parser
 {
     string worldName;
-    Time simTime;
-    Time wallTime;
-    Time realTime;
+    optional<Time> simTime;
+    optional<Time> wallTime;
+    optional<Time> realTime;
     int iterations;
-    struct Insertions : public Parser
-    {
-        vector<Model*> models;
-
-        virtual void parse(XMLElement *e, const char *tagName = "insertions");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Insertions();
-    } insertions;
-    struct Deletions : public Parser
-    {
-        vector<ModelRef*> names;
-
-        virtual void parse(XMLElement *e, const char *tagName = "deletions");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Deletions();
-    } deletions;
+    optional<StateInsertions> insertions;
+    optional<StateDeletions> deletions;
     vector<ModelState*> modelstates;
     vector<LightState*> lightstates;
 
@@ -1484,25 +1488,58 @@ struct Population : public Parser
     virtual ~Population();
 };
 
+struct Audio : public Parser
+{
+    string device;
+
+    virtual void parse(XMLElement *e, const char *tagName = "audio");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Audio();
+};
+
+struct Wind : public Parser
+{
+    double linearVelocity;
+
+    virtual void parse(XMLElement *e, const char *tagName = "wind");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Wind();
+};
+
+struct TrackVisual : public Parser
+{
+    optional<string> name;
+    optional<double> minDist;
+    optional<double> maxDist;
+    optional<bool> static_;
+    optional<bool> useModelFrame;
+    optional<Vector> xyz;
+    optional<bool> inheritYaw;
+
+    virtual void parse(XMLElement *e, const char *tagName = "track_visual");
+    virtual void dump(int indentLevel = 0);
+    virtual ~TrackVisual();
+};
+
+struct GUICamera : public Parser
+{
+    optional<string> name;
+    optional<string> viewController;
+    optional<string> projectionType;
+    optional<TrackVisual> trackVisual;
+    vector<Frame*> frames;
+    optional<Pose> pose;
+
+    virtual void parse(XMLElement *e, const char *tagName = "camera");
+    virtual void dump(int indentLevel = 0);
+    virtual ~GUICamera();
+};
+
 struct World : public Parser
 {
     string name;
-    struct Audio : public Parser
-    {
-        string device;
-
-        virtual void parse(XMLElement *e, const char *tagName = "audio");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Audio();
-    } audio;
-    struct Wind : public Parser
-    {
-        double linearVelocity;
-
-        virtual void parse(XMLElement *e, const char *tagName = "wind");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Wind();
-    } wind;
+    optional<Audio> audio;
+    optional<Wind> wind;
     vector<Include*> includes;
     Vector gravity;
     Vector magneticField;
@@ -1521,32 +1558,7 @@ struct World : public Parser
     struct GUI : public Parser
     {
         optional<bool> fullScreen;
-        struct Camera : public Parser
-        {
-            optional<string> name;
-            optional<string> viewController;
-            optional<string> projectionType;
-            struct TrackVisual : public Parser
-            {
-                optional<string> name;
-                optional<double> minDist;
-                optional<double> maxDist;
-                optional<bool> static_;
-                optional<bool> useModelFrame;
-                Vector xyz;
-                optional<bool> inheritYaw;
-
-                virtual void parse(XMLElement *e, const char *tagName = "track_visual");
-                virtual void dump(int indentLevel = 0);
-                virtual ~TrackVisual();
-            } trackVisual;
-            vector<Frame*> frames;
-            Pose pose;
-
-            virtual void parse(XMLElement *e, const char *tagName = "camera");
-            virtual void dump(int indentLevel = 0);
-            virtual ~Camera();
-        } camera;
+        optional<GUICamera> camera;
         vector<Plugin*> plugins;
 
         virtual void parse(XMLElement *e, const char *tagName = "gui");
@@ -1590,6 +1602,29 @@ struct Actor : public Parser
     virtual ~Actor();
 };
 
+struct LightAttenuation : public Parser
+{
+    double range;
+    optional<double> linear;
+    optional<double> constant;
+    optional<double> quadratic;
+
+    virtual void parse(XMLElement *e, const char *tagName = "attenuation");
+    virtual void dump(int indentLevel = 0);
+    virtual ~LightAttenuation();
+};
+
+struct Spot : public Parser
+{
+    double innerAngle;
+    double outerAngle;
+    double fallOff;
+
+    virtual void parse(XMLElement *e, const char *tagName = "spot");
+    virtual void dump(int indentLevel = 0);
+    virtual ~Spot();
+};
+
 struct Light : public Parser
 {
     string name;
@@ -1597,30 +1632,11 @@ struct Light : public Parser
     optional<bool> castShadows;
     Color diffuse;
     Color specular;
-    struct Attenuation : public Parser
-    {
-        double range;
-        optional<double> linear;
-        optional<double> constant;
-        optional<double> quadratic;
-
-        virtual void parse(XMLElement *e, const char *tagName = "attenuation");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Attenuation();
-    } attenuation;
+    optional<LightAttenuation> attenuation;
     Vector direction;
-    struct Spot : public Parser
-    {
-        double innerAngle;
-        double outerAngle;
-        double fallOff;
-
-        virtual void parse(XMLElement *e, const char *tagName = "spot");
-        virtual void dump(int indentLevel = 0);
-        virtual ~Spot();
-    } spot;
+    optional<Spot> spot;
     vector<Frame*> frames;
-    Pose pose;
+    optional<Pose> pose;
 
     virtual void parse(XMLElement *e, const char *tagName = "light");
     virtual void dump(int indentLevel = 0);
