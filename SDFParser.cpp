@@ -62,38 +62,38 @@ void dumpField1(int i, const char *n, vector<T*>& v)
     }
 }
 
-int toInt(string v)
+int parseInt(string v)
 {
     return boost::lexical_cast<int>(v);
 }
 
-double toDouble(string v)
+double parseDouble(string v)
 {
     return boost::lexical_cast<double>(v);
 }
 
-bool toBool(string v)
+bool parseBool(string v)
 {
     if(v == "true") return true;
     if(v == "false") return false;
     throw (boost::format("invalid boolean value: %s") % v).str();
 }
 
-optional<int> toInt(optional<string> v)
+optional<int> parseInt(optional<string> v)
 {
-    if(v) return optional<int>(toInt(*v));
+    if(v) return optional<int>(parseInt(*v));
     else return optional<int>();
 }
 
-optional<double> toDouble(optional<string> v)
+optional<double> parseDouble(optional<string> v)
 {
-    if(v) return optional<double>(toDouble(*v));
+    if(v) return optional<double>(parseDouble(*v));
     else return optional<double>();
 }
 
-optional<bool> toBool(optional<string> v)
+optional<bool> parseBool(optional<string> v)
 {
-    if(v) return optional<bool>(toBool(*v));
+    if(v) return optional<bool>(parseBool(*v));
     else return optional<bool>();
 }
 
@@ -132,19 +132,19 @@ optional<string> _getAttrStr(XMLElement *e, const char *name, bool opt)
 optional<int> _getAttrInt(XMLElement *e, const char *name, bool opt)
 {
     optional<string> value = _getAttrStr(e, name, opt);
-    return toInt(value);
+    return parseInt(value);
 }
 
 optional<double> _getAttrDouble(XMLElement *e, const char *name, bool opt)
 {
     optional<string> value = _getAttrStr(e, name, opt);
-    return toDouble(value);
+    return parseDouble(value);
 }
 
 optional<bool> _getAttrBool(XMLElement *e, const char *name, bool opt)
 {
     optional<string> value = _getAttrStr(e, name, opt);
-    return toBool(value);
+    return parseBool(value);
 }
 
 optional<string> _getAttrOneOf(XMLElement *e, const char *name, const char **validValues, int numValues, bool opt)
@@ -179,19 +179,19 @@ optional<string> _getValStr(XMLElement *e, bool opt)
 optional<int> _getValInt(XMLElement *e, bool opt)
 {
     optional<string> value = _getValStr(e, opt);
-    return toInt(value);
+    return parseInt(value);
 }
 
 optional<double> _getValDouble(XMLElement *e, bool opt)
 {
     optional<string> value = _getValStr(e, opt);
-    return toDouble(value);
+    return parseDouble(value);
 }
 
 optional<bool> _getValBool(XMLElement *e, bool opt)
 {
     optional<string> value = _getValStr(e, opt);
-    return toBool(value);
+    return parseBool(value);
 }
 
 optional<string> _getValOneOf(XMLElement *e, const char **validValues, int numValues, bool opt)
@@ -226,19 +226,19 @@ optional<string> _getSubValStr(XMLElement *e, const char *name, bool opt)
 optional<int> _getSubValInt(XMLElement *e, const char *name, bool opt)
 {
     optional<string> value = _getSubValStr(e, name, opt);
-    return toInt(value);
+    return parseInt(value);
 }
 
 optional<double> _getSubValDouble(XMLElement *e, const char *name, bool opt)
 {
     optional<string> value = _getSubValStr(e, name, opt);
-    return toDouble(value);
+    return parseDouble(value);
 }
 
 optional<bool> _getSubValBool(XMLElement *e, const char *name, bool opt)
 {
     optional<string> value = _getSubValStr(e, name, opt);
-    return toBool(value);
+    return parseBool(value);
 }
 
 optional<string> _getSubValOneOf(XMLElement *e, const char *name, const char **validValues, int numValues, bool opt)
