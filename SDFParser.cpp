@@ -1579,6 +1579,15 @@ void Geometry::dump(int i)
 
 Geometry::~Geometry()
 {
+    if(empty) delete empty;
+    if(box) delete box;
+    if(cylinder) delete cylinder;
+    if(heightmap) delete heightmap;
+    if(image) delete image;
+    if(mesh) delete mesh;
+    if(plane) delete plane;
+    if(polyline) delete polyline;
+    if(sphere) delete sphere;
 }
 
 void EmptyGeometry::parse(XMLElement *e, const char *tagName)
@@ -1661,6 +1670,8 @@ void HeightMapGeometry::dump(int i)
 
 HeightMapGeometry::~HeightMapGeometry()
 {
+    deletevec(Texture, textures);
+    deletevec(TextureBlend, blends);
 }
 
 void ImageGeometry::parse(XMLElement *e, const char *tagName)
@@ -1771,6 +1782,7 @@ void PolylineGeometry::dump(int i)
 
 PolylineGeometry::~PolylineGeometry()
 {
+    deletevec(Vector, points);
 }
 
 void SphereGeometry::parse(XMLElement *e, const char *tagName)
@@ -2348,6 +2360,7 @@ void Projector::dump(int i)
 
 Projector::~Projector()
 {
+    deletevec(Plugin, plugins);
 }
 
 void ContactCollision::parse(XMLElement *e, const char *tagName)
@@ -3400,6 +3413,8 @@ State::~State()
 void State::Insertions::parse(XMLElement *e, const char *tagName)
 {
     Parser::parse(e, tagName);
+
+    parseMany(e, "model", models);
 }
 
 void State::Insertions::dump(int i)
@@ -3418,6 +3433,8 @@ void State::Deletions::parse(XMLElement *e, const char *tagName)
     Parser::parse(e, tagName);
 
     parseMany(e, "name", names);
+    if(names.size() < 1)
+        throw std::string("deletions element should contain at least one name");
 }
 
 void State::Deletions::dump(int i)
