@@ -43,6 +43,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
@@ -86,6 +87,27 @@ void importWorld(const World& world)
     std::cout << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
+bool isNonEmptyGeometry(const Geometry& g)
+{
+    return g.box || g.cylinder || g.heightmap || g.mesh || g.plane || g.sphere;
+}
+
+bool hasNonEmptyGeometry(const LinkVisual& t)
+{
+    return isNonEmptyGeometry(t.geometry);
+}
+
+bool hasNonEmptyGeometry(const LinkCollision& t)
+{
+    return isNonEmptyGeometry(t.geometry);
+}
+
+template<typename T>
+int countNonemptyGeometries(const vector<T>& v)
+{
+    return std::count_if(v.begin(), v.end(), hasNonEmptyGeometry);
+}
+
 simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, double mass)
 {
     if(geometry.empty)
@@ -115,11 +137,11 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
         }
         else if(geometry.sphere)
         {
-            sizes[0] = sizes[1] = sizes[2] = geometry.sphere->radius;
+            sizes[0] = sizes[1] = sizes[2] = 2 * geometry.sphere->radius;
         }
         else if(geometry.cylinder)
         {
-            sizes[0] = sizes[1] = geometry.cylinder->radius;
+            sizes[0] = sizes[1] = 2 * geometry.cylinder->radius;
             sizes[2] = geometry.cylinder->length;
         }
         return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
@@ -132,10 +154,10 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
             + (respondable ? 0 : 8)
             ;
         simFloat shadingAngle = 45;
-        simInt xPointCount;
-        simInt yPointCount;
-        simFloat xSize;
-        simFloat *heights;
+        simInt xPointCount = 0;
+        simInt yPointCount = 0;
+        simFloat xSize = 0;
+        simFloat *heights = 0;
         return simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
     }
     else if(geometry.mesh)
@@ -145,10 +167,10 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
             + 2 // show edges
             ;
         simFloat shadingAngle = 45;
-        simFloat *vertices;
-        simInt verticesSize;
-        simInt *indices;
-        simInt indicesSize;
+        simFloat *vertices = 0;
+        simInt verticesSize = 0;
+        simInt *indices = 0;
+        simInt indicesSize = 0;
         return simCreateMeshShape(options, shadingAngle, vertices, verticesSize, indices, indicesSize, NULL);
     }
     else if(geometry.image)
@@ -163,6 +185,7 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
     {
         std::cout << "ERROR: polyline geometry not currently supported" << std::endl;
     }
+    return -1;
 }
 
 void importModelLink(const Model& model, const Link& link)
@@ -174,10 +197,13 @@ void importModelLink(const Model& model, const Link& link)
         if(link.inertial->mass)
             mass = *link.inertial->mass;
     }
+    int numColl = countNonemptyGeometries(link.collisions);
+    std::cout << " Link '" << link.name << "' has " << numColl << " non-empty collision geometries" << std::endl;
     BOOST_FOREACH(const LinkCollision& x, link.collisions)
     {
         simInt shapeHandle = importGeometry(x.geometry, false, true, mass);
     }
+    std::cout << " Link '" << link.name << "' has " << numColl << " non-empty visual geometries" << std::endl;
     BOOST_FOREACH(const LinkVisual& x, link.visuals)
     {
         simInt shapeHandle = importGeometry(x.geometry, true, false, 0);
