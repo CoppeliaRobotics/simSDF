@@ -918,22 +918,28 @@ PARSER_CLASS(AxisDynamics)
     PARSER_METHODS(AxisDynamics)
 };
 
+PARSER_CLASS(AxisLimits)
+{
+    double lower;
+    double upper;
+    optional<double> effort;
+    optional<double> velocity;
+    optional<double> stiffness;
+    optional<double> dissipation;
+
+    PARSER_METHODS(AxisLimits)
+};
+
 PARSER_CLASS(Axis)
 {
     Vector xyz;
     bool useParentModelFrame;
     optional<AxisDynamics> dynamics;
-    PARSER_CLASS(Limit)
-    {
-        double lower;
-        double upper;
-        optional<double> effort;
-        optional<double> velocity;
-        optional<double> stiffness;
-        optional<double> dissipation;
-
-        PARSER_METHODS(Limit)
-    } limit;
+    /* specs are contradictory:
+     * it says <limit> is mandatory, but it says
+     * to omit it for continuous joints
+     */
+    optional<AxisLimits> limit;
 
     PARSER_METHODS(Axis)
 };

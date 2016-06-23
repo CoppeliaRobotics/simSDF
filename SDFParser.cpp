@@ -2273,30 +2273,7 @@ void AxisDynamics::dump(int i) const
     END_DUMP(Dynamics);
 }
 
-void Axis::parse(XMLElement *e, const char *tagName)
-{
-    WRAP_EXCEPTIONS_BEGIN(Axis)
-    Parser::parse(e, tagName);
-
-    parse1(e, "xyz", xyz);
-    useParentModelFrame = getSubValBool(e, "use_parent_model_frame");
-    parse1Opt(e, "dynamics", dynamics);
-    parse1(e, "limit", limit);
-
-    WRAP_EXCEPTIONS_END(Axis)
-}
-
-void Axis::dump(int i) const
-{
-    BEGIN_DUMP(Axis);
-    DUMP_FIELD(xyz);
-    DUMP_FIELD(useParentModelFrame);
-    DUMP_FIELD(dynamics);
-    DUMP_FIELD(limit);
-    END_DUMP(Axis);
-}
-
-void Axis::Limit::parse(XMLElement *e, const char *tagName)
+void AxisLimits::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Limit)
     Parser::parse(e, tagName);
@@ -2311,7 +2288,7 @@ void Axis::Limit::parse(XMLElement *e, const char *tagName)
     WRAP_EXCEPTIONS_END(Limit)
 }
 
-void Axis::Limit::dump(int i) const
+void AxisLimits::dump(int i) const
 {
     BEGIN_DUMP(Limit);
     DUMP_FIELD(lower);
@@ -2321,6 +2298,29 @@ void Axis::Limit::dump(int i) const
     DUMP_FIELD(stiffness);
     DUMP_FIELD(dissipation);
     END_DUMP(Limit);
+}
+
+void Axis::parse(XMLElement *e, const char *tagName)
+{
+    WRAP_EXCEPTIONS_BEGIN(Axis)
+    Parser::parse(e, tagName);
+
+    parse1(e, "xyz", xyz);
+    useParentModelFrame = getSubValBool(e, "use_parent_model_frame");
+    parse1Opt(e, "dynamics", dynamics);
+    parse1Opt(e, "limit", limit);
+
+    WRAP_EXCEPTIONS_END(Axis)
+}
+
+void Axis::dump(int i) const
+{
+    BEGIN_DUMP(Axis);
+    DUMP_FIELD(xyz);
+    DUMP_FIELD(useParentModelFrame);
+    DUMP_FIELD(dynamics);
+    DUMP_FIELD(limit);
+    END_DUMP(Axis);
 }
 
 void JointPhysicsSimbody::parse(XMLElement *e, const char *tagName)
