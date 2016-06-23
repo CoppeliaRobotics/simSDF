@@ -7,6 +7,7 @@ DEFINES -= UNICODE
 DEFINES += QT_COMPIL
 CONFIG += shared debug_and_release
 INCLUDEPATH += "../include"
+INCLUDEPATH += "../v_repMath"
 
 *-msvc* {
 	QMAKE_CXXFLAGS += -O2
@@ -69,6 +70,19 @@ PRE_TARGETDEPS += reference.html
 HEADERS += \
     debug.h \
     ../include/v_repLib.h \
+    ../v_repMath/3Vector.h \
+    ../v_repMath/3X3Matrix.h \
+    ../v_repMath/4Vector.h \
+    ../v_repMath/4X4FullMatrix.h \
+    ../v_repMath/4X4Matrix.h \
+    ../v_repMath/6Vector.h \
+    ../v_repMath/6X6Matrix.h \
+    ../v_repMath/7Vector.h \
+    ../v_repMath/MMatrix.h \
+    ../v_repMath/MyMath.h \
+    ../v_repMath/VPoint.h \
+    ../v_repMath/Vector.h \
+    ../v_repMath/mathDefines.h \
     stubs.h \
     tinyxml2.h \
     SDFParser.h \
@@ -81,6 +95,17 @@ HEADERS += \
 SOURCES += \
     debug.cpp \
     ../common/v_repLib.cpp \
+    ../v_repMath/3Vector.cpp \
+    ../v_repMath/3X3Matrix.cpp \
+    ../v_repMath/4Vector.cpp \
+    ../v_repMath/4X4FullMatrix.cpp \
+    ../v_repMath/4X4Matrix.cpp \
+    ../v_repMath/6Vector.cpp \
+    ../v_repMath/6X6Matrix.cpp \
+    ../v_repMath/7Vector.cpp \
+    ../v_repMath/MMatrix.cpp \
+    ../v_repMath/MyMath.cpp \
+    ../v_repMath/Vector.cpp \
     stubs.cpp \
     tinyxml2.cpp \
     SDFParser.cpp \

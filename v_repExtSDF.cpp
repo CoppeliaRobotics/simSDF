@@ -36,6 +36,7 @@
 #include "UIFunctions.h"
 #include "UIProxy.h"
 #include "v_repLib.h"
+#include "MyMath.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -81,31 +82,38 @@ SDFDialog *sdfDialog = NULL;
 
 using namespace tinyxml2;
 
+C7Vector getPose(const Pose& pose)
+{
+    const Position& p = pose.position;
+    const Orientation& o = pose.orientation;
+    C7Vector v;
+    v.setIdentity();
+    v.X.set(p.x, p.y, p.z);
+    C4Vector roll, pitch, yaw;
+    roll.setEulerAngles(C3Vector(o.roll, 0.0f, 0.0f));
+    pitch.setEulerAngles(C3Vector(0.0f, o.pitch, 0.0f));
+    yaw.setEulerAngles(C3Vector(0.0f, 0.0f, o.yaw));
+    v.Q = yaw * pitch * roll;
+    return v;
+}
+
 void importWorld(const World& world)
 {
     std::cout << "Importing world '" << world.name << "'..." << std::endl;
     std::cout << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
-bool isNonEmptyGeometry(const Geometry& g)
-{
-    return g.box || g.cylinder || g.heightmap || g.mesh || g.plane || g.sphere;
-}
-
-bool hasNonEmptyGeometry(const LinkVisual& t)
-{
-    return isNonEmptyGeometry(t.geometry);
-}
-
-bool hasNonEmptyGeometry(const LinkCollision& t)
-{
-    return isNonEmptyGeometry(t.geometry);
-}
-
 template<typename T>
 int countNonemptyGeometries(const vector<T>& v)
 {
-    return std::count_if(v.begin(), v.end(), hasNonEmptyGeometry);
+    int count = 0;
+    BOOST_FOREACH(const T& t, v)
+    {
+        const Geometry& g = t.geometry;
+        if(g.box || g.cylinder || g.heightmap || g.mesh || g.plane || g.sphere)
+            count++;
+    }
+    return count;
 }
 
 simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, double mass)
@@ -191,7 +199,17 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
 void importModelLink(const Model& model, const Link& link)
 {
     std::cout << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
+
     double mass = 0;
+
+    C7Vector pose;
+    pose.setIdentity();
+
+    if(link.pose)
+    {
+        pose = getPose(*link.pose);
+    }
+
     if(link.inertial)
     {
         if(link.inertial->mass)
@@ -210,15 +228,101 @@ void importModelLink(const Model& model, const Link& link)
     }
 }
 
-void importModelJoint(const Model& model, const Joint& joint)
+simInt importModelJoint(const Model& model, const Joint& joint)
 {
     std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
-    std::cout << "ERROR: importing joints not implemented yet" << std::endl;
+
+    simInt handle = -1;
+
+    if(!joint.axis || joint.axis2)
+    {
+        std::cout << "ERROR: joint must have exactly one axis" << std::endl;
+        return handle;
+    }
+
+    const Axis& axis = *joint.axis;
+
+    C7Vector pose;
+    pose.setIdentity();
+
+    if(joint.pose)
+    {
+        pose = getPose(*joint.pose);
+    }
+    //pose = jointBaseFrame * pose;
+
+    if(joint.type == "revolute" || joint.type == "prismatic")
+    {
+        simInt subType =
+            joint.type == "revolute" ? sim_joint_revolute_subtype :
+            joint.type == "prismatic" ? sim_joint_prismatic_subtype :
+            -1;
+        handle = simCreateJoint(subType, sim_jointmode_force, 2, NULL, NULL, NULL);
+
+        if(axis.limit)
+        {
+            const AxisLimits& limits = *axis.limit;
+
+            float interval[2] = {limits.lower, limits.upper - limits.lower};
+            simSetJointInterval(handle, 0, interval);
+
+            if(limits.effort)
+            {
+                simSetJointForce(handle, *limits.effort);
+            }
+
+            if(limits.velocity)
+            {
+                simSetObjectFloatParameter(handle, sim_jointfloatparam_upper_limit, *limits.velocity);
+            }
+        }
+
+        if(false /* positionCtrl */)
+        {
+            simSetObjectIntParameter(handle, sim_jointintparam_motor_enabled, 1);
+        }
+
+        if(false /* hideJoints */)
+        {
+            simSetObjectIntParameter(handle, sim_objintparam_visibility_layer, 512); // layer 10
+        }
+    }
+    else if(joint.type == "ball")
+    {
+        handle = simCreateJoint(sim_joint_spherical_subtype, sim_jointmode_force, 2, NULL, NULL, NULL);
+    }
+    else if(joint.type == "fixed")
+    {
+        int intParams[5]={1,4,4,0,0};
+        float floatParams[5]={0.02f,1.0f,1.0f,0.0f,0.0f};
+        handle = simCreateForceSensor(0, intParams, floatParams, NULL);
+    }
+    else
+    {
+        std::cout << "Joint type '" << joint.type << "' is not supported" << std::endl;
+    }
+
+    if(handle == -1)
+        return handle;
+
+    simSetObjectPosition(handle, -1, pose.X.data);
+    simSetObjectOrientation(handle, -1, pose.Q.getEulerAngles().data);
+
+    //simSetObjectParent(nJoint,nParentJoint,false);
+
+    setVrepObjectName(handle, joint.name.c_str());
+
+    return handle;
 }
 
 void importModel(const Model& model)
 {
     std::cout << "Importing model '" << model.name << "'..." << std::endl;
+
+    bool static_ = true;
+    if(model.static_ && *model.static_ == false)
+        static_ = false;
+
     BOOST_FOREACH(const Model& x, model.submodels)
     {
         importModel(x);
