@@ -5,7 +5,7 @@
 
 #include <QThread>
 
-#ifdef QT_DEBUG
+#if defined(QT_DEBUG) && !defined(DEBUG)
 #define DEBUG
 #endif
 
