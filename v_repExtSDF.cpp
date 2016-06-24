@@ -249,14 +249,22 @@ void importModelLink(const Model& model, const Link& link)
 vector<const Link*> getParentlessLinks(const Model& model)
 {
     vector<const Link*> ret;
-
     BOOST_FOREACH(const Link& link, model.links)
-    {
-        if(model.parentJoint.find(link.name) == model.parentJoint.end())
+        if(!link.parentJoint)
             ret.push_back(&link);
-    }
-
     return ret;
+}
+
+void visitLink(const Model& model, const Link *link)
+{
+    BOOST_FOREACH(const Joint *joint, link->childJoints)
+    {
+        std::cout << "VISIT:" << std::endl;
+        std::cout << "  parent:" << link->name << std::endl;
+        std::cout << "  joint:" << joint->name << std::endl;
+        std::cout << "  child:" << joint->childLink->name << std::endl;
+        visitLink(model, joint->childLink);
+    }
 }
 
 simInt importModelJoint(const Model& model, const Joint& joint)
@@ -355,9 +363,11 @@ void importModel(const Model& model)
         static_ = false;
 
     vector<const Link*> pll = getParentlessLinks(model);
-    std::cout << "Parentless links:";
-    BOOST_FOREACH(const Link *link, pll) std::cout << " " << link->name;
-    std::cout << std::endl;
+    BOOST_FOREACH(const Link *link, pll)
+    {
+        std::cout << "Parentless link: " << link->name << std::endl;
+        visitLink(model, link);
+    }
 
     BOOST_FOREACH(const Model& x, model.submodels)
     {
