@@ -4,6 +4,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/foreach.hpp>
 
 #define ARRAYSIZE(X) (sizeof((X))/sizeof((X)[0]))
 
@@ -2505,6 +2506,11 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "joint", joints);
     parseMany(e, "plugin", plugins);
     parseMany(e, "gripper", grippers);
+
+    BOOST_FOREACH(const Link& link)
+        linkByName[link.name] = &link;
+    BOOST_FOREACH(const Joint& joint)
+        jointByName[joint.name] = &joint;
 
     WRAP_EXCEPTIONS_END(Model)
 }

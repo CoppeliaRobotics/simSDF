@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
 
@@ -12,6 +13,7 @@ using tinyxml2::XMLElement;
 using boost::optional;
 using std::string;
 using std::vector;
+using std::map;
 
 bool _isOneOf(string s, const char **validValues, int numValues, string *validValuesStr = 0);
 optional<string> _getAttrStr      (XMLElement *e, const char *name, bool opt);
@@ -1036,6 +1038,10 @@ PARSER_CLASS(Model)
     vector<Joint> joints;
     vector<Plugin> plugins;
     vector<Gripper> grippers;
+
+    // utility fields:
+    map<string, Link*> linkByName;
+    map<string, Joint*> jointByName;
 
     PARSER_METHODS(Model)
 };
