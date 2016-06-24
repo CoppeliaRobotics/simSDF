@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
 
@@ -14,6 +15,7 @@ using boost::optional;
 using std::string;
 using std::vector;
 using std::map;
+using std::set;
 
 bool _isOneOf(string s, const char **validValues, int numValues, string *validValuesStr = 0);
 optional<string> _getAttrStr      (XMLElement *e, const char *name, bool opt);
@@ -1040,8 +1042,10 @@ PARSER_CLASS(Model)
     vector<Gripper> grippers;
 
     // utility fields:
-    map<string, Link*> linkByName;
-    map<string, Joint*> jointByName;
+    map<string, const Link*> linkByName;
+    map<string, const Joint*> jointByName;
+    map<string, set<const Joint*> > childJoints;
+    map<string, const Joint*> parentJoint;
 
     PARSER_METHODS(Model)
 };
