@@ -44,6 +44,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
@@ -81,10 +82,27 @@ LIBRARY vrepLib; // the V-REP library that we will dynamically load and bind
 SDFDialog *sdfDialog = NULL;
 
 using namespace tinyxml2;
+using std::set;
+
+void setVrepObjectName(int objectHandle, const char* desiredName)
+{
+    // Objects in V-REP can only contain a-z, A-Z, 0-9, '_' or exaclty one '#' optionally followed by a number
+    std::string baseName(desiredName);
+    for(int i = 0; i < baseName.size(); i++)
+    {
+        char n = baseName[i];
+        if(((n < 'a') || (n > 'z')) && ((n < 'A') || (n > 'Z')) && ((n < '0') || (n > '9')))
+            baseName[i] = '_';
+    }
+    std::string objName(baseName);
+    int suffix=2;
+    while(simSetObjectName(objectHandle, objName.c_str())==-1)
+        objName = baseName + boost::lexical_cast<std::string>(suffix++);
+}
 
 C7Vector getPose(const Pose& pose)
 {
-    const Position& p = pose.position;
+    const Vector& p = pose.position;
     const Orientation& o = pose.orientation;
     C7Vector v;
     v.setIdentity();
@@ -228,6 +246,19 @@ void importModelLink(const Model& model, const Link& link)
     }
 }
 
+vector<const Link*> getParentlessLinks(const Model& model)
+{
+    vector<const Link*> ret;
+
+    BOOST_FOREACH(const Link& link, model.links)
+    {
+        if(model.parentJoint.find(link.name) == model.parentJoint.end())
+            ret.push_back(&link);
+    }
+
+    return ret;
+}
+
 simInt importModelJoint(const Model& model, const Joint& joint)
 {
     std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
@@ -322,6 +353,11 @@ void importModel(const Model& model)
     bool static_ = true;
     if(model.static_ && *model.static_ == false)
         static_ = false;
+
+    vector<const Link*> pll = getParentlessLinks(model);
+    std::cout << "Parentless links:";
+    BOOST_FOREACH(const Link *link, pll) std::cout << " " << link->name;
+    std::cout << std::endl;
 
     BOOST_FOREACH(const Model& x, model.submodels)
     {
