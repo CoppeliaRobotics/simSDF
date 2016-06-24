@@ -2507,15 +2507,18 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "plugin", plugins);
     parseMany(e, "gripper", grippers);
 
-    BOOST_FOREACH(const Link& link, links)
+    BOOST_FOREACH(Link& link, links)
     {
         linkByName[link.name] = &link;
+        link.parentJoint = NULL;
     }
-    BOOST_FOREACH(const Joint& joint, joints)
+    BOOST_FOREACH(Joint& joint, joints)
     {
         jointByName[joint.name] = &joint;
-        childJoints[joint.parent].insert(&joint);
-        parentJoint[joint.child] = &joint;
+        joint.parentLink = linkByName[joint.parent];
+        joint.childLink = linkByName[joint.child];
+        joint.parentLink->childJoints.insert(&joint);
+        joint.childLink->parentJoint = &joint;
     }
 
     WRAP_EXCEPTIONS_END(Model)

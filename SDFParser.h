@@ -889,6 +889,8 @@ PARSER_CLASS(VelocityDecay)
     PARSER_METHODS(VelocityDecay)
 };
 
+struct Joint;
+
 PARSER_CLASS(Link)
 {
     string name;
@@ -908,6 +910,10 @@ PARSER_CLASS(Link)
     vector<AudioSource> audioSources;
     vector<AudioSink> audioSinks;
     vector<Battery> batteries;
+
+    // utility fields:
+    set<Joint*> childJoints;
+    Joint* parentJoint;
 
     PARSER_METHODS(Link)
 };
@@ -1005,6 +1011,10 @@ PARSER_CLASS(Joint)
     optional<Pose> pose;
     optional<Sensor> sensor;
 
+    // utility fields:
+    Link *parentLink;
+    Link *childLink;
+
     PARSER_METHODS(Joint)
 };
 
@@ -1042,10 +1052,8 @@ PARSER_CLASS(Model)
     vector<Gripper> grippers;
 
     // utility fields:
-    map<string, const Link*> linkByName;
-    map<string, const Joint*> jointByName;
-    map<string, set<const Joint*> > childJoints;
-    map<string, const Joint*> parentJoint;
+    map<string, Link*> linkByName;
+    map<string, Joint*> jointByName;
 
     PARSER_METHODS(Model)
 };
