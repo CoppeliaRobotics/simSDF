@@ -2251,6 +2251,27 @@ void Link::dump(int i) const
     END_DUMP(Link);
 }
 
+set<const Joint*> Link::getChildJoints(const Model& model) const
+{
+    set<const Joint*> ret;
+    BOOST_FOREACH(const Joint& joint, model.joints)
+    {
+        if(joint.parent == name)
+            ret.insert(&joint);
+    }
+    return ret;
+}
+
+const Joint * Link::getParentJoint(const Model& model) const
+{
+    BOOST_FOREACH(const Joint& joint, model.joints)
+    {
+        if(joint.child == name)
+            return &joint;
+    }
+    return NULL;
+}
+
 void AxisDynamics::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(AxisDynamics)
@@ -2460,6 +2481,26 @@ void Joint::dump(int i) const
     END_DUMP(Joint);
 }
 
+const Link * Joint::getParentLink(const Model& model) const
+{
+    BOOST_FOREACH(const Link& link, model.links)
+    {
+        if(link.name == parent)
+            return &link;
+    }
+    return NULL;
+}
+
+const Link * Joint::getChildLink(const Model& model) const
+{
+    BOOST_FOREACH(const Link& link, model.links)
+    {
+        if(link.name == child)
+            return &link;
+    }
+    return NULL;
+}
+
 void Gripper::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Gripper)
@@ -2506,20 +2547,6 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "joint", joints);
     parseMany(e, "plugin", plugins);
     parseMany(e, "gripper", grippers);
-
-    BOOST_FOREACH(Link& link, links)
-    {
-        linkByName[link.name] = &link;
-        link.parentJoint = NULL;
-    }
-    BOOST_FOREACH(Joint& joint, joints)
-    {
-        jointByName[joint.name] = &joint;
-        joint.parentLink = linkByName[joint.parent];
-        joint.childLink = linkByName[joint.child];
-        joint.parentLink->childJoints.insert(&joint);
-        joint.childLink->parentJoint = &joint;
-    }
 
     WRAP_EXCEPTIONS_END(Model)
 }

@@ -911,11 +911,11 @@ PARSER_CLASS(Link)
     vector<AudioSink> audioSinks;
     vector<Battery> batteries;
 
-    // utility fields:
-    set<Joint*> childJoints;
-    Joint* parentJoint;
-
     PARSER_METHODS(Link)
+
+    // utility methods:
+    set<const Joint*> getChildJoints(const Model& model) const;
+    const Joint * getParentJoint(const Model& model) const;
 };
 
 PARSER_CLASS(AxisDynamics)
@@ -1011,11 +1011,11 @@ PARSER_CLASS(Joint)
     optional<Pose> pose;
     optional<Sensor> sensor;
 
-    // utility fields:
-    Link *parentLink;
-    Link *childLink;
-
     PARSER_METHODS(Joint)
+
+    // utility methods:
+    const Link * getParentLink(const Model& model) const;
+    const Link * getChildLink(const Model& model) const;
 };
 
 PARSER_CLASS(Gripper)
@@ -1050,10 +1050,6 @@ PARSER_CLASS(Model)
     vector<Joint> joints;
     vector<Plugin> plugins;
     vector<Gripper> grippers;
-
-    // utility fields:
-    map<string, Link*> linkByName;
-    map<string, Joint*> jointByName;
 
     PARSER_METHODS(Model)
 };

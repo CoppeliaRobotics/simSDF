@@ -250,20 +250,22 @@ vector<const Link*> getParentlessLinks(const Model& model)
 {
     vector<const Link*> ret;
     BOOST_FOREACH(const Link& link, model.links)
-        if(!link.parentJoint)
+        if(!link.getParentJoint(model))
             ret.push_back(&link);
     return ret;
 }
 
 void visitLink(const Model& model, const Link *link)
 {
-    BOOST_FOREACH(const Joint *joint, link->childJoints)
+    set<const Joint*> childJoints = link->getChildJoints(model);
+    BOOST_FOREACH(const Joint *joint, childJoints)
     {
+        const Link *childLink = joint->getChildLink(model);
         std::cout << "VISIT:" << std::endl;
         std::cout << "  parent:" << link->name << std::endl;
         std::cout << "  joint:" << joint->name << std::endl;
-        std::cout << "  child:" << joint->childLink->name << std::endl;
-        visitLink(model, joint->childLink);
+        std::cout << "  child:" << childLink->name << std::endl;
+        visitLink(model, childLink);
     }
 }
 
@@ -398,6 +400,7 @@ void importLight(const Light& light)
 void importSDF(const SDF& sdf)
 {
     std::cout << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
+    sdf.dump();
     BOOST_FOREACH(const World& x, sdf.worlds)
     {
         importWorld(x);
