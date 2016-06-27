@@ -115,6 +115,22 @@ C7Vector getPose(const Pose& pose)
     return v;
 }
 
+C7Vector getPose(const Model& model, const optional<Pose>& pose)
+{
+    C7Vector pose1;
+    pose1.setIdentity();
+    if(pose)
+    {
+        pose1 = getPose(*pose);
+    }
+    if(model.pose)
+    {
+        C7Vector baseFrame = getPose(*model.pose);
+        pose1 = baseFrame * pose1;
+    }
+    return pose1;
+}
+
 void importWorld(const World& world)
 {
     std::cout << "Importing world '" << world.name << "'..." << std::endl;
@@ -223,13 +239,7 @@ void importModelLink(const Model& model, const Link& link)
 
     double mass = 0;
 
-    C7Vector pose;
-    pose.setIdentity();
-
-    if(link.pose)
-    {
-        pose = getPose(*link.pose);
-    }
+    C7Vector pose = getPose(model, link.pose);
 
     if(link.inertial)
     {
@@ -249,29 +259,6 @@ void importModelLink(const Model& model, const Link& link)
     }
 }
 
-vector<const Link*> getParentlessLinks(const Model& model)
-{
-    vector<const Link*> ret;
-    BOOST_FOREACH(const Link& link, model.links)
-        if(!link.getParentJoint(model))
-            ret.push_back(&link);
-    return ret;
-}
-
-void visitLink(const Model& model, const Link *link)
-{
-    set<const Joint*> childJoints = link->getChildJoints(model);
-    BOOST_FOREACH(const Joint *joint, childJoints)
-    {
-        const Link *childLink = joint->getChildLink(model);
-        std::cout << "VISIT:" << std::endl;
-        std::cout << "  parent:" << link->name << std::endl;
-        std::cout << "  joint:" << joint->name << std::endl;
-        std::cout << "  child:" << childLink->name << std::endl;
-        visitLink(model, childLink);
-    }
-}
-
 simInt importModelJoint(const Model& model, const Joint& joint)
 {
     std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
@@ -286,14 +273,7 @@ simInt importModelJoint(const Model& model, const Joint& joint)
 
     const Axis& axis = *joint.axis;
 
-    C7Vector pose;
-    pose.setIdentity();
-
-    if(joint.pose)
-    {
-        pose = getPose(*joint.pose);
-    }
-    //pose = jointBaseFrame * pose;
+    C7Vector pose = getPose(model, joint.pose);
 
     if(joint.type == "revolute" || joint.type == "prismatic")
     {
@@ -364,6 +344,18 @@ simInt importModelJoint(const Model& model, const Joint& joint)
     return handle;
 }
 
+void visitLink(const Model& model, const Link *link)
+{
+    set<const Joint*> childJoints = link->getChildJoints(model);
+    BOOST_FOREACH(const Joint *joint, childJoints)
+    {
+        const Link *childLink = joint->getChildLink(model);
+        importModelJoint(model, *joint);
+        importModelLink(model, *childLink);
+        visitLink(model, childLink);
+    }
+}
+
 void importModel(const Model& model)
 {
     std::cout << "Importing model '" << model.name << "'..." << std::endl;
@@ -372,24 +364,18 @@ void importModel(const Model& model)
     if(model.static_ && *model.static_ == false)
         static_ = false;
 
-    vector<const Link*> pll = getParentlessLinks(model);
-    BOOST_FOREACH(const Link *link, pll)
+    // import model's links starting from top-level links (i.e. those without parent link)
+    BOOST_FOREACH(const Link& link, model.links)
     {
-        std::cout << "Parentless link: " << link->name << std::endl;
-        visitLink(model, link);
+        if(link.getParentJoint(model)) continue;
+        std::cout << "Parentless link: " << link.name << std::endl;
+        importModelLink(model, link);
+        visitLink(model, &link);
     }
 
     BOOST_FOREACH(const Model& x, model.submodels)
     {
         importModel(x);
-    }
-    BOOST_FOREACH(const Link& x, model.links)
-    {
-        importModelLink(model, x);
-    }
-    BOOST_FOREACH(const Joint& x, model.joints)
-    {
-        importModelJoint(model, x);
     }
 }
 
