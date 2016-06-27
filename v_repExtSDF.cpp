@@ -237,14 +237,12 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
 {
     std::cout << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
 
-    double mass = 0;
-
     C7Vector pose = getPose(model, link.pose);
 
-    if(link.inertial)
+    double mass = 0;
+    if(link.inertial && link.inertial->mass)
     {
-        if(link.inertial->mass)
-            mass = *link.inertial->mass;
+        mass = *link.inertial->mass;
     }
 
     vector<simInt> shapeHandlesColl;
@@ -259,7 +257,13 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
     simInt shapeHandleColl = -1;
     if(shapeHandlesColl.size() == 0)
     {
-        shapeHandleColl = simCreateDummy(0, NULL);
+        BoxGeometry box;
+        Geometry g;
+        g.box = BoxGeometry();
+        g.box->size.x = 0.01;
+        g.box->size.y = 0.01;
+        g.box->size.z = 0.01;
+        shapeHandleColl = importGeometry(g, false, false, mass);
     }
     else if(shapeHandlesColl.size() == 1)
     {
@@ -273,6 +277,25 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
     std::stringstream ss;
     ss << link.name << "_" << "collision";
     setVrepObjectName(shapeHandleColl, ss.str().c_str());
+
+    if(link.inertial && link.inertial->inertia)
+    {
+        InertiaMatrix &i = *link.inertial->inertia;
+        float inertia[9] = {
+            i.ixx, i.ixy, i.ixz,
+            i.ixy, i.iyy, i.iyz,
+            i.ixz, i.iyz, i.izz
+        };
+
+        C7Vector inertiaFrame;
+        inertiaFrame.setIdentity();
+        if(link.inertial->pose)
+            inertiaFrame = getPose(*link.inertial->pose);
+        C4X4Matrix x(inertiaFrame.getMatrix());
+        float m[12]={x.M(0,0),x.M(0,1),x.M(0,2),x.X(0),x.M(1,0),x.M(1,1),x.M(1,2),x.X(1),x.M(2,0),x.M(2,1),x.M(2,2),x.X(2)};
+
+        simSetShapeMassAndInertia(shapeHandleColl, mass, inertia, C3Vector::zeroVector.data, m);
+    }
 
     if(parentJointHandle != -1)
     {
