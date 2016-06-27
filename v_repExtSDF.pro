@@ -10,13 +10,15 @@ INCLUDEPATH += "../include"
 INCLUDEPATH += "../v_repMath"
 
 *-msvc* {
-	QMAKE_CXXFLAGS += -O2
-	QMAKE_CXXFLAGS += -W3
+    QMAKE_CXXFLAGS += -O2
+    QMAKE_CXXFLAGS += -W3
 }
 
 *-g++*|*clang* {
-	QMAKE_CXXFLAGS += -O3 -Wno-unused-parameter
-	QMAKE_CFLAGS += -O3 -Wno-unused-parameter
+    QMAKE_CXXFLAGS_RELEASE += -O3
+    QMAKE_CXXFLAGS_DEBUG += -O0 -g
+    QMAKE_CFLAGS_RELEASE += -O3
+    QMAKE_CFLAGS_DEBUG += -O0 -g
 }
 
 win32 {
