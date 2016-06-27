@@ -136,9 +136,11 @@ int countNonemptyGeometries(const vector<T>& v)
 
 simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, double mass)
 {
+    simInt handle = -1;
+
     if(geometry.empty)
     {
-        return simCreateDummy(0, NULL);
+        handle = simCreateDummy(0, NULL);
     }
     else if(geometry.box || geometry.sphere || geometry.cylinder)
     {
@@ -170,7 +172,7 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
             sizes[0] = sizes[1] = 2 * geometry.cylinder->radius;
             sizes[2] = geometry.cylinder->length;
         }
-        return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
+        handle = simCreatePureShape(primitiveType, options, sizes, mass, NULL);
     }
     else if(geometry.heightmap)
     {
@@ -184,7 +186,7 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
         simInt yPointCount = 0;
         simFloat xSize = 0;
         simFloat *heights = 0;
-        return simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
+        handle = simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
     }
     else if(geometry.mesh)
     {
@@ -197,7 +199,7 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
         simInt verticesSize = 0;
         simInt *indices = 0;
         simInt indicesSize = 0;
-        return simCreateMeshShape(options, shadingAngle, vertices, verticesSize, indices, indicesSize, NULL);
+        handle = simCreateMeshShape(options, shadingAngle, vertices, verticesSize, indices, indicesSize, NULL);
     }
     else if(geometry.image)
     {
@@ -211,7 +213,8 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
     {
         std::cout << "ERROR: polyline geometry not currently supported" << std::endl;
     }
-    return -1;
+
+    return handle;
 }
 
 void importModelLink(const Model& model, const Link& link)
@@ -323,7 +326,7 @@ simInt importModelJoint(const Model& model, const Joint& joint)
             simSetObjectIntParameter(handle, sim_jointintparam_motor_enabled, 1);
         }
 
-        if(false /* hideJoints */)
+        if(true /* hideJoints */)
         {
             simSetObjectIntParameter(handle, sim_objintparam_visibility_layer, 512); // layer 10
         }
@@ -352,6 +355,11 @@ simInt importModelJoint(const Model& model, const Joint& joint)
     //simSetObjectParent(nJoint,nParentJoint,false);
 
     setVrepObjectName(handle, joint.name.c_str());
+
+    if(true /* hideCollisions */)
+    {
+        simSetObjectIntParameter(handle, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
+    }
 
     return handle;
 }
