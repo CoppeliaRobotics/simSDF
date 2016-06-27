@@ -913,9 +913,11 @@ PARSER_CLASS(Link)
 
     PARSER_METHODS(Link)
 
+    int vrepHandle;
+
     // utility methods:
-    set<const Joint*> getChildJoints(const Model& model) const;
-    const Joint * getParentJoint(const Model& model) const;
+    set<Joint*> getChildJoints(Model& model) const;
+    Joint * getParentJoint(Model& model) const;
 };
 
 PARSER_CLASS(AxisDynamics)
@@ -1013,9 +1015,11 @@ PARSER_CLASS(Joint)
 
     PARSER_METHODS(Joint)
 
+    int vrepHandle;
+
     // utility methods:
-    const Link * getParentLink(const Model& model) const;
-    const Link * getChildLink(const Model& model) const;
+    Link * getParentLink(Model& model) const;
+    Link * getChildLink(Model& model) const;
 };
 
 PARSER_CLASS(Gripper)

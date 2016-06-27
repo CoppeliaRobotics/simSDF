@@ -2225,6 +2225,8 @@ void Link::parse(XMLElement *e, const char *tagName)
     parseMany(e, "audio_sink", audioSinks);
     parseMany(e, "battery", batteries);
 
+    vrepHandle = -1;
+
     WRAP_EXCEPTIONS_END(Link)
 }
 
@@ -2251,10 +2253,10 @@ void Link::dump(int i) const
     END_DUMP(Link);
 }
 
-set<const Joint*> Link::getChildJoints(const Model& model) const
+set<Joint*> Link::getChildJoints(Model& model) const
 {
-    set<const Joint*> ret;
-    BOOST_FOREACH(const Joint& joint, model.joints)
+    set<Joint*> ret;
+    BOOST_FOREACH(Joint& joint, model.joints)
     {
         if(joint.parent == name)
             ret.insert(&joint);
@@ -2262,9 +2264,9 @@ set<const Joint*> Link::getChildJoints(const Model& model) const
     return ret;
 }
 
-const Joint * Link::getParentJoint(const Model& model) const
+Joint * Link::getParentJoint(Model& model) const
 {
-    BOOST_FOREACH(const Joint& joint, model.joints)
+    BOOST_FOREACH(Joint& joint, model.joints)
     {
         if(joint.child == name)
             return &joint;
@@ -2459,6 +2461,8 @@ void Joint::parse(XMLElement *e, const char *tagName)
     parse1Opt(e, "pose", pose);
     parse1Opt(e, "sensor", sensor);
 
+    vrepHandle = -1;
+
     WRAP_EXCEPTIONS_END(Joint)
 }
 
@@ -2481,9 +2485,9 @@ void Joint::dump(int i) const
     END_DUMP(Joint);
 }
 
-const Link * Joint::getParentLink(const Model& model) const
+Link * Joint::getParentLink(Model& model) const
 {
-    BOOST_FOREACH(const Link& link, model.links)
+    BOOST_FOREACH(Link& link, model.links)
     {
         if(link.name == parent)
             return &link;
@@ -2491,9 +2495,9 @@ const Link * Joint::getParentLink(const Model& model) const
     return NULL;
 }
 
-const Link * Joint::getChildLink(const Model& model) const
+Link * Joint::getChildLink(Model& model) const
 {
-    BOOST_FOREACH(const Link& link, model.links)
+    BOOST_FOREACH(Link& link, model.links)
     {
         if(link.name == child)
             return &link;

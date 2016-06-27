@@ -100,10 +100,10 @@ void setVrepObjectName(int objectHandle, const char* desiredName)
         objName = baseName + boost::lexical_cast<std::string>(suffix++);
 }
 
-C7Vector getPose(const Pose& pose)
+C7Vector getPose(Pose& pose)
 {
-    const Vector& p = pose.position;
-    const Orientation& o = pose.orientation;
+    Vector& p = pose.position;
+    Orientation& o = pose.orientation;
     C7Vector v;
     v.setIdentity();
     v.X.set(p.x, p.y, p.z);
@@ -115,7 +115,7 @@ C7Vector getPose(const Pose& pose)
     return v;
 }
 
-C7Vector getPose(const Model& model, const optional<Pose>& pose)
+C7Vector getPose(Model& model, optional<Pose>& pose)
 {
     C7Vector pose1;
     pose1.setIdentity();
@@ -131,7 +131,7 @@ C7Vector getPose(const Model& model, const optional<Pose>& pose)
     return pose1;
 }
 
-void importWorld(const World& world)
+void importWorld(World& world)
 {
     std::cout << "Importing world '" << world.name << "'..." << std::endl;
     std::cout << "ERROR: importing worlds not implemented yet" << std::endl;
@@ -150,7 +150,7 @@ int countNonemptyGeometries(const vector<T>& v)
     return count;
 }
 
-simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, double mass)
+simInt importGeometry(Geometry& geometry, bool static_, bool respondable, double mass)
 {
     simInt handle = -1;
 
@@ -233,7 +233,7 @@ simInt importGeometry(const Geometry& geometry, bool static_, bool respondable, 
     return handle;
 }
 
-void importModelLink(const Model& model, const Link& link)
+void importModelLink(Model& model, Link& link, simInt parentJointHandle)
 {
     std::cout << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
 
@@ -246,20 +246,58 @@ void importModelLink(const Model& model, const Link& link)
         if(link.inertial->mass)
             mass = *link.inertial->mass;
     }
-    int numColl = countNonemptyGeometries(link.collisions);
-    std::cout << " Link '" << link.name << "' has " << numColl << " non-empty collision geometries" << std::endl;
-    BOOST_FOREACH(const LinkCollision& x, link.collisions)
+
+    vector<simInt> shapeHandlesColl;
+    BOOST_FOREACH(LinkCollision& x, link.collisions)
     {
         simInt shapeHandle = importGeometry(x.geometry, false, true, mass);
+        if(shapeHandle == -1) continue;
+        shapeHandlesColl.push_back(shapeHandle);
+        simSetObjectPosition(shapeHandle, -1, pose.X.data);
+        simSetObjectOrientation(shapeHandle, -1, pose.Q.getEulerAngles().data);
     }
-    std::cout << " Link '" << link.name << "' has " << numColl << " non-empty visual geometries" << std::endl;
-    BOOST_FOREACH(const LinkVisual& x, link.visuals)
+    simInt shapeHandleColl = -1;
+    if(shapeHandlesColl.size() == 0)
+    {
+        shapeHandleColl = simCreateDummy(0, NULL);
+    }
+    else if(shapeHandlesColl.size() == 1)
+    {
+        shapeHandleColl = shapeHandlesColl[0];
+    }
+    else if(shapeHandlesColl.size() > 1)
+    {
+        shapeHandleColl = simGroupShapes(&shapeHandlesColl[0], shapeHandlesColl.size());
+    }
+    link.vrepHandle = shapeHandleColl;
+    std::stringstream ss;
+    ss << link.name << "_" << "collision";
+    setVrepObjectName(shapeHandleColl, ss.str().c_str());
+
+    if(parentJointHandle != -1)
+    {
+        simSetObjectParent(shapeHandleColl, parentJointHandle, true);
+    }
+
+    if(true /* hideCollisions */)
+    {
+        simSetObjectIntParameter(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
+    }
+
+    BOOST_FOREACH(LinkVisual& x, link.visuals)
     {
         simInt shapeHandle = importGeometry(x.geometry, true, false, 0);
+        if(shapeHandle == -1) continue;
+        simSetObjectPosition(shapeHandle, -1, pose.X.data);
+        simSetObjectOrientation(shapeHandle, -1, pose.Q.getEulerAngles().data);
+        simSetObjectParent(shapeHandle, shapeHandleColl, true);
+        std::stringstream ss;
+        ss << link.name << "_" << x.name;
+        setVrepObjectName(shapeHandle, ss.str().c_str());
     }
 }
 
-simInt importModelJoint(const Model& model, const Joint& joint)
+simInt importModelJoint(Model& model, Joint& joint, simInt parentLinkHandle)
 {
     std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
 
@@ -329,34 +367,34 @@ simInt importModelJoint(const Model& model, const Joint& joint)
     if(handle == -1)
         return handle;
 
+    joint.vrepHandle = handle;
+
     simSetObjectPosition(handle, -1, pose.X.data);
     simSetObjectOrientation(handle, -1, pose.Q.getEulerAngles().data);
 
-    //simSetObjectParent(nJoint,nParentJoint,false);
+    if(parentLinkHandle != -1)
+    {
+        simSetObjectParent(handle, parentLinkHandle, true);
+    }
 
     setVrepObjectName(handle, joint.name.c_str());
-
-    if(true /* hideCollisions */)
-    {
-        simSetObjectIntParameter(handle, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
-    }
 
     return handle;
 }
 
-void visitLink(const Model& model, const Link *link)
+void visitLink(Model& model, Link *link)
 {
-    set<const Joint*> childJoints = link->getChildJoints(model);
-    BOOST_FOREACH(const Joint *joint, childJoints)
+    set<Joint*> childJoints = link->getChildJoints(model);
+    BOOST_FOREACH(Joint *joint, childJoints)
     {
-        const Link *childLink = joint->getChildLink(model);
-        importModelJoint(model, *joint);
-        importModelLink(model, *childLink);
+        Link *childLink = joint->getChildLink(model);
+        importModelJoint(model, *joint, link->vrepHandle);
+        importModelLink(model, *childLink, joint->vrepHandle);
         visitLink(model, childLink);
     }
 }
 
-void importModel(const Model& model)
+void importModel(Model& model)
 {
     std::cout << "Importing model '" << model.name << "'..." << std::endl;
 
@@ -365,49 +403,48 @@ void importModel(const Model& model)
         static_ = false;
 
     // import model's links starting from top-level links (i.e. those without parent link)
-    BOOST_FOREACH(const Link& link, model.links)
+    BOOST_FOREACH(Link& link, model.links)
     {
         if(link.getParentJoint(model)) continue;
-        std::cout << "Parentless link: " << link.name << std::endl;
-        importModelLink(model, link);
+        importModelLink(model, link, -1);
         visitLink(model, &link);
     }
 
-    BOOST_FOREACH(const Model& x, model.submodels)
+    BOOST_FOREACH(Model& x, model.submodels)
     {
         importModel(x);
     }
 }
 
-void importActor(const Actor& actor)
+void importActor(Actor& actor)
 {
     std::cout << "Importing actor '" << actor.name << "'..." << std::endl;
     std::cout << "ERROR: actors are not currently supported" << std::endl;
 }
 
-void importLight(const Light& light)
+void importLight(Light& light)
 {
     std::cout << "Importing light '" << light.name << "'..." << std::endl;
     std::cout << "ERROR: importing lights not currently supported" << std::endl;
 }
 
-void importSDF(const SDF& sdf)
+void importSDF(SDF& sdf)
 {
     std::cout << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
     sdf.dump();
-    BOOST_FOREACH(const World& x, sdf.worlds)
+    BOOST_FOREACH(World& x, sdf.worlds)
     {
         importWorld(x);
     }
-    BOOST_FOREACH(const Model& x, sdf.models)
+    BOOST_FOREACH(Model& x, sdf.models)
     {
         importModel(x);
     }
-    BOOST_FOREACH(const Actor& x, sdf.actors)
+    BOOST_FOREACH(Actor& x, sdf.actors)
     {
         importActor(x);
     }
-    BOOST_FOREACH(const Light& x, sdf.lights)
+    BOOST_FOREACH(Light& x, sdf.lights)
     {
         importLight(x);
     }
