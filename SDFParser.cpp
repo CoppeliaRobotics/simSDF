@@ -2552,6 +2552,8 @@ void Model::parse(XMLElement *e, const char *tagName)
     parseMany(e, "plugin", plugins);
     parseMany(e, "gripper", grippers);
 
+    vrepHandle = -1;
+
     WRAP_EXCEPTIONS_END(Model)
 }
 

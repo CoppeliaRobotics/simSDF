@@ -1055,6 +1055,8 @@ PARSER_CLASS(Model)
     vector<Plugin> plugins;
     vector<Gripper> grippers;
 
+    int vrepHandle;
+
     PARSER_METHODS(Model)
 };
 

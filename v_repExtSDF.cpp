@@ -275,6 +275,8 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
         shapeHandleColl = simGroupShapes(&shapeHandlesColl[0], shapeHandlesColl.size());
     }
     link.vrepHandle = shapeHandleColl;
+    if(model.vrepHandle == -1)
+        model.vrepHandle = link.vrepHandle;
     std::stringstream ss;
     ss << link.name << "_" << "collision";
     setVrepObjectName(shapeHandleColl, ss.str().c_str());
