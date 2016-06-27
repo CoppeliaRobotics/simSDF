@@ -100,35 +100,27 @@ void setVrepObjectName(int objectHandle, const char* desiredName)
         objName = baseName + boost::lexical_cast<std::string>(suffix++);
 }
 
-C7Vector getPose(Pose& pose)
+C7Vector getPose(optional<Pose>& pose)
 {
-    Vector& p = pose.position;
-    Orientation& o = pose.orientation;
     C7Vector v;
     v.setIdentity();
-    v.X.set(p.x, p.y, p.z);
-    C4Vector roll, pitch, yaw;
-    roll.setEulerAngles(C3Vector(o.roll, 0.0f, 0.0f));
-    pitch.setEulerAngles(C3Vector(0.0f, o.pitch, 0.0f));
-    yaw.setEulerAngles(C3Vector(0.0f, 0.0f, o.yaw));
-    v.Q = yaw * pitch * roll;
+    if(pose)
+    {
+        Vector& p = pose->position;
+        Orientation& o = pose->orientation;
+        v.X.set(p.x, p.y, p.z);
+        C4Vector roll, pitch, yaw;
+        roll.setEulerAngles(C3Vector(o.roll, 0.0f, 0.0f));
+        pitch.setEulerAngles(C3Vector(0.0f, o.pitch, 0.0f));
+        yaw.setEulerAngles(C3Vector(0.0f, 0.0f, o.yaw));
+        v.Q = yaw * pitch * roll;
+    }
     return v;
 }
 
 C7Vector getPose(Model& model, optional<Pose>& pose)
 {
-    C7Vector pose1;
-    pose1.setIdentity();
-    if(pose)
-    {
-        pose1 = getPose(*pose);
-    }
-    if(model.pose)
-    {
-        C7Vector baseFrame = getPose(*model.pose);
-        pose1 = baseFrame * pose1;
-    }
-    return pose1;
+    return getPose(model.pose) * getPose(pose);
 }
 
 void importWorld(World& world)
@@ -251,7 +243,7 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
         simInt shapeHandle = importGeometry(x.geometry, false, true, mass);
         if(shapeHandle == -1) continue;
         shapeHandlesColl.push_back(shapeHandle);
-        C7Vector poseColl = getPose(model, x.pose);
+        C7Vector poseColl = x.pose ? getPose(model, x.pose) : pose;
         simSetObjectPosition(shapeHandle, -1, poseColl.X.data);
         simSetObjectOrientation(shapeHandle, -1, poseColl.Q.getEulerAngles().data);
     }
@@ -289,20 +281,18 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
             i.ixy, i.iyy, i.iyz,
             i.ixz, i.iyz, i.izz
         };
-
-        C7Vector inertiaFrame;
-        inertiaFrame.setIdentity();
-        if(link.inertial->pose)
-            inertiaFrame = getPose(*link.inertial->pose);
-        C4X4Matrix x(inertiaFrame.getMatrix());
-        float m[12]={x.M(0,0),x.M(0,1),x.M(0,2),x.X(0),x.M(1,0),x.M(1,1),x.M(1,2),x.X(1),x.M(2,0),x.M(2,1),x.M(2,2),x.X(2)};
-
+        C4X4Matrix t(getPose(link.inertial->pose).getMatrix());
+        float m[12] = {
+            t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
+            t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
+            t.M(2,0), t.M(2,1), t.M(2,2), t.X(2)
+        };
         simSetShapeMassAndInertia(shapeHandleColl, mass, inertia, C3Vector::zeroVector.data, m);
     }
 
     if(parentJointHandle != -1)
     {
-        simSetObjectParent(shapeHandleColl, parentJointHandle, true);
+        //simSetObjectParent(shapeHandleColl, parentJointHandle, true);
     }
 
     if(true /* hideCollisions */)
@@ -314,7 +304,7 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
     {
         simInt shapeHandle = importGeometry(x.geometry, true, false, 0);
         if(shapeHandle == -1) continue;
-        C7Vector poseVis = getPose(model, x.pose);
+        C7Vector poseVis = x.pose ? getPose(model, x.pose) : pose;
         simSetObjectPosition(shapeHandle, -1, poseVis.X.data);
         simSetObjectOrientation(shapeHandle, -1, poseVis.Q.getEulerAngles().data);
         simSetObjectParent(shapeHandle, shapeHandleColl, true);
@@ -337,10 +327,6 @@ simInt importModelJoint(Model& model, Joint& joint, simInt parentLinkHandle)
     }
 
     const Axis& axis = *joint.axis;
-    C4Vector jointAxisOrientation;
-    jointAxisOrientation.setIdentity();
-
-    C7Vector pose = getPose(model, joint.pose);
 
     if(joint.type == "revolute" || joint.type == "prismatic")
     {
@@ -367,44 +353,6 @@ simInt importModelJoint(Model& model, Joint& joint, simInt parentLinkHandle)
                 simSetObjectFloatParameter(handle, sim_jointfloatparam_upper_limit, *limits.velocity);
             }
         }
-
-        // compute joint axis orientation:
-        {
-            C4X4Matrix jointAxisMatrix;
-            jointAxisMatrix.setIdentity();
-            C3Vector axisVec(axis.xyz.x, axis.xyz.y, axis.xyz.z);
-            C3Vector rotAxis;
-            float rotAngle=0.0f;
-            if(axisVec(2) < 1.0f)
-            {
-                if(axisVec(2) <= -1.0f)
-                    rotAngle = 3.14159265359f;
-                else
-                    rotAngle = acosf(axisVec(2));
-                rotAxis(0) = -axisVec(1);
-                rotAxis(1) = axisVec(0);
-                rotAxis(2) = 0.0f;
-                rotAxis.normalize();
-                C7Vector m(jointAxisMatrix);
-                float alpha = -atan2(rotAxis(1), rotAxis(0));
-                float beta = atan2(-sqrt(rotAxis(0) * rotAxis(0) + rotAxis(1) * rotAxis(1)), rotAxis(2));
-                C7Vector r;
-                r.X.clear();
-                r.Q.setEulerAngles(0.0f, 0.0f, alpha);
-                m = r * m;
-                r.Q.setEulerAngles(0.0f, beta, 0.0f);
-                m = r * m;
-                r.Q.setEulerAngles(0.0f, 0.0f, rotAngle);
-                m = r * m;
-                r.Q.setEulerAngles(0.0f, -beta, 0.0f);
-                m = r * m;
-                r.Q.setEulerAngles(0.0f, 0.0f, -alpha);
-                m = r * m;
-                jointAxisMatrix = m.getMatrix();
-            }
-            jointAxisOrientation = jointAxisMatrix.getTransformation().Q;
-        }
-        //pose = pose * jointAxisOrientation;
 
         if(false /* positionCtrl */)
         {
@@ -436,17 +384,71 @@ simInt importModelJoint(Model& model, Joint& joint, simInt parentLinkHandle)
 
     joint.vrepHandle = handle;
 
-    simSetObjectPosition(handle, -1, pose.X.data);
-    simSetObjectOrientation(handle, -1, jointAxisOrientation.getEulerAngles().data);
-
     if(parentLinkHandle != -1)
     {
-        simSetObjectParent(handle, parentLinkHandle, true);
+        //simSetObjectParent(handle, parentLinkHandle, true);
     }
 
     setVrepObjectName(handle, joint.name.c_str());
 
     return handle;
+}
+
+void adjustJointPose(Model& model, Joint *joint, simInt childLinkHandle)
+{
+    const Axis& axis = *joint->axis;
+
+    // compute joint axis orientation:
+    C4X4Matrix jointAxisMatrix;
+    jointAxisMatrix.setIdentity();
+    C3Vector axisVec(axis.xyz.x, axis.xyz.y, axis.xyz.z);
+    C3Vector rotAxis;
+    float rotAngle=0.0f;
+    if(axisVec(2) < 1.0f)
+    {
+        if(axisVec(2) <= -1.0f)
+            rotAngle = 3.14159265359f;
+        else
+            rotAngle = acosf(axisVec(2));
+        rotAxis(0) = -axisVec(1);
+        rotAxis(1) = axisVec(0);
+        rotAxis(2) = 0.0f;
+        rotAxis.normalize();
+        C7Vector m(jointAxisMatrix);
+        float alpha = -atan2(rotAxis(1), rotAxis(0));
+        float beta = atan2(-sqrt(rotAxis(0) * rotAxis(0) + rotAxis(1) * rotAxis(1)), rotAxis(2));
+        C7Vector r;
+        r.X.clear();
+        r.Q.setEulerAngles(0.0f, 0.0f, alpha);
+        m = r * m;
+        r.Q.setEulerAngles(0.0f, beta, 0.0f);
+        m = r * m;
+        r.Q.setEulerAngles(0.0f, 0.0f, rotAngle);
+        m = r * m;
+        r.Q.setEulerAngles(0.0f, -beta, 0.0f);
+        m = r * m;
+        r.Q.setEulerAngles(0.0f, 0.0f, -alpha);
+        m = r * m;
+        jointAxisMatrix = m.getMatrix();
+    }
+
+    C4X4Matrix jointMatrix;
+    if(axis.useParentModelFrame)
+    {
+        jointMatrix = getPose(model, joint->pose).getMatrix();
+        jointMatrix = jointMatrix * jointAxisMatrix;
+    }
+    else
+    {
+        simGetObjectPosition(childLinkHandle, -1, jointMatrix.X.data);
+        C3Vector euler;
+        simGetObjectOrientation(childLinkHandle, -1, euler.data);
+        jointMatrix.M.setEulerAngles(euler);
+        jointMatrix = jointMatrix * getPose(joint->pose).getMatrix();
+    }
+    C7Vector t = jointMatrix.getTransformation();
+    simSetObjectPosition(joint->vrepHandle, -1, t.X.data);
+    simSetObjectOrientation(joint->vrepHandle, -1, t.Q.getEulerAngles().data);
 }
 
 void visitLink(Model& model, Link *link)
@@ -457,6 +459,9 @@ void visitLink(Model& model, Link *link)
         Link *childLink = joint->getChildLink(model);
         importModelJoint(model, *joint, link->vrepHandle);
         importModelLink(model, *childLink, joint->vrepHandle);
+        adjustJointPose(model, joint, childLink->vrepHandle);
+        simSetObjectParent(joint->vrepHandle, link->vrepHandle, true);
+        simSetObjectParent(childLink->vrepHandle, joint->vrepHandle, true);
         visitLink(model, childLink);
     }
 }
