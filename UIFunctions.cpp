@@ -48,12 +48,9 @@ void UIFunctions::destroyInstance()
 
 void UIFunctions::onImport(const char *fileName, const ImportOptions *options)
 {
-    import_in in_args;
-    in_args.fileName = std::string(fileName);
-    import_out out_args;
     try
     {
-        import(NULL, "<SDF import button>", &in_args, &out_args);
+        import(NULL, std::string(fileName));
     }
     catch(std::string &ex)
     {
