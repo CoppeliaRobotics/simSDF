@@ -129,19 +129,6 @@ void importWorld(World& world)
     std::cout << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
-template<typename T>
-int countNonemptyGeometries(const vector<T>& v)
-{
-    int count = 0;
-    BOOST_FOREACH(const T& t, v)
-    {
-        const Geometry& g = t.geometry;
-        if(g.box || g.cylinder || g.heightmap || g.mesh || g.plane || g.sphere)
-            count++;
-    }
-    return count;
-}
-
 simInt importGeometry(Geometry& geometry, bool static_, bool respondable, double mass)
 {
     simInt handle = -1;
