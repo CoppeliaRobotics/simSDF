@@ -1,6 +1,8 @@
 #ifndef SDFDIALOG_H_INCLUDED
 #define SDFDIALOG_H_INCLUDED
 
+#include <string>
+
 #include <QDialog>
 
 #include "ImportOptions.h"
@@ -28,8 +30,11 @@ public:
 
 	void setSimulationStopped(bool stopped);
 
+    void showDialogForFile(std::string f);
+
 private:
     ImportOptions options;
+    std::string sdfFile;
 
 private slots:
 	void on_qqImport_clicked();

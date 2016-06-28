@@ -72,26 +72,8 @@ void SDFDialog::reject()
 
 void SDFDialog::on_qqImport_clicked()
 { // Called from the UI thread
-	// handle that command via the main simulation thread:
-	//SSimulationThreadCommand cmd;
-	//cmd.cmdId=IMPORT_CMD;
-	//cmd.boolParams.push_back(hideCollisionLinks);
-	//cmd.boolParams.push_back(hideJoints);
-	//cmd.boolParams.push_back(convexDecompose);
-	//cmd.boolParams.push_back(createVisualIfNone);
-	//cmd.boolParams.push_back(showConvexDecompositionDlg);
-	//cmd.boolParams.push_back(centerModel);
-	//cmd.boolParams.push_back(prepareModel);
-	//cmd.boolParams.push_back(noSelfCollision);
-	//cmd.boolParams.push_back(positionCtrl);
-	//addCommand(cmd);
-    simChar* pathAndFile = simFileDialog(sim_filedlg_type_load, "SDF PLUGIN LOADER", "", "", "SDF Files", "sdf");
-    if(pathAndFile != NULL)
-    {
-        std::string strPathAndFile(pathAndFile);
-        simReleaseBuffer(pathAndFile);
-        UIProxy::getInstance()->import(strPathAndFile.c_str(), &options);
-    }
+    UIProxy::getInstance()->import(sdfFile.c_str(), &options);
+	setVisible(false);
 }
 
 void SDFDialog::on_qqCollisionLinksHidden_clicked()
@@ -151,5 +133,12 @@ void SDFDialog::on_qqPositionCtrl_clicked()
 void SDFDialog::setSimulationStopped(bool stopped)
 {
 	options.simulationStopped=stopped;
+}
+
+void SDFDialog::showDialogForFile(std::string f)
+{
+    sdfFile = f;
+    // TODO: show import options for this file in the dialog
+    setVisible(true);
 }
 

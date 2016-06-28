@@ -80,6 +80,7 @@
 
 LIBRARY vrepLib; // the V-REP library that we will dynamically load and bind
 SDFDialog *sdfDialog = NULL;
+int menuItemHandle = -1;
 
 using namespace tinyxml2;
 using std::set;
@@ -595,8 +596,8 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer, int reservedInt)
     {
         QWidget *mainWindow = (QWidget *)simGetMainWindow(1);
         sdfDialog = new SDFDialog(mainWindow);
-        simAddModuleMenuEntry("", 1, &sdfDialog->dialogMenuItemHandle);
-        simSetModuleMenuItemState(sdfDialog->dialogMenuItemHandle, 1, "SDF import...");
+        simAddModuleMenuEntry("", 1, &menuItemHandle);
+        simSetModuleMenuItemState(menuItemHandle, 1, "SDF import...");
     }
 
     if(!registerScriptStuff())
@@ -645,8 +646,17 @@ VREP_DLLEXPORT void* v_repMessage(int message, int* auxiliaryData, void* customD
 
     if(message == sim_message_eventcallback_menuitemselected)
     { // A custom menu bar entry was selected
-        if(auxiliaryData[0] == sdfDialog->dialogMenuItemHandle)
-            sdfDialog->makeVisible(!sdfDialog->getVisible());
+        if(auxiliaryData[0] == menuItemHandle)
+        {
+            // 'SDF Import...' was selected
+            simChar* pathAndFile = simFileDialog(sim_filedlg_type_load, "SDF PLUGIN LOADER", "", "", "SDF Files", "sdf");
+            if(pathAndFile != NULL)
+            {
+                std::string f(pathAndFile);
+                simReleaseBuffer(pathAndFile);
+                sdfDialog->showDialogForFile(f);
+            }
+        }
     }
 
     // Keep following unchanged:
