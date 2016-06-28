@@ -127,8 +127,8 @@ C7Vector getPose(const ImportOptions &opts, Model &model, optional<Pose>& pose)
 
 void importWorld(const ImportOptions &opts, World &world)
 {
-    std::cout << "Importing world '" << world.name << "'..." << std::endl;
-    std::cout << "ERROR: importing worlds not implemented yet" << std::endl;
+    DBG << "Importing world '" << world.name << "'..." << std::endl;
+    DBG << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
 simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static_, bool respondable, double mass)
@@ -200,15 +200,15 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
     }
     else if(geometry.image)
     {
-        std::cout << "ERROR: image geometry not currently supported" << std::endl;
+        throw string("ERROR: image geometry not currently supported");
     }
     else if(geometry.plane)
     {
-        std::cout << "ERROR: plane geometry not currently supported" << std::endl;
+        throw string("ERROR: plane geometry not currently supported");
     }
     else if(geometry.polyline)
     {
-        std::cout << "ERROR: polyline geometry not currently supported" << std::endl;
+        throw string("ERROR: polyline geometry not currently supported");
     }
 
     return handle;
@@ -216,7 +216,7 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
 
 void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt parentJointHandle)
 {
-    std::cout << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
+    DBG << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
 
     C7Vector pose = getPose(opts, model, link.pose);
 
@@ -305,14 +305,13 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
 
 simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, simInt parentLinkHandle)
 {
-    std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
+    DBG << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
 
     simInt handle = -1;
 
     if(!joint.axis || joint.axis2)
     {
-        std::cout << "ERROR: joint must have exactly one axis" << std::endl;
-        return handle;
+        throw string("ERROR: joint must have exactly one axis");
     }
 
     const Axis &axis = *joint.axis;
@@ -365,7 +364,7 @@ simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, s
     }
     else
     {
-        std::cout << "Joint type '" << joint.type << "' is not supported" << std::endl;
+        throw (boost::format("Joint type '%s' is not supported") % joint.type).str();
     }
 
     if(handle == -1)
@@ -457,7 +456,7 @@ void visitLink(const ImportOptions &opts, Model &model, Link *link)
 
 void importModel(const ImportOptions &opts, Model &model)
 {
-    std::cout << "Importing model '" << model.name << "'..." << std::endl;
+    DBG << "Importing model '" << model.name << "'..." << std::endl;
 
     bool static_ = true;
     if(model.static_ && *model.static_ == false)
@@ -479,20 +478,22 @@ void importModel(const ImportOptions &opts, Model &model)
 
 void importActor(const ImportOptions &opts, Actor &actor)
 {
-    std::cout << "Importing actor '" << actor.name << "'..." << std::endl;
-    std::cout << "ERROR: actors are not currently supported" << std::endl;
+    DBG << "Importing actor '" << actor.name << "'..." << std::endl;
+    DBG << "ERROR: actors are not currently supported" << std::endl;
 }
 
 void importLight(const ImportOptions &opts, Light &light)
 {
-    std::cout << "Importing light '" << light.name << "'..." << std::endl;
-    std::cout << "ERROR: importing lights not currently supported" << std::endl;
+    DBG << "Importing light '" << light.name << "'..." << std::endl;
+    DBG << "ERROR: importing lights not currently supported" << std::endl;
 }
 
 void importSDF(const ImportOptions &opts, SDF &sdf)
 {
-    std::cout << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
+    DBG << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
+#ifdef DEBUG
     sdf.dump();
+#endif
     BOOST_FOREACH(World &x, sdf.worlds)
     {
         importWorld(opts, x);
@@ -517,7 +518,7 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
     opts.copyFrom(in);
     SDF sdf;
     sdf.parse(in->fileName);
-    std::cout << "parsed SDF successfully" << std::endl;
+    DBG << "parsed SDF successfully" << std::endl;
     importSDF(opts, sdf);
 }
 
@@ -525,7 +526,7 @@ void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
 {
     SDF sdf;
     sdf.parse(in->fileName);
-    std::cout << "parsed SDF successfully" << std::endl;
+    DBG << "parsed SDF successfully" << std::endl;
     sdf.dump();
 }
 
