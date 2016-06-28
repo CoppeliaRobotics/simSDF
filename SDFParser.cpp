@@ -17,12 +17,12 @@
 
 #define WRAP_EXCEPTIONS_END(X) \
     } \
-    catch(std::string& exStr) { \
+    catch(std::string &exStr) { \
         std::stringstream ss; \
         ss << tagName << ": " << exStr; \
         throw ss.str(); \
     } \
-    catch(std::exception& ex) { \
+    catch(std::exception &ex) { \
         std::stringstream ss; \
         ss << tagName << ": " << ex.what(); \
         throw ss.str(); \
@@ -57,7 +57,7 @@ void dumpField1(int i, const char *n, double v)
     std::cout << n << ": " << v << std::endl;
 }
 
-void dumpField1(int i, const char *n, const Parser& p)
+void dumpField1(int i, const char *n, const Parser &p)
 {
     indent(i);
     std::cout << n << ": ";
@@ -318,7 +318,7 @@ void Vector::parse(XMLElement *e, const char *tagName)
         y = getSubValDouble(e, "y");
         z = getSubValDouble(e, "z");
     }
-    catch(string& ex)
+    catch(string &ex)
     {
         // a vector can be parsed also as a space delimited list
         string text = e->GetText();
@@ -353,7 +353,7 @@ void Time::parse(XMLElement *e, const char *tagName)
         seconds = getSubValDouble(e, "seconds");
         nanoseconds = getSubValDouble(e, "nanoseconds");
     }
-    catch(string& ex)
+    catch(string &ex)
     {
         // a time can be parsed also as a space delimited list
         string text = e->GetText();
@@ -388,7 +388,7 @@ void Color::parse(XMLElement *e, const char *tagName)
         b = getSubValDouble(e, "b");
         a = getSubValDouble(e, "a");
     }
-    catch(string& ex)
+    catch(string &ex)
     {
         // a color can be parsed also as a space delimited list
         string text = e->GetText();
@@ -426,7 +426,7 @@ void Orientation::parse(XMLElement *e, const char *tagName)
         pitch = getSubValDouble(e, "pitch");
         yaw = getSubValDouble(e, "yaw");
     }
-    catch(string& ex)
+    catch(string &ex)
     {
         // a orientation can be parsed also as a space delimited list
         string text = e->GetText();
@@ -461,7 +461,7 @@ void Pose::parse(XMLElement *e, const char *tagName)
         parse1(e, "position", position);
         parse1(e, "orientation", orientation);
     }
-    catch(string& ex)
+    catch(string &ex)
     {
         // a pose can be parsed also as a space delimited list
         string text = e->GetText();
@@ -2253,10 +2253,10 @@ void Link::dump(int i) const
     END_DUMP(Link);
 }
 
-set<Joint*> Link::getChildJoints(Model& model) const
+set<Joint*> Link::getChildJoints(Model &model) const
 {
     set<Joint*> ret;
-    BOOST_FOREACH(Joint& joint, model.joints)
+    BOOST_FOREACH(Joint &joint, model.joints)
     {
         if(joint.parent == name)
             ret.insert(&joint);
@@ -2264,9 +2264,9 @@ set<Joint*> Link::getChildJoints(Model& model) const
     return ret;
 }
 
-Joint * Link::getParentJoint(Model& model) const
+Joint * Link::getParentJoint(Model &model) const
 {
-    BOOST_FOREACH(Joint& joint, model.joints)
+    BOOST_FOREACH(Joint &joint, model.joints)
     {
         if(joint.child == name)
             return &joint;
@@ -2485,9 +2485,9 @@ void Joint::dump(int i) const
     END_DUMP(Joint);
 }
 
-Link * Joint::getParentLink(Model& model) const
+Link * Joint::getParentLink(Model &model) const
 {
-    BOOST_FOREACH(Link& link, model.links)
+    BOOST_FOREACH(Link &link, model.links)
     {
         if(link.name == parent)
             return &link;
@@ -2495,9 +2495,9 @@ Link * Joint::getParentLink(Model& model) const
     return NULL;
 }
 
-Link * Joint::getChildLink(Model& model) const
+Link * Joint::getChildLink(Model &model) const
 {
-    BOOST_FOREACH(Link& link, model.links)
+    BOOST_FOREACH(Link &link, model.links)
     {
         if(link.name == child)
             return &link;

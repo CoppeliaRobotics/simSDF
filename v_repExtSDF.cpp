@@ -106,8 +106,8 @@ C7Vector getPose(optional<Pose>& pose)
     v.setIdentity();
     if(pose)
     {
-        Vector& p = pose->position;
-        Orientation& o = pose->orientation;
+        Vector &p = pose->position;
+        Orientation &o = pose->orientation;
         v.X.set(p.x, p.y, p.z);
         C4Vector roll, pitch, yaw;
         roll.setEulerAngles(C3Vector(o.roll, 0.0f, 0.0f));
@@ -118,18 +118,18 @@ C7Vector getPose(optional<Pose>& pose)
     return v;
 }
 
-C7Vector getPose(Model& model, optional<Pose>& pose)
+C7Vector getPose(Model &model, optional<Pose>& pose)
 {
     return getPose(model.pose) * getPose(pose);
 }
 
-void importWorld(World& world)
+void importWorld(World &world)
 {
     std::cout << "Importing world '" << world.name << "'..." << std::endl;
     std::cout << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
-simInt importGeometry(Geometry& geometry, bool static_, bool respondable, double mass)
+simInt importGeometry(Geometry &geometry, bool static_, bool respondable, double mass)
 {
     simInt handle = -1;
 
@@ -212,7 +212,7 @@ simInt importGeometry(Geometry& geometry, bool static_, bool respondable, double
     return handle;
 }
 
-void importModelLink(Model& model, Link& link, simInt parentJointHandle)
+void importModelLink(Model &model, Link &link, simInt parentJointHandle)
 {
     std::cout << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
 
@@ -225,7 +225,7 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
     }
 
     vector<simInt> shapeHandlesColl;
-    BOOST_FOREACH(LinkCollision& x, link.collisions)
+    BOOST_FOREACH(LinkCollision &x, link.collisions)
     {
         simInt shapeHandle = importGeometry(x.geometry, false, true, mass);
         if(shapeHandle == -1) continue;
@@ -287,7 +287,7 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
         simSetObjectIntParameter(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
     }
 
-    BOOST_FOREACH(LinkVisual& x, link.visuals)
+    BOOST_FOREACH(LinkVisual &x, link.visuals)
     {
         simInt shapeHandle = importGeometry(x.geometry, true, false, 0);
         if(shapeHandle == -1) continue;
@@ -301,7 +301,7 @@ void importModelLink(Model& model, Link& link, simInt parentJointHandle)
     }
 }
 
-simInt importModelJoint(Model& model, Joint& joint, simInt parentLinkHandle)
+simInt importModelJoint(Model &model, Joint &joint, simInt parentLinkHandle)
 {
     std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
 
@@ -313,7 +313,7 @@ simInt importModelJoint(Model& model, Joint& joint, simInt parentLinkHandle)
         return handle;
     }
 
-    const Axis& axis = *joint.axis;
+    const Axis &axis = *joint.axis;
 
     if(joint.type == "revolute" || joint.type == "prismatic")
     {
@@ -325,7 +325,7 @@ simInt importModelJoint(Model& model, Joint& joint, simInt parentLinkHandle)
 
         if(axis.limit)
         {
-            const AxisLimits& limits = *axis.limit;
+            const AxisLimits &limits = *axis.limit;
 
             float interval[2] = {limits.lower, limits.upper - limits.lower};
             simSetJointInterval(handle, 0, interval);
@@ -381,9 +381,9 @@ simInt importModelJoint(Model& model, Joint& joint, simInt parentLinkHandle)
     return handle;
 }
 
-void adjustJointPose(Model& model, Joint *joint, simInt childLinkHandle)
+void adjustJointPose(Model &model, Joint *joint, simInt childLinkHandle)
 {
-    const Axis& axis = *joint->axis;
+    const Axis &axis = *joint->axis;
 
     // compute joint axis orientation:
     C4X4Matrix jointAxisMatrix;
@@ -438,7 +438,7 @@ void adjustJointPose(Model& model, Joint *joint, simInt childLinkHandle)
     simSetObjectOrientation(joint->vrepHandle, -1, t.Q.getEulerAngles().data);
 }
 
-void visitLink(Model& model, Link *link)
+void visitLink(Model &model, Link *link)
 {
     set<Joint*> childJoints = link->getChildJoints(model);
     BOOST_FOREACH(Joint *joint, childJoints)
@@ -453,7 +453,7 @@ void visitLink(Model& model, Link *link)
     }
 }
 
-void importModel(Model& model)
+void importModel(Model &model)
 {
     std::cout << "Importing model '" << model.name << "'..." << std::endl;
 
@@ -462,48 +462,48 @@ void importModel(Model& model)
         static_ = false;
 
     // import model's links starting from top-level links (i.e. those without parent link)
-    BOOST_FOREACH(Link& link, model.links)
+    BOOST_FOREACH(Link &link, model.links)
     {
         if(link.getParentJoint(model)) continue;
         importModelLink(model, link, -1);
         visitLink(model, &link);
     }
 
-    BOOST_FOREACH(Model& x, model.submodels)
+    BOOST_FOREACH(Model &x, model.submodels)
     {
         importModel(x);
     }
 }
 
-void importActor(Actor& actor)
+void importActor(Actor &actor)
 {
     std::cout << "Importing actor '" << actor.name << "'..." << std::endl;
     std::cout << "ERROR: actors are not currently supported" << std::endl;
 }
 
-void importLight(Light& light)
+void importLight(Light &light)
 {
     std::cout << "Importing light '" << light.name << "'..." << std::endl;
     std::cout << "ERROR: importing lights not currently supported" << std::endl;
 }
 
-void importSDF(SDF& sdf)
+void importSDF(SDF &sdf)
 {
     std::cout << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
     sdf.dump();
-    BOOST_FOREACH(World& x, sdf.worlds)
+    BOOST_FOREACH(World &x, sdf.worlds)
     {
         importWorld(x);
     }
-    BOOST_FOREACH(Model& x, sdf.models)
+    BOOST_FOREACH(Model &x, sdf.models)
     {
         importModel(x);
     }
-    BOOST_FOREACH(Actor& x, sdf.actors)
+    BOOST_FOREACH(Actor &x, sdf.actors)
     {
         importActor(x);
     }
-    BOOST_FOREACH(Light& x, sdf.lights)
+    BOOST_FOREACH(Light &x, sdf.lights)
     {
         importLight(x);
     }

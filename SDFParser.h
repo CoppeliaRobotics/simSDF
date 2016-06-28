@@ -81,7 +81,7 @@ void parseMany(XMLElement *parent, const char *tagName, vector<T>& vec, bool atL
 }
 
 template<typename T>
-void parse1(XMLElement *parent, const char *subElementName, T& t)
+void parse1(XMLElement *parent, const char *subElementName, T &t)
 {
     XMLElement *e = parent->FirstChildElement(subElementName);
     if(!e)
@@ -916,8 +916,8 @@ PARSER_CLASS(Link)
     int vrepHandle;
 
     // utility methods:
-    set<Joint*> getChildJoints(Model& model) const;
-    Joint * getParentJoint(Model& model) const;
+    set<Joint*> getChildJoints(Model &model) const;
+    Joint * getParentJoint(Model &model) const;
 };
 
 PARSER_CLASS(AxisDynamics)
@@ -1018,8 +1018,8 @@ PARSER_CLASS(Joint)
     int vrepHandle;
 
     // utility methods:
-    Link * getParentLink(Model& model) const;
-    Link * getChildLink(Model& model) const;
+    Link * getParentLink(Model &model) const;
+    Link * getChildLink(Model &model) const;
 };
 
 PARSER_CLASS(Gripper)
