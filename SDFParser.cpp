@@ -283,9 +283,9 @@ void Parser::parse(XMLElement *e, const char *tagName)
 
 void SDF::parse(string filename)
 {
-    XMLDocument xmldoc;
-    XMLError err = xmldoc.LoadFile(fileName.c_str());
-    if(err != XML_NO_ERROR)
+    tinyxml2::XMLDocument xmldoc;
+    tinyxml2::XMLError err = xmldoc.LoadFile(filename.c_str());
+    if(err != tinyxml2::XML_NO_ERROR)
         throw std::string("xml load error");
     XMLElement *root = xmldoc.FirstChildElement();
     if(!root)
