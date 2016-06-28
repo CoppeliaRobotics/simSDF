@@ -3,6 +3,7 @@
 #include "UIProxy.h"
 #include "ui_SDFDialog.h"
 #include "v_repLib.h"
+#include "SDFParser.h"
 #include <string>
 
 SDFDialog::SDFDialog(QWidget *parent) :
@@ -138,6 +139,20 @@ void SDFDialog::setSimulationStopped(bool stopped)
 void SDFDialog::showDialogForFile(std::string f)
 {
     sdfFile = f;
+
+    SDF sdf;
+    try
+    {
+        sdf.parse(f);
+    }
+    catch(std::string &err)
+    {
+        //QWidget *mainWindow = (QWidget*)simGetMainWindow(1);
+        //QMessageBox::warning(mainWindow, "SDF Plugin", msg, QMessageBox::Ok);
+        UIProxy::getInstance()->onError(err.c_str());
+        return;
+    }
+
     // TODO: show import options for this file in the dialog
     setVisible(true);
 }

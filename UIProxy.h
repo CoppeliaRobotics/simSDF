@@ -25,9 +25,9 @@ private:
     static UIProxy *instance;
 
 public slots:
+    void onError(const char *msg);
 
 private slots:
-    void onError(const char *msg);
 
 signals:
     void import(const char *filename, const ImportOptions *options);
