@@ -8,7 +8,8 @@
 
 SDFDialog::SDFDialog(QWidget *parent) :
 	QDialog(parent,Qt::Tool),
-    ui(new Ui::SDFDialog)
+    ui(new Ui::SDFDialog),
+    simulationStopped(true)
 {
     ui->setupUi(this);
 	refresh();
@@ -21,16 +22,16 @@ SDFDialog::~SDFDialog()
 
 void SDFDialog::refresh()
 { // Called from the UI thread
-	ui->qqAlternateMasks->setEnabled(options.simulationStopped);
-	ui->qqCenterModel->setEnabled(options.simulationStopped);
-	ui->qqCollisionLinksHidden->setEnabled(options.simulationStopped);
-	ui->qqConvexDecompose->setEnabled(options.simulationStopped);
-	ui->qqConvexDecomposeDlg->setEnabled(options.simulationStopped&&options.convexDecompose);
-	ui->qqCreateVisualLinks->setEnabled(options.simulationStopped);
-	ui->qqImport->setEnabled(options.simulationStopped);
-	ui->qqJointsHidden->setEnabled(options.simulationStopped);
-	ui->qqModelDefinition->setEnabled(options.simulationStopped);
-	ui->qqPositionCtrl->setEnabled(options.simulationStopped);
+	ui->qqAlternateMasks->setEnabled(simulationStopped);
+	ui->qqCenterModel->setEnabled(simulationStopped);
+	ui->qqCollisionLinksHidden->setEnabled(simulationStopped);
+	ui->qqConvexDecompose->setEnabled(simulationStopped);
+	ui->qqConvexDecomposeDlg->setEnabled(simulationStopped&&options.convexDecompose);
+	ui->qqCreateVisualLinks->setEnabled(simulationStopped);
+	ui->qqImport->setEnabled(simulationStopped);
+	ui->qqJointsHidden->setEnabled(simulationStopped);
+	ui->qqModelDefinition->setEnabled(simulationStopped);
+	ui->qqPositionCtrl->setEnabled(simulationStopped);
 
 	ui->qqAlternateMasks->setChecked(!options.noSelfCollision);
 	ui->qqCenterModel->setChecked(options.centerModel);
@@ -133,7 +134,7 @@ void SDFDialog::on_qqPositionCtrl_clicked()
 
 void SDFDialog::setSimulationStopped(bool stopped)
 {
-	options.simulationStopped=stopped;
+	simulationStopped=stopped;
 }
 
 void SDFDialog::showDialogForFile(std::string f)

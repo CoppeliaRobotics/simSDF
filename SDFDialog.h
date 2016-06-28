@@ -34,6 +34,7 @@ public:
 
 private:
     ImportOptions options;
+    bool simulationStopped;
     std::string sdfFile;
 
 private slots:

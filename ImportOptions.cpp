@@ -9,7 +9,6 @@ ImportOptions::ImportOptions()
       centerModel(true),
       prepareModel(true),
       noSelfCollision(true),
-      positionCtrl(true),
-      simulationStopped(true)
+      positionCtrl(true)
 {
 }

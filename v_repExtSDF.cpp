@@ -30,6 +30,7 @@
 #include "v_repExtSDF.h"
 #include "debug.h"
 #include "SDFDialog.h"
+#include "ImportOptions.h"
 #include "tinyxml2.h"
 #include "SDFParser.h"
 #include "stubs.h"
@@ -85,7 +86,7 @@ int menuItemHandle = -1;
 using namespace tinyxml2;
 using std::set;
 
-void setVrepObjectName(int objectHandle, const char* desiredName)
+void setVrepObjectName(const ImportOptions &opts, int objectHandle, const char* desiredName)
 {
     // Objects in V-REP can only contain a-z, A-Z, 0-9, '_' or exaclty one '#' optionally followed by a number
     std::string baseName(desiredName);
@@ -101,7 +102,7 @@ void setVrepObjectName(int objectHandle, const char* desiredName)
         objName = baseName + boost::lexical_cast<std::string>(suffix++);
 }
 
-C7Vector getPose(optional<Pose>& pose)
+C7Vector getPose(const ImportOptions &opts, optional<Pose>& pose)
 {
     C7Vector v;
     v.setIdentity();
@@ -119,18 +120,18 @@ C7Vector getPose(optional<Pose>& pose)
     return v;
 }
 
-C7Vector getPose(Model &model, optional<Pose>& pose)
+C7Vector getPose(const ImportOptions &opts, Model &model, optional<Pose>& pose)
 {
-    return getPose(model.pose) * getPose(pose);
+    return getPose(opts, model.pose) * getPose(opts, pose);
 }
 
-void importWorld(World &world)
+void importWorld(const ImportOptions &opts, World &world)
 {
     std::cout << "Importing world '" << world.name << "'..." << std::endl;
     std::cout << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
-simInt importGeometry(Geometry &geometry, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static_, bool respondable, double mass)
 {
     simInt handle = -1;
 
@@ -213,11 +214,11 @@ simInt importGeometry(Geometry &geometry, bool static_, bool respondable, double
     return handle;
 }
 
-void importModelLink(Model &model, Link &link, simInt parentJointHandle)
+void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt parentJointHandle)
 {
     std::cout << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
 
-    C7Vector pose = getPose(model, link.pose);
+    C7Vector pose = getPose(opts, model, link.pose);
 
     double mass = 0;
     if(link.inertial && link.inertial->mass)
@@ -228,10 +229,10 @@ void importModelLink(Model &model, Link &link, simInt parentJointHandle)
     vector<simInt> shapeHandlesColl;
     BOOST_FOREACH(LinkCollision &x, link.collisions)
     {
-        simInt shapeHandle = importGeometry(x.geometry, false, true, mass);
+        simInt shapeHandle = importGeometry(opts, x.geometry, false, true, mass);
         if(shapeHandle == -1) continue;
         shapeHandlesColl.push_back(shapeHandle);
-        C7Vector poseColl = x.pose ? getPose(model, x.pose) : pose;
+        C7Vector poseColl = x.pose ? getPose(opts, model, x.pose) : pose;
         simSetObjectPosition(shapeHandle, -1, poseColl.X.data);
         simSetObjectOrientation(shapeHandle, -1, poseColl.Q.getEulerAngles().data);
     }
@@ -244,7 +245,7 @@ void importModelLink(Model &model, Link &link, simInt parentJointHandle)
         g.box->size.x = 0.01;
         g.box->size.y = 0.01;
         g.box->size.z = 0.01;
-        shapeHandleColl = importGeometry(g, false, false, mass);
+        shapeHandleColl = importGeometry(opts, g, false, false, mass);
     }
     else if(shapeHandlesColl.size() == 1)
     {
@@ -259,7 +260,7 @@ void importModelLink(Model &model, Link &link, simInt parentJointHandle)
         model.vrepHandle = link.vrepHandle;
     std::stringstream ss;
     ss << link.name << "_" << "collision";
-    setVrepObjectName(shapeHandleColl, ss.str().c_str());
+    setVrepObjectName(opts, shapeHandleColl, ss.str().c_str());
 
     if(link.inertial && link.inertial->inertia)
     {
@@ -269,7 +270,7 @@ void importModelLink(Model &model, Link &link, simInt parentJointHandle)
             i.ixy, i.iyy, i.iyz,
             i.ixz, i.iyz, i.izz
         };
-        C4X4Matrix t(getPose(link.inertial->pose).getMatrix());
+        C4X4Matrix t(getPose(opts, link.inertial->pose).getMatrix());
         float m[12] = {
             t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
             t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
@@ -290,19 +291,19 @@ void importModelLink(Model &model, Link &link, simInt parentJointHandle)
 
     BOOST_FOREACH(LinkVisual &x, link.visuals)
     {
-        simInt shapeHandle = importGeometry(x.geometry, true, false, 0);
+        simInt shapeHandle = importGeometry(opts, x.geometry, true, false, 0);
         if(shapeHandle == -1) continue;
-        C7Vector poseVis = x.pose ? getPose(model, x.pose) : pose;
+        C7Vector poseVis = x.pose ? getPose(opts, model, x.pose) : pose;
         simSetObjectPosition(shapeHandle, -1, poseVis.X.data);
         simSetObjectOrientation(shapeHandle, -1, poseVis.Q.getEulerAngles().data);
         simSetObjectParent(shapeHandle, shapeHandleColl, true);
         std::stringstream ss;
         ss << link.name << "_" << x.name;
-        setVrepObjectName(shapeHandle, ss.str().c_str());
+        setVrepObjectName(opts, shapeHandle, ss.str().c_str());
     }
 }
 
-simInt importModelJoint(Model &model, Joint &joint, simInt parentLinkHandle)
+simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, simInt parentLinkHandle)
 {
     std::cout << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
 
@@ -377,12 +378,12 @@ simInt importModelJoint(Model &model, Joint &joint, simInt parentLinkHandle)
         //simSetObjectParent(handle, parentLinkHandle, true);
     }
 
-    setVrepObjectName(handle, joint.name.c_str());
+    setVrepObjectName(opts, handle, joint.name.c_str());
 
     return handle;
 }
 
-void adjustJointPose(Model &model, Joint *joint, simInt childLinkHandle)
+void adjustJointPose(const ImportOptions &opts, Model &model, Joint *joint, simInt childLinkHandle)
 {
     const Axis &axis = *joint->axis;
 
@@ -423,7 +424,7 @@ void adjustJointPose(Model &model, Joint *joint, simInt childLinkHandle)
     C4X4Matrix jointMatrix;
     if(axis.useParentModelFrame)
     {
-        jointMatrix = getPose(model, joint->pose).getMatrix();
+        jointMatrix = getPose(opts, model, joint->pose).getMatrix();
         jointMatrix = jointMatrix * jointAxisMatrix;
     }
     else
@@ -432,29 +433,29 @@ void adjustJointPose(Model &model, Joint *joint, simInt childLinkHandle)
         C3Vector euler;
         simGetObjectOrientation(childLinkHandle, -1, euler.data);
         jointMatrix.M.setEulerAngles(euler);
-        jointMatrix = jointMatrix * getPose(joint->pose).getMatrix();
+        jointMatrix = jointMatrix * getPose(opts, joint->pose).getMatrix();
     }
     C7Vector t = jointMatrix.getTransformation();
     simSetObjectPosition(joint->vrepHandle, -1, t.X.data);
     simSetObjectOrientation(joint->vrepHandle, -1, t.Q.getEulerAngles().data);
 }
 
-void visitLink(Model &model, Link *link)
+void visitLink(const ImportOptions &opts, Model &model, Link *link)
 {
     set<Joint*> childJoints = link->getChildJoints(model);
     BOOST_FOREACH(Joint *joint, childJoints)
     {
         Link *childLink = joint->getChildLink(model);
-        importModelJoint(model, *joint, link->vrepHandle);
-        importModelLink(model, *childLink, joint->vrepHandle);
-        adjustJointPose(model, joint, childLink->vrepHandle);
+        importModelJoint(opts, model, *joint, link->vrepHandle);
+        importModelLink(opts, model, *childLink, joint->vrepHandle);
+        adjustJointPose(opts, model, joint, childLink->vrepHandle);
         simSetObjectParent(joint->vrepHandle, link->vrepHandle, true);
         simSetObjectParent(childLink->vrepHandle, joint->vrepHandle, true);
-        visitLink(model, childLink);
+        visitLink(opts, model, childLink);
     }
 }
 
-void importModel(Model &model)
+void importModel(const ImportOptions &opts, Model &model)
 {
     std::cout << "Importing model '" << model.name << "'..." << std::endl;
 
@@ -466,56 +467,58 @@ void importModel(Model &model)
     BOOST_FOREACH(Link &link, model.links)
     {
         if(link.getParentJoint(model)) continue;
-        importModelLink(model, link, -1);
-        visitLink(model, &link);
+        importModelLink(opts, model, link, -1);
+        visitLink(opts, model, &link);
     }
 
     BOOST_FOREACH(Model &x, model.submodels)
     {
-        importModel(x);
+        importModel(opts, x);
     }
 }
 
-void importActor(Actor &actor)
+void importActor(const ImportOptions &opts, Actor &actor)
 {
     std::cout << "Importing actor '" << actor.name << "'..." << std::endl;
     std::cout << "ERROR: actors are not currently supported" << std::endl;
 }
 
-void importLight(Light &light)
+void importLight(const ImportOptions &opts, Light &light)
 {
     std::cout << "Importing light '" << light.name << "'..." << std::endl;
     std::cout << "ERROR: importing lights not currently supported" << std::endl;
 }
 
-void importSDF(SDF &sdf)
+void importSDF(const ImportOptions &opts, SDF &sdf)
 {
     std::cout << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
     sdf.dump();
     BOOST_FOREACH(World &x, sdf.worlds)
     {
-        importWorld(x);
+        importWorld(opts, x);
     }
     BOOST_FOREACH(Model &x, sdf.models)
     {
-        importModel(x);
+        importModel(opts, x);
     }
     BOOST_FOREACH(Actor &x, sdf.actors)
     {
-        importActor(x);
+        importActor(opts, x);
     }
     BOOST_FOREACH(Light &x, sdf.lights)
     {
-        importLight(x);
+        importLight(opts, x);
     }
 }
 
 void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
 {
+    ImportOptions opts;
+    opts.copyFrom(in);
     SDF sdf;
     sdf.parse(in->fileName);
     std::cout << "parsed SDF successfully" << std::endl;
-    importSDF(sdf);
+    importSDF(opts, sdf);
 }
 
 void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
