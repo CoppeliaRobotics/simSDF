@@ -281,6 +281,18 @@ void Parser::parse(XMLElement *e, const char *tagName)
         throw (boost::format("element %s not recognized") % elemNameStr).str();
 }
 
+void SDF::parse(string filename)
+{
+    XMLDocument xmldoc;
+    XMLError err = xmldoc.LoadFile(fileName.c_str());
+    if(err != XML_NO_ERROR)
+        throw std::string("xml load error");
+    XMLElement *root = xmldoc.FirstChildElement();
+    if(!root)
+        throw std::string("xml internal error: cannot get root element");
+    parse(root);
+}
+
 void SDF::parse(XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(SDF)

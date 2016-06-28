@@ -510,33 +510,18 @@ void importSDF(SDF &sdf)
     }
 }
 
-XMLElement *loadAndParseXML(std::string fileName, XMLDocument *pdoc)
-{
-    XMLError err = pdoc->LoadFile(fileName.c_str());
-    if(err != XML_NO_ERROR)
-        throw std::string("xml load error");
-    XMLElement *root = pdoc->FirstChildElement();
-    if(!root)
-        throw std::string("xml internal error: cannot get root element");
-    return root;
-}
-
 void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
 {
-    XMLDocument xmldoc;
-    XMLElement *root = loadAndParseXML(in->fileName, &xmldoc);
     SDF sdf;
-    sdf.parse(root);
+    sdf.parse(in->fileName);
     std::cout << "parsed SDF successfully" << std::endl;
     importSDF(sdf);
 }
 
 void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
 {
-    XMLDocument xmldoc;
-    XMLElement *root = loadAndParseXML(in->fileName, &xmldoc);
     SDF sdf;
-    sdf.parse(root);
+    sdf.parse(in->fileName);
     std::cout << "parsed SDF successfully" << std::endl;
     sdf.dump();
 }

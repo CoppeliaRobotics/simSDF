@@ -126,6 +126,7 @@ PARSER_CLASS(SDF)
     vector<Actor> actors;
     vector<Light> lights;
 
+    void parse(string filename);
     inline void parse(XMLElement *e) {parse(e, "sdf");}
     PARSER_METHODS(SDF)
 };
