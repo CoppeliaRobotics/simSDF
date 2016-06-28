@@ -5,6 +5,7 @@
 #include "v_repLib.h"
 #include "SDFParser.h"
 #include <string>
+#include <sstream>
 
 SDFDialog::SDFDialog(QWidget *parent) :
 	QDialog(parent,Qt::Tool),
@@ -155,6 +156,14 @@ void SDFDialog::showDialogForFile(std::string f)
     }
 
     // TODO: show import options for this file in the dialog
+    ui->txtFilename->setText(QString::fromStdString(f));
+    std::stringstream ss;
+    ss << "SDF version " << sdf.version << "\n"
+        << sdf.worlds.size() << " worlds;\n"
+        << sdf.models.size() << " models;\n"
+        << sdf.actors.size() << " actors;\n"
+        << sdf.lights.size() << " lights.";
+    ui->txtContent->setText(QString::fromStdString(ss.str()));
     setVisible(true);
 }
 
