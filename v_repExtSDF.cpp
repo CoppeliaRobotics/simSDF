@@ -89,17 +89,17 @@ int menuItemHandle = -1;
 using namespace tinyxml2;
 using std::set;
 
-void setVrepObjectName(const ImportOptions &opts, int objectHandle, const char* desiredName)
+void setVrepObjectName(const ImportOptions &opts, int objectHandle, string desiredName)
 {
     // Objects in V-REP can only contain a-z, A-Z, 0-9, '_' or exaclty one '#' optionally followed by a number
-    std::string baseName(desiredName);
+    string baseName(desiredName);
     for(int i = 0; i < baseName.size(); i++)
     {
         char n = baseName[i];
         if(((n < 'a') || (n > 'z')) && ((n < 'A') || (n > 'Z')) && ((n < '0') || (n > '9')))
             baseName[i] = '_';
     }
-    std::string objName(baseName);
+    string objName(baseName);
     int suffix=2;
     while(simSetObjectName(objectHandle, objName.c_str())==-1)
         objName = baseName + boost::lexical_cast<std::string>(suffix++);
@@ -228,13 +228,13 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
     }
 
     vector<simInt> shapeHandlesColl;
-    BOOST_FOREACH(LinkCollision &x, link.collisions)
+    BOOST_FOREACH(LinkCollision &collision, link.collisions)
     {
-        simInt shapeHandle = importGeometry(opts, x.geometry, false, true, mass);
+        simInt shapeHandle = importGeometry(opts, collision.geometry, false, true, mass);
         if(shapeHandle == -1) continue;
         shapeHandlesColl.push_back(shapeHandle);
-        C7Vector collPose = linkPose * getPose(opts, x.pose);
-        DBG << "collision " << x.name << ": " << STREAM_C7Vector(collPose) << std::endl;
+        C7Vector collPose = linkPose * getPose(opts, collision.pose);
+        DBG << "collision " << collision.name << ": " << STREAM_C7Vector(collPose) << std::endl;
         simSetObjectPosition(shapeHandle, -1, collPose.X.data);
         simSetObjectOrientation(shapeHandle, -1, collPose.Q.getEulerAngles().data);
     }
@@ -260,9 +260,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
     link.vrepHandle = shapeHandleColl;
     if(model.vrepHandle == -1)
         model.vrepHandle = link.vrepHandle;
-    std::stringstream ss;
-    ss << link.name << "_" << "collision";
-    setVrepObjectName(opts, shapeHandleColl, ss.str().c_str());
+    setVrepObjectName(opts, shapeHandleColl, (boost::format("%s_collision") % link.name).str());
 
     if(link.inertial && link.inertial->inertia)
     {
@@ -291,18 +289,16 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         simSetObjectIntParameter(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
     }
 
-    BOOST_FOREACH(LinkVisual &x, link.visuals)
+    BOOST_FOREACH(LinkVisual &visual, link.visuals)
     {
-        simInt shapeHandle = importGeometry(opts, x.geometry, true, false, 0);
+        simInt shapeHandle = importGeometry(opts, visual.geometry, true, false, 0);
         if(shapeHandle == -1) continue;
-        C7Vector visPose = linkPose * getPose(opts, x.pose);
-        DBG << "visual " << x.name << ": " << STREAM_C7Vector(visPose) << std::endl;
+        C7Vector visPose = linkPose * getPose(opts, visual.pose);
+        DBG << "visual " << visual.name << ": " << STREAM_C7Vector(visPose) << std::endl;
         simSetObjectPosition(shapeHandle, -1, visPose.X.data);
         simSetObjectOrientation(shapeHandle, -1, visPose.Q.getEulerAngles().data);
         simSetObjectParent(shapeHandle, shapeHandleColl, true);
-        std::stringstream ss;
-        ss << link.name << "_" << x.name;
-        setVrepObjectName(opts, shapeHandle, ss.str().c_str());
+        setVrepObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
     }
 }
 
@@ -380,7 +376,7 @@ simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, s
         //simSetObjectParent(handle, parentLinkHandle, true);
     }
 
-    setVrepObjectName(opts, handle, joint.name.c_str());
+    setVrepObjectName(opts, handle, joint.name);
 
     return handle;
 }
