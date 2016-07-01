@@ -79,6 +79,9 @@
                                 // 8: since V-REP 3.3.0 (headless mode detect)
                                 // 9: since V-REP 3.3.1 (Using stacks to exchange data with scripts)
 
+// debugging facilities:
+#define STREAM_C7Vector(p) (#p) << "={X={" << (p).X(0) << ", " << (p).X(1) << ", " << (p).X(2) << "}, Q={" << (p).Q(0) << ", " << (p).Q(1) << ", " << (p).Q(2) << ", " << (p).Q(3) << "}}"
+
 LIBRARY vrepLib; // the V-REP library that we will dynamically load and bind
 SDFDialog *sdfDialog = NULL;
 int menuItemHandle = -1;
@@ -118,11 +121,6 @@ C7Vector getPose(const ImportOptions &opts, optional<Pose>& pose)
         v.Q = yaw * pitch * roll;
     }
     return v;
-}
-
-C7Vector getPose(const ImportOptions &opts, Model &model, optional<Pose>& pose)
-{
-    return getPose(opts, model.pose) * getPose(opts, pose);
 }
 
 void importWorld(const ImportOptions &opts, World &world)
@@ -218,7 +216,10 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
 {
     DBG << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
 
-    C7Vector pose = getPose(opts, model, link.pose);
+    C7Vector modelPose = getPose(opts, model.pose);
+    C7Vector linkPose = modelPose * getPose(opts, link.pose);
+    DBG << STREAM_C7Vector(modelPose) << std::endl;
+    DBG << STREAM_C7Vector(linkPose) << std::endl;
 
     double mass = 0;
     if(link.inertial && link.inertial->mass)
@@ -232,9 +233,10 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         simInt shapeHandle = importGeometry(opts, x.geometry, false, true, mass);
         if(shapeHandle == -1) continue;
         shapeHandlesColl.push_back(shapeHandle);
-        C7Vector poseColl = x.pose ? getPose(opts, model, x.pose) : pose;
-        simSetObjectPosition(shapeHandle, -1, poseColl.X.data);
-        simSetObjectOrientation(shapeHandle, -1, poseColl.Q.getEulerAngles().data);
+        C7Vector collPose = linkPose * getPose(opts, x.pose);
+        DBG << "collision " << x.name << ": " << STREAM_C7Vector(collPose) << std::endl;
+        simSetObjectPosition(shapeHandle, -1, collPose.X.data);
+        simSetObjectOrientation(shapeHandle, -1, collPose.Q.getEulerAngles().data);
     }
     simInt shapeHandleColl = -1;
     if(shapeHandlesColl.size() == 0)
@@ -293,9 +295,10 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
     {
         simInt shapeHandle = importGeometry(opts, x.geometry, true, false, 0);
         if(shapeHandle == -1) continue;
-        C7Vector poseVis = x.pose ? getPose(opts, model, x.pose) : pose;
-        simSetObjectPosition(shapeHandle, -1, poseVis.X.data);
-        simSetObjectOrientation(shapeHandle, -1, poseVis.Q.getEulerAngles().data);
+        C7Vector visPose = linkPose * getPose(opts, x.pose);
+        DBG << "visual " << x.name << ": " << STREAM_C7Vector(visPose) << std::endl;
+        simSetObjectPosition(shapeHandle, -1, visPose.X.data);
+        simSetObjectOrientation(shapeHandle, -1, visPose.Q.getEulerAngles().data);
         simSetObjectParent(shapeHandle, shapeHandleColl, true);
         std::stringstream ss;
         ss << link.name << "_" << x.name;
@@ -386,6 +389,9 @@ void adjustJointPose(const ImportOptions &opts, Model &model, Joint *joint, simI
 {
     const Axis &axis = *joint->axis;
 
+    C7Vector modelPose = getPose(opts, model.pose);
+    C7Vector jointPose = modelPose * getPose(opts, joint->pose);
+
     // compute joint axis orientation:
     C4X4Matrix jointAxisMatrix;
     jointAxisMatrix.setIdentity();
@@ -423,7 +429,7 @@ void adjustJointPose(const ImportOptions &opts, Model &model, Joint *joint, simI
     C4X4Matrix jointMatrix;
     if(axis.useParentModelFrame)
     {
-        jointMatrix = getPose(opts, model, joint->pose).getMatrix();
+        jointMatrix = jointPose.getMatrix();
         jointMatrix = jointMatrix * jointAxisMatrix;
     }
     else
