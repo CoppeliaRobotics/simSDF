@@ -120,6 +120,8 @@ struct Light;
     virtual void parse(XMLElement *e, const char *tagName); \
     virtual void dump(ostream &stream, int indentLevel = 0) const;
 
+ostream &operator<<(ostream &os, const Parser &m);
+
 PARSER_CLASS(SDF)
 {
     string version;

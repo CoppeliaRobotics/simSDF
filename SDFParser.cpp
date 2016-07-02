@@ -273,6 +273,11 @@ optional<string> _getSubValOneOf(XMLElement *e, const char *name, const char **v
     return value;
 }
 
+ostream &operator<<(ostream &os, const Parser &m) {
+    m.dump(os);
+    return os;
+}
+
 void Parser::parse(XMLElement *e, const char *tagName)
 {
     string elemNameStr = e->Name();
