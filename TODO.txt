@@ -1,0 +1,20 @@
+Things left to do:
+
+ * Importing of worlds
+ * Importing of lights
+ * Importing of states (if viable)
+ * Importing of actors (if viable)
+
+ * Model::selfCollide property
+ * Model::allowAutoDisable property
+ * Model::Gripper ?
+ * Wind ?
+ * Handling of frames
+ * Model::Include
+ * Joint::Gearbox
+ * Joint::ThreadPitch
+ * Sensors
+ * all AxisLimits
+ * AxisDynamics
+ * Materials
+ * Surface
