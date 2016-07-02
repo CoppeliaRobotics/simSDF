@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <iostream>
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
 
@@ -16,6 +17,7 @@ using std::string;
 using std::vector;
 using std::map;
 using std::set;
+using std::ostream;
 
 bool _isOneOf(string s, const char **validValues, int numValues, string *validValuesStr = 0);
 optional<string> _getAttrStr      (XMLElement *e, const char *name, bool opt);
@@ -105,7 +107,7 @@ void parse1Opt(XMLElement *parent, const char *subElementName, optional<T>& t)
 struct Parser
 {
     virtual void parse(XMLElement *e, const char *tagName);
-    virtual void dump(int indentLevel = 0) const = 0;
+    virtual void dump(ostream &stream, int indentLevel = 0) const = 0;
 };
 
 struct World;
@@ -116,7 +118,7 @@ struct Light;
 #define PARSER_CLASS(X) struct X : public Parser
 #define PARSER_METHODS(X) \
     virtual void parse(XMLElement *e, const char *tagName); \
-    virtual void dump(int indentLevel = 0) const;
+    virtual void dump(ostream &stream, int indentLevel = 0) const;
 
 PARSER_CLASS(SDF)
 {
