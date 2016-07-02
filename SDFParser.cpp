@@ -298,7 +298,7 @@ void SDF::parse(XMLElement *e, const char *tagName)
     WRAP_EXCEPTIONS_BEGIN(SDF)
     Parser::parse(e, tagName);
 
-    static const char *supportedVersions[] = {"1.1", "1.2", "1.3", "1.4", "1.5", "1.6"}; // TODO: verify this
+    static const char *supportedVersions[] = {"1.4", "1.5", "1.6"};
     version = getAttrOneOf(e, "version", supportedVersions, ARRAYSIZE(supportedVersions));
     parseMany(e, "world", worlds);
     parseMany(e, "model", models);
