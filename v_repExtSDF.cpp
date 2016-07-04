@@ -48,6 +48,7 @@
 #include <set>
 #include <algorithm>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
@@ -203,12 +204,19 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
             + 1 // backface culling
             + 2 // show edges
             ;
-        simFloat shadingAngle = 45;
-        simFloat *vertices = 0;
-        simInt verticesSize = 0;
-        simInt *indices = 0;
-        simInt indicesSize = 0;
-        handle = simCreateMeshShape(options, shadingAngle, vertices, verticesSize, indices, indicesSize, NULL);
+        string filename = geometry.mesh->uri;
+        if(!simDoesFileExist(filename.c_str()))
+            throw (boost::format("ERROR: mesh '%s' does not exist") % filename).str();
+        string extension = filename.substr(filename.size() - 3, filename.size());
+        boost::algorithm::to_lower(extension);
+        int extensionNum = -1;
+        if(extension == "obj") extensionNum = 0;
+        else if(extension == "dxf") extensionNum = 1;
+        else if(extension == "3ds") extensionNum = 2;
+        else if(extension == "stl") extensionNum = 4;
+        else if(extension == "dae") extensionNum = 5;
+        else throw (boost::format("ERROR: the mesh extension '%s' is not currently supported") % extension).str();
+        handle = simImportShape(extensionNum, filename.c_str(), 0, 0.0001f, 1.0f);
     }
     else if(geometry.image)
     {
@@ -531,21 +539,25 @@ void importSDF(const ImportOptions &opts, SDF &sdf)
 
 void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
 {
-    ImportOptions opts;
-    opts.copyFrom(in);
+    ImportOptions importOpts;
+    importOpts.copyFrom(in);
     SDF sdf;
-    sdf.parse(in->fileName);
+    ParseOptions parseOpts;
+    parseOpts.ignoreMissingValues = importOpts.ignoreMissingValues;
+    sdf.parse(parseOpts, in->fileName);
     DBG << "parsed SDF successfully" << std::endl;
-    importSDF(opts, sdf);
+    importSDF(importOpts, sdf);
 }
 
 void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
 {
-    DumpOptions opts;
+    DumpOptions dumpOpts;
     SDF sdf;
-    sdf.parse(in->fileName);
+    ParseOptions parseOpts;
+    parseOpts.ignoreMissingValues = true;
+    sdf.parse(parseOpts, in->fileName);
     DBG << "parsed SDF successfully" << std::endl;
-    sdf.dump(opts, std::cout);
+    sdf.dump(dumpOpts, std::cout);
 }
 
 VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer, int reservedInt)
