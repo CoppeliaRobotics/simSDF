@@ -1,15 +1,30 @@
 #include "ImportOptions.h"
+#include <sstream>
+
+#define Field(type, name, defaultVal) name(defaultVal)
+#undef FieldSep
+#define FieldSep ,
 
 ImportOptions::ImportOptions()
-    : ignoreMissingValues(false),
-      hideCollisionLinks(true),
-      hideJoints(true),
-      convexDecompose(true),
-      showConvexDecompositionDlg(false),
-      createVisualIfNone(true),
-      centerModel(true),
-      prepareModel(true),
-      noSelfCollision(true),
-      positionCtrl(true)
+    : ImportOptions_Fields
 {
 }
+
+#undef Field
+#undef FieldSep
+
+#define Field(type, name, defaultVal) ss << #name << "=" << name;
+#define FieldSep ss << ", ";
+
+std::string ImportOptions::str()
+{
+    std::stringstream ss;
+    ss << "{";
+    ImportOptions_Fields
+    ss << "}";
+    return ss.str();
+}
+
+#undef Field
+#undef FieldSep
+

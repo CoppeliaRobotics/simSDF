@@ -1,49 +1,55 @@
 #ifndef IMPORTOPTIONS_H_INCLUDED
 #define IMPORTOPTIONS_H_INCLUDED
 
+#define ImportOptions_Fields \
+    Field(bool, ignoreMissingValues, false) \
+    FieldSep \
+    Field(bool, hideCollisionLinks, true) \
+    FieldSep \
+    Field(bool, hideJoints, true) \
+    FieldSep \
+    Field(bool, convexDecompose, true) \
+    FieldSep \
+    Field(bool, showConvexDecompositionDlg, false) \
+    FieldSep \
+    Field(bool, createVisualIfNone, true) \
+    FieldSep \
+    Field(bool, centerModel, true) \
+    FieldSep \
+    Field(bool, prepareModel, true) \
+    FieldSep \
+    Field(bool, noSelfCollision, true) \
+    FieldSep \
+    Field(bool, positionCtrl, true) \
+
+#define FieldSep
+
+#include <string>
+
 struct ImportOptions
 {
     ImportOptions();
 
-    bool ignoreMissingValues;
-    bool hideCollisionLinks;
-    bool hideJoints;
-    bool convexDecompose;
-    bool showConvexDecompositionDlg;
-    bool createVisualIfNone;
-    bool centerModel;
-    bool prepareModel;
-    bool noSelfCollision;
-    bool positionCtrl;
+#define Field(type, name, defaultVal) type name;
+    ImportOptions_Fields
+#undef Field
+
+    std::string str();
 
     template<typename T>
     void copyFrom(const T *o)
     {
-        ignoreMissingValues = o->ignoreMissingValues;
-        hideCollisionLinks = o->hideCollisionLinks;
-        hideJoints = o->hideJoints;
-        convexDecompose = o->convexDecompose;
-        showConvexDecompositionDlg = o->showConvexDecompositionDlg;
-        createVisualIfNone = o->createVisualIfNone;
-        centerModel = o->centerModel;
-        prepareModel = o->prepareModel;
-        noSelfCollision = o->noSelfCollision;
-        positionCtrl = o->positionCtrl;
+#define Field(type, name, defaultVal) name = o->name;
+        ImportOptions_Fields
+#undef Field
     }
 
     template<typename T>
     void copyTo(T *o) const
     {
-        o->ignoreMissingValues = ignoreMissingValues;
-        o->hideCollisionLinks = hideCollisionLinks;
-        o->hideJoints = hideJoints;
-        o->convexDecompose = convexDecompose;
-        o->showConvexDecompositionDlg = showConvexDecompositionDlg;
-        o->createVisualIfNone = createVisualIfNone;
-        o->centerModel = centerModel;
-        o->prepareModel = prepareModel;
-        o->noSelfCollision = noSelfCollision;
-        o->positionCtrl = positionCtrl;
+#define Field(type, name, defaultVal) o->name = name;
+        ImportOptions_Fields
+#undef Field
     }
 };
 
