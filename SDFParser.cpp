@@ -4,6 +4,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 
 #define ARRAYSIZE(X) (sizeof((X))/sizeof((X)[0]))
@@ -19,12 +20,12 @@
     } \
     catch(std::string &exStr) { \
         std::stringstream ss; \
-        ss << tagName << ": " << exStr; \
+        ss << "<" << tagName << ">: " << exStr; \
         throw ss.str(); \
     } \
     catch(std::exception &ex) { \
         std::stringstream ss; \
-        ss << tagName << ": " << ex.what(); \
+        ss << "<" << tagName << ">: " << ex.what(); \
         throw ss.str(); \
     }
 
@@ -92,8 +93,9 @@ double parseDouble(string v)
 
 bool parseBool(string v)
 {
-    if(v == "true") return true;
-    if(v == "false") return false;
+    boost::algorithm::to_lower(v);
+    if(v == "true" || v == "1") return true;
+    if(v == "false" || v == "0") return false;
     throw (boost::format("invalid boolean value: %s") % v).str();
 }
 
