@@ -39,6 +39,9 @@ private:
 
 private slots:
 	void on_qqImport_clicked();
+
+	void on_qqIgnoreMissingValues_clicked();
+
 	void on_qqCollisionLinksHidden_clicked();
 
 	void on_qqJointsHidden_clicked();

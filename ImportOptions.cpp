@@ -1,7 +1,8 @@
 #include "ImportOptions.h"
 
 ImportOptions::ImportOptions()
-    : hideCollisionLinks(true),
+    : ignoreMissingValues(false),
+      hideCollisionLinks(true),
       hideJoints(true),
       convexDecompose(true),
       showConvexDecompositionDlg(false),

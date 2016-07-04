@@ -5,6 +5,7 @@ struct ImportOptions
 {
     ImportOptions();
 
+    bool ignoreMissingValues;
     bool hideCollisionLinks;
     bool hideJoints;
     bool convexDecompose;
@@ -18,6 +19,7 @@ struct ImportOptions
     template<typename T>
     void copyFrom(const T *o)
     {
+        ignoreMissingValues = o->ignoreMissingValues;
         hideCollisionLinks = o->hideCollisionLinks;
         hideJoints = o->hideJoints;
         convexDecompose = o->convexDecompose;
@@ -32,6 +34,7 @@ struct ImportOptions
     template<typename T>
     void copyTo(T *o) const
     {
+        o->ignoreMissingValues = ignoreMissingValues;
         o->hideCollisionLinks = hideCollisionLinks;
         o->hideJoints = hideJoints;
         o->convexDecompose = convexDecompose;

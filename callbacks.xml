@@ -9,6 +9,9 @@
             <param name="fileName" type="string">
                 <description>SDF file path</description>
             </param>
+            <param name="ignoreMissingValues" type="bool" default="false">
+                <description></description>
+            </param>
             <param name="hideCollisionLinks" type="bool" default="true">
                 <description></description>
             </param>

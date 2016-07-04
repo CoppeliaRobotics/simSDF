@@ -79,6 +79,12 @@ void SDFDialog::on_qqImport_clicked()
 	setVisible(false);
 }
 
+void SDFDialog::on_qqIgnoreMissingValues_clicked()
+{ // Called from the UI thread
+	options.ignoreMissingValues=!options.ignoreMissingValues;
+	refresh();
+}
+
 void SDFDialog::on_qqCollisionLinksHidden_clicked()
 { // Called from the UI thread
 	options.hideCollisionLinks=!options.hideCollisionLinks;
