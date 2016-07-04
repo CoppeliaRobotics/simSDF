@@ -166,6 +166,8 @@ optional<string> _getAttrStr(const ParseOptions &opts, XMLElement *e, const char
     {
         if(opt)
             return optional<string>();
+        else if(opts.ignoreMissingValues)
+            return optional<string>("");
         else
             throw (boost::format("missing attribute %s in element %s") % name % e->Name()).str();
     }
@@ -175,20 +177,53 @@ optional<string> _getAttrStr(const ParseOptions &opts, XMLElement *e, const char
 
 optional<int> _getAttrInt(const ParseOptions &opts, XMLElement *e, const char *name, bool opt)
 {
-    optional<string> value = _getAttrStr(opts, e, name, opt);
-    return parseInt(opts, value);
+    const char *value = e->Attribute(name);
+
+    if(!value)
+    {
+        if(opt)
+            return optional<int>();
+        else if(opts.ignoreMissingValues)
+            return optional<int>(0);
+        else
+            throw (boost::format("missing attribute %s in element %s") % name % e->Name()).str();
+    }
+
+    return optional<int>(parseInt(opts, string(value)));
 }
 
 optional<double> _getAttrDouble(const ParseOptions &opts, XMLElement *e, const char *name, bool opt)
 {
-    optional<string> value = _getAttrStr(opts, e, name, opt);
-    return parseDouble(opts, value);
+    const char *value = e->Attribute(name);
+
+    if(!value)
+    {
+        if(opt)
+            return optional<double>();
+        else if(opts.ignoreMissingValues)
+            return optional<double>(0);
+        else
+            throw (boost::format("missing attribute %s in element %s") % name % e->Name()).str();
+    }
+
+    return optional<double>(parseDouble(opts, string(value)));
 }
 
 optional<bool> _getAttrBool(const ParseOptions &opts, XMLElement *e, const char *name, bool opt)
 {
-    optional<string> value = _getAttrStr(opts, e, name, opt);
-    return parseBool(opts, value);
+    const char *value = e->Attribute(name);
+
+    if(!value)
+    {
+        if(opt)
+            return optional<bool>();
+        else if(opts.ignoreMissingValues)
+            return optional<bool>(false);
+        else
+            throw (boost::format("missing attribute %s in element %s") % name % e->Name()).str();
+    }
+
+    return optional<bool>(parseBool(opts, string(value)));
 }
 
 optional<string> _getAttrOneOf(const ParseOptions &opts, XMLElement *e, const char *name, const char **validValues, int numValues, bool opt)
@@ -213,6 +248,8 @@ optional<string> _getValStr(const ParseOptions &opts, XMLElement *e, bool opt)
     {
         if(opt)
             return optional<string>();
+        else if(opts.ignoreMissingValues)
+            return optional<string>("");
         else
             throw (boost::format("missing value in element %s") % e->Name()).str();
     }
@@ -222,20 +259,53 @@ optional<string> _getValStr(const ParseOptions &opts, XMLElement *e, bool opt)
 
 optional<int> _getValInt(const ParseOptions &opts, XMLElement *e, bool opt)
 {
-    optional<string> value = _getValStr(opts, e, opt);
-    return parseInt(opts, value);
+    const char *value = e->GetText();
+
+    if(!value)
+    {
+        if(opt)
+            return optional<int>();
+        else if(opts.ignoreMissingValues)
+            return optional<int>(0);
+        else
+            throw (boost::format("missing value in element %s") % e->Name()).str();
+    }
+
+    return optional<int>(parseInt(opts, string(value)));
 }
 
 optional<double> _getValDouble(const ParseOptions &opts, XMLElement *e, bool opt)
 {
-    optional<string> value = _getValStr(opts, e, opt);
-    return parseDouble(opts, value);
+    const char *value = e->GetText();
+
+    if(!value)
+    {
+        if(opt)
+            return optional<double>();
+        else if(opts.ignoreMissingValues)
+            return optional<double>(0);
+        else
+            throw (boost::format("missing value in element %s") % e->Name()).str();
+    }
+
+    return optional<double>(parseDouble(opts, string(value)));
 }
 
 optional<bool> _getValBool(const ParseOptions &opts, XMLElement *e, bool opt)
 {
-    optional<string> value = _getValStr(opts, e, opt);
-    return parseBool(opts, value);
+    const char *value = e->GetText();
+
+    if(!value)
+    {
+        if(opt)
+            return optional<bool>();
+        else if(opts.ignoreMissingValues)
+            return optional<bool>(false);
+        else
+            throw (boost::format("missing value in element %s") % e->Name()).str();
+    }
+
+    return optional<bool>(parseBool(opts, string(value)));
 }
 
 optional<string> _getValOneOf(const ParseOptions &opts, XMLElement *e, const char **validValues, int numValues, bool opt)
@@ -259,6 +329,8 @@ optional<string> _getSubValStr(const ParseOptions &opts, XMLElement *e, const ch
     {
         if(opt)
             return optional<string>();
+        else if(opts.ignoreMissingValues)
+            return optional<string>("");
         else
             throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
     }
@@ -269,20 +341,53 @@ optional<string> _getSubValStr(const ParseOptions &opts, XMLElement *e, const ch
 
 optional<int> _getSubValInt(const ParseOptions &opts, XMLElement *e, const char *name, bool opt)
 {
-    optional<string> value = _getSubValStr(opts, e, name, opt);
-    return parseInt(opts, value);
+    XMLElement *ex = e->FirstChildElement(name);
+    if(!ex)
+    {
+        if(opt)
+            return optional<int>();
+        else if(opts.ignoreMissingValues)
+            return optional<int>(0);
+        else
+            throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
+    }
+    if(ex->NextSiblingElement(name))
+        throw (boost::format("found more than one element %s in element %s") % name % e->Name()).str();
+    return _getValInt(opts, ex, opt);
 }
 
 optional<double> _getSubValDouble(const ParseOptions &opts, XMLElement *e, const char *name, bool opt)
 {
-    optional<string> value = _getSubValStr(opts, e, name, opt);
-    return parseDouble(opts, value);
+    XMLElement *ex = e->FirstChildElement(name);
+    if(!ex)
+    {
+        if(opt)
+            return optional<double>();
+        else if(opts.ignoreMissingValues)
+            return optional<double>(0);
+        else
+            throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
+    }
+    if(ex->NextSiblingElement(name))
+        throw (boost::format("found more than one element %s in element %s") % name % e->Name()).str();
+    return _getValDouble(opts, ex, opt);
 }
 
 optional<bool> _getSubValBool(const ParseOptions &opts, XMLElement *e, const char *name, bool opt)
 {
-    optional<string> value = _getSubValStr(opts, e, name, opt);
-    return parseBool(opts, value);
+    XMLElement *ex = e->FirstChildElement(name);
+    if(!ex)
+    {
+        if(opt)
+            return optional<bool>();
+        else if(opts.ignoreMissingValues)
+            return optional<bool>(false);
+        else
+            throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
+    }
+    if(ex->NextSiblingElement(name))
+        throw (boost::format("found more than one element %s in element %s") % name % e->Name()).str();
+    return _getValBool(opts, ex, opt);
 }
 
 optional<string> _getSubValOneOf(const ParseOptions &opts, XMLElement *e, const char *name, const char **validValues, int numValues, bool opt)

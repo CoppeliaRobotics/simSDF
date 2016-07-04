@@ -21,6 +21,7 @@ using std::ostream;
 
 struct ParseOptions
 {
+    bool ignoreMissingValues = false;
 };
 
 struct DumpOptions
