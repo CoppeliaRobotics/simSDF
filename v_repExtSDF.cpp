@@ -508,7 +508,8 @@ void importSDF(const ImportOptions &opts, SDF &sdf)
 {
     DBG << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
 #ifdef DEBUG
-    sdf.dump(std::cout);
+    DumpOptions dumpOpts;
+    sdf.dump(dumpOpts, std::cout);
 #endif
     BOOST_FOREACH(World &x, sdf.worlds)
     {
@@ -540,10 +541,11 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
 
 void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
 {
+    DumpOptions opts;
     SDF sdf;
     sdf.parse(in->fileName);
     DBG << "parsed SDF successfully" << std::endl;
-    sdf.dump(std::cout);
+    sdf.dump(opts, std::cout);
 }
 
 VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer, int reservedInt)

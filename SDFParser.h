@@ -19,57 +19,66 @@ using std::map;
 using std::set;
 using std::ostream;
 
-bool _isOneOf(string s, const char **validValues, int numValues, string *validValuesStr = 0);
-optional<string> _getAttrStr      (XMLElement *e, const char *name, bool opt);
-optional<int>    _getAttrInt      (XMLElement *e, const char *name, bool opt);
-optional<double> _getAttrDouble   (XMLElement *e, const char *name, bool opt);
-optional<bool>   _getAttrBool     (XMLElement *e, const char *name, bool opt);
-optional<string> _getAttrOneOf    (XMLElement *e, const char *name, const char **validValues, int numValues, bool opt);
-optional<string> _getValStr       (XMLElement *e, bool opt);
-optional<int>    _getValInt       (XMLElement *e, bool opt);
-optional<double> _getValDouble    (XMLElement *e, bool opt);
-optional<bool>   _getValBool      (XMLElement *e, bool opt);
-optional<string> _getValOneOf     (XMLElement *e, const char **validValues, int numValues, bool opt);
-optional<string> _getSubValStr    (XMLElement *e, const char *name, bool opt);
-optional<int>    _getSubValInt    (XMLElement *e, const char *name, bool opt);
-optional<double> _getSubValDouble (XMLElement *e, const char *name, bool opt);
-optional<string> _getSubValOneOf  (XMLElement *e, const char *name, const char **validValues, int numValues, bool opt);
-optional<bool>   _getSubValBool   (XMLElement *e, const char *name, bool opt);
+struct ParseOptions
+{
+};
 
-inline string getAttrStr      (XMLElement *e, const char *name) {return *_getAttrStr(e, name, false);}
-inline int    getAttrInt      (XMLElement *e, const char *name) {return *_getAttrInt(e, name, false);}
-inline double getAttrDouble   (XMLElement *e, const char *name) {return *_getAttrDouble(e, name, false);}
-inline bool   getAttrBool     (XMLElement *e, const char *name) {return *_getAttrBool(e, name, false);}
-inline string getAttrOneOf    (XMLElement *e, const char *name, const char **validValues, int numValues) {return *_getAttrOneOf(e, name, validValues, numValues, false);}
-inline string getValStr       (XMLElement *e) {return *_getValStr(e, false);}
-inline int    getValInt       (XMLElement *e) {return *_getValInt(e, false);}
-inline double getValDouble    (XMLElement *e) {return *_getValDouble(e, false);}
-inline bool   getValBool      (XMLElement *e) {return *_getValBool(e, false);}
-inline string getValOneOf     (XMLElement *e, const char **validValues, int numValues) {return *_getValOneOf(e, validValues, numValues, false);}
-inline string getSubValStr    (XMLElement *e, const char *name) {return *_getSubValStr(e, name, false);}
-inline int    getSubValInt    (XMLElement *e, const char *name) {return *_getSubValInt(e, name, false);}
-inline double getSubValDouble (XMLElement *e, const char *name) {return *_getSubValDouble(e, name, false);}
-inline bool   getSubValBool   (XMLElement *e, const char *name) {return *_getSubValBool(e, name, false);}
-inline string getSubValOneOf  (XMLElement *e, const char *name, const char **validValues, int numValues) {return *_getSubValOneOf(e, name, validValues, numValues, false);}
+struct DumpOptions
+{
+    bool oneLine = false;
+};
 
-inline optional<string> getAttrStrOpt      (XMLElement *e, const char *name) {return _getAttrStr(e, name, true);}
-inline optional<int>    getAttrIntOpt      (XMLElement *e, const char *name) {return _getAttrInt(e, name, true);}
-inline optional<double> getAttrDoubleOpt   (XMLElement *e, const char *name) {return _getAttrDouble(e, name, true);}
-inline optional<bool>   getAttrBoolOpt     (XMLElement *e, const char *name) {return _getAttrBool(e, name, true);}
-inline optional<string> getAttrOneOfOpt    (XMLElement *e, const char *name, const char **validValues, int numValues) {return _getAttrOneOf(e, name, validValues, numValues, true);}
-inline optional<string> getValStrOpt       (XMLElement *e) {return _getValStr(e, true);}
-inline optional<int>    getValIntOpt       (XMLElement *e) {return _getValInt(e, true);}
-inline optional<double> getValDoubleOpt    (XMLElement *e) {return _getValDouble(e, true);}
-inline optional<bool>   getValBoolOpt      (XMLElement *e) {return _getValBool(e, true);}
-inline optional<string> getValOneOfOpt     (XMLElement *e, const char **validValues, int numValues) {return _getValOneOf(e, validValues, numValues, true);}
-inline optional<string> getSubValStrOpt    (XMLElement *e, const char *name) {return _getSubValStr(e, name, true);}
-inline optional<int>    getSubValIntOpt    (XMLElement *e, const char *name) {return _getSubValInt(e, name, true);}
-inline optional<double> getSubValDoubleOpt (XMLElement *e, const char *name) {return _getSubValDouble(e, name, true);}
-inline optional<bool>   getSubValBoolOpt   (XMLElement *e, const char *name) {return _getSubValBool(e, name, true);}
-inline optional<string> getSubValOneOfOpt  (XMLElement *e, const char *name, const char **validValues, int numValues) {return _getSubValOneOf(e, name, validValues, numValues, true);}
+bool _isOneOf(const ParseOptions &opts, string s, const char **validValues, int numValues, string *validValuesStr = 0);
+optional<string> _getAttrStr      (const ParseOptions &opts, XMLElement *e, const char *name, bool opt);
+optional<int>    _getAttrInt      (const ParseOptions &opts, XMLElement *e, const char *name, bool opt);
+optional<double> _getAttrDouble   (const ParseOptions &opts, XMLElement *e, const char *name, bool opt);
+optional<bool>   _getAttrBool     (const ParseOptions &opts, XMLElement *e, const char *name, bool opt);
+optional<string> _getAttrOneOf    (const ParseOptions &opts, XMLElement *e, const char *name, const char **validValues, int numValues, bool opt);
+optional<string> _getValStr       (const ParseOptions &opts, XMLElement *e, bool opt);
+optional<int>    _getValInt       (const ParseOptions &opts, XMLElement *e, bool opt);
+optional<double> _getValDouble    (const ParseOptions &opts, XMLElement *e, bool opt);
+optional<bool>   _getValBool      (const ParseOptions &opts, XMLElement *e, bool opt);
+optional<string> _getValOneOf     (const ParseOptions &opts, XMLElement *e, const char **validValues, int numValues, bool opt);
+optional<string> _getSubValStr    (const ParseOptions &opts, XMLElement *e, const char *name, bool opt);
+optional<int>    _getSubValInt    (const ParseOptions &opts, XMLElement *e, const char *name, bool opt);
+optional<double> _getSubValDouble (const ParseOptions &opts, XMLElement *e, const char *name, bool opt);
+optional<string> _getSubValOneOf  (const ParseOptions &opts, XMLElement *e, const char *name, const char **validValues, int numValues, bool opt);
+optional<bool>   _getSubValBool   (const ParseOptions &opts, XMLElement *e, const char *name, bool opt);
+
+inline string getAttrStr      (const ParseOptions &opts, XMLElement *e, const char *name) {return *_getAttrStr(opts, e, name, false);}
+inline int    getAttrInt      (const ParseOptions &opts, XMLElement *e, const char *name) {return *_getAttrInt(opts, e, name, false);}
+inline double getAttrDouble   (const ParseOptions &opts, XMLElement *e, const char *name) {return *_getAttrDouble(opts, e, name, false);}
+inline bool   getAttrBool     (const ParseOptions &opts, XMLElement *e, const char *name) {return *_getAttrBool(opts, e, name, false);}
+inline string getAttrOneOf    (const ParseOptions &opts, XMLElement *e, const char *name, const char **validValues, int numValues) {return *_getAttrOneOf(opts, e, name, validValues, numValues, false);}
+inline string getValStr       (const ParseOptions &opts, XMLElement *e) {return *_getValStr(opts, e, false);}
+inline int    getValInt       (const ParseOptions &opts, XMLElement *e) {return *_getValInt(opts, e, false);}
+inline double getValDouble    (const ParseOptions &opts, XMLElement *e) {return *_getValDouble(opts, e, false);}
+inline bool   getValBool      (const ParseOptions &opts, XMLElement *e) {return *_getValBool(opts, e, false);}
+inline string getValOneOf     (const ParseOptions &opts, XMLElement *e, const char **validValues, int numValues) {return *_getValOneOf(opts, e, validValues, numValues, false);}
+inline string getSubValStr    (const ParseOptions &opts, XMLElement *e, const char *name) {return *_getSubValStr(opts, e, name, false);}
+inline int    getSubValInt    (const ParseOptions &opts, XMLElement *e, const char *name) {return *_getSubValInt(opts, e, name, false);}
+inline double getSubValDouble (const ParseOptions &opts, XMLElement *e, const char *name) {return *_getSubValDouble(opts, e, name, false);}
+inline bool   getSubValBool   (const ParseOptions &opts, XMLElement *e, const char *name) {return *_getSubValBool(opts, e, name, false);}
+inline string getSubValOneOf  (const ParseOptions &opts, XMLElement *e, const char *name, const char **validValues, int numValues) {return *_getSubValOneOf(opts, e, name, validValues, numValues, false);}
+
+inline optional<string> getAttrStrOpt      (const ParseOptions &opts, XMLElement *e, const char *name) {return _getAttrStr(opts, e, name, true);}
+inline optional<int>    getAttrIntOpt      (const ParseOptions &opts, XMLElement *e, const char *name) {return _getAttrInt(opts, e, name, true);}
+inline optional<double> getAttrDoubleOpt   (const ParseOptions &opts, XMLElement *e, const char *name) {return _getAttrDouble(opts, e, name, true);}
+inline optional<bool>   getAttrBoolOpt     (const ParseOptions &opts, XMLElement *e, const char *name) {return _getAttrBool(opts, e, name, true);}
+inline optional<string> getAttrOneOfOpt    (const ParseOptions &opts, XMLElement *e, const char *name, const char **validValues, int numValues) {return _getAttrOneOf(opts, e, name, validValues, numValues, true);}
+inline optional<string> getValStrOpt       (const ParseOptions &opts, XMLElement *e) {return _getValStr(opts, e, true);}
+inline optional<int>    getValIntOpt       (const ParseOptions &opts, XMLElement *e) {return _getValInt(opts, e, true);}
+inline optional<double> getValDoubleOpt    (const ParseOptions &opts, XMLElement *e) {return _getValDouble(opts, e, true);}
+inline optional<bool>   getValBoolOpt      (const ParseOptions &opts, XMLElement *e) {return _getValBool(opts, e, true);}
+inline optional<string> getValOneOfOpt     (const ParseOptions &opts, XMLElement *e, const char **validValues, int numValues) {return _getValOneOf(opts, e, validValues, numValues, true);}
+inline optional<string> getSubValStrOpt    (const ParseOptions &opts, XMLElement *e, const char *name) {return _getSubValStr(opts, e, name, true);}
+inline optional<int>    getSubValIntOpt    (const ParseOptions &opts, XMLElement *e, const char *name) {return _getSubValInt(opts, e, name, true);}
+inline optional<double> getSubValDoubleOpt (const ParseOptions &opts, XMLElement *e, const char *name) {return _getSubValDouble(opts, e, name, true);}
+inline optional<bool>   getSubValBoolOpt   (const ParseOptions &opts, XMLElement *e, const char *name) {return _getSubValBool(opts, e, name, true);}
+inline optional<string> getSubValOneOfOpt  (const ParseOptions &opts, XMLElement *e, const char *name, const char **validValues, int numValues) {return _getSubValOneOf(opts, e, name, validValues, numValues, true);}
 
 template<typename T>
-void parseMany(XMLElement *parent, const char *tagName, vector<T>& vec, bool atLeastOne = false)
+void parseMany(const ParseOptions &opts, XMLElement *parent, const char *tagName, vector<T>& vec, bool atLeastOne = false)
 {
     if(atLeastOne && !parent->FirstChildElement(tagName))
         throw (boost::format("element %s must have at least one %s child element") % parent->Name() % tagName).str();
@@ -77,37 +86,37 @@ void parseMany(XMLElement *parent, const char *tagName, vector<T>& vec, bool atL
     for(XMLElement *e = parent->FirstChildElement(tagName); e; e = e->NextSiblingElement(tagName))
     {
         T t;
-        t.parse(e, tagName);
+        t.parse(opts, e, tagName);
         vec.push_back(t);
     }
 }
 
 template<typename T>
-void parse1(XMLElement *parent, const char *subElementName, T &t)
+void parse1(const ParseOptions &opts, XMLElement *parent, const char *subElementName, T &t)
 {
     XMLElement *e = parent->FirstChildElement(subElementName);
     if(!e)
         throw (boost::format("sub element %s not found") % subElementName).str();
     if(e->NextSiblingElement(subElementName))
         throw (boost::format("sub element %s found more than once") % subElementName).str();
-    t.parse(e, subElementName);
+    t.parse(opts, e, subElementName);
 }
 
 template<typename T>
-void parse1Opt(XMLElement *parent, const char *subElementName, optional<T>& t)
+void parse1Opt(const ParseOptions &opts, XMLElement *parent, const char *subElementName, optional<T>& t)
 {
     XMLElement *e = parent->FirstChildElement(subElementName);
     if(!e)
         return;
     T t1;
-    t1.parse(e, subElementName);
+    t1.parse(opts, e, subElementName);
     t = t1;
 }
 
 struct Parser
 {
-    virtual void parse(XMLElement *e, const char *tagName);
-    virtual void dump(ostream &stream, int indentLevel = 0) const = 0;
+    virtual void parse(const ParseOptions &opts, XMLElement *e, const char *tagName);
+    virtual void dump(const DumpOptions &opts, ostream &stream, int indentLevel = 0) const = 0;
 };
 
 struct World;
@@ -117,8 +126,8 @@ struct Light;
 
 #define PARSER_CLASS(X) struct X : public Parser
 #define PARSER_METHODS(X) \
-    virtual void parse(XMLElement *e, const char *tagName); \
-    virtual void dump(ostream &stream, int indentLevel = 0) const;
+    virtual void parse(const ParseOptions &opts, XMLElement *e, const char *tagName); \
+    virtual void dump(const DumpOptions &opts, ostream &stream, int indentLevel = 0) const;
 
 ostream &operator<<(ostream &os, const Parser &m);
 
@@ -130,8 +139,8 @@ PARSER_CLASS(SDF)
     vector<Actor> actors;
     vector<Light> lights;
 
-    void parse(string filename);
-    inline void parse(XMLElement *e) {parse(e, "sdf");}
+    inline void parse(string filename) {parse(ParseOptions(), filename);}
+    void parse(const ParseOptions &opts, string filename);
     PARSER_METHODS(SDF)
 };
 
