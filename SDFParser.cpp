@@ -306,6 +306,9 @@ void SDF::parse(XMLElement *e, const char *tagName)
 
     static const char *supportedVersions[] = {"1.4", "1.5", "1.6"};
     version = getAttrOneOf(e, "version", supportedVersions, ARRAYSIZE(supportedVersions));
+    if(version != "1.6")
+        std::cout << "SDF: warning: version is " << version << "; supported version is 1.6. trying to import anyway." << std::endl;
+
     parseMany(e, "world", worlds);
     parseMany(e, "model", models);
     parseMany(e, "actor", actors);
