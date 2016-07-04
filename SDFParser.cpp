@@ -1504,7 +1504,7 @@ void MeshGeometry::parse(XMLElement *e, const char *tagName)
 
     uri = getSubValStr(e, "uri");
     parse1Opt(e, "submesh", submesh);
-    scale = getSubValDouble(e, "scale");
+    scale = getSubValDoubleOpt(e, "scale");
 
     WRAP_EXCEPTIONS_END(MeshGeometry)
 }
