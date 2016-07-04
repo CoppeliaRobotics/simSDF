@@ -1637,7 +1637,7 @@ void MeshGeometry::parse(const ParseOptions &opts, XMLElement *e, const char *ta
 
     uri = getSubValStr(opts, e, "uri");
     parse1Opt(opts, e, "submesh", submesh);
-    scale = getSubValDoubleOpt(opts, e, "scale");
+    parse1Opt(opts, e, "scale", scale);
 
     WRAP_EXCEPTIONS_END(MeshGeometry)
 }

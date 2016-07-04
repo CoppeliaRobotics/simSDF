@@ -578,7 +578,7 @@ PARSER_CLASS(MeshGeometry)
 {
     string uri;
     optional<SubMesh> submesh;
-    optional<double> scale;
+    optional<Vector> scale;
 
     PARSER_METHODS(MeshGeometry)
 };
