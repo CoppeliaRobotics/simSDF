@@ -292,10 +292,10 @@ void SDF::parse(string filename)
     tinyxml2::XMLDocument xmldoc;
     tinyxml2::XMLError err = xmldoc.LoadFile(filename.c_str());
     if(err != tinyxml2::XML_NO_ERROR)
-        throw std::string("xml load error");
+        throw (boost::format("xml load error: %s (%s; %s)") % xmldoc.ErrorName() % xmldoc.GetErrorStr1() % xmldoc.GetErrorStr2()).str();
     XMLElement *root = xmldoc.FirstChildElement();
     if(!root)
-        throw std::string("xml internal error: cannot get root element");
+        throw string("xml internal error: cannot get root element");
     parse(root);
 }
 
