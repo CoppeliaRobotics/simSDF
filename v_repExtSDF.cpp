@@ -120,6 +120,60 @@ void setVrepObjectName(const ImportOptions &opts, int objectHandle, string desir
         objName = baseName + boost::lexical_cast<std::string>(suffix++);
 }
 
+int scaleShape(int shapeHandle, float scalingFactors[3])
+{
+    // in future there will be a non-iso scaling function for objects in V-REP, but until then...
+    if(scalingFactors[0] * scalingFactors[1] * scalingFactors[2] > 0.99999f && scalingFactors[0] > 0.0f && scalingFactors[1] > 0.0f)
+        return shapeHandle; // no scaling required
+    if(fabs(scalingFactors[0]) < 0.00001f)
+        scalingFactors[0] = 0.00001f * scalingFactors[0] / fabs(scalingFactors[0]);
+    if(fabs(scalingFactors[1]) < 0.00001f)
+        scalingFactors[1] = 0.00001f * scalingFactors[1] / fabs(scalingFactors[1]);
+    if(fabs(scalingFactors[2]) < 0.00001f)
+        scalingFactors[2] = 0.00001f * scalingFactors[2] / fabs(scalingFactors[2]);
+    int newShapeHandle = shapeHandle;
+    float* vertices;
+    int verticesSize;
+    int* indices;
+    int indicesSize;
+    if(simGetShapeMesh(shapeHandle, &vertices, &verticesSize, &indices, &indicesSize, NULL) != -1)
+    {
+        // Scale the vertices:
+        C7Vector tr;
+        simGetObjectPosition(shapeHandle, -1, tr.X.data);
+        C3Vector euler;
+        simGetObjectOrientation(shapeHandle, -1, euler.data);
+        tr.Q.setEulerAngles(euler);
+        for(int i = 0; i < verticesSize / 3; i++)
+        {
+            C3Vector v(vertices + 3 * i);
+            v *= tr;
+            v(0) *= scalingFactors[0];
+            v(1) *= scalingFactors[1];
+            v(2) *= scalingFactors[2];
+            vertices[3 * i + 0] = v(0);
+            vertices[3 * i + 1] = v(1);
+            vertices[3 * i + 2] = v(2);
+        }
+        // Flip the triangles (if needed)
+        if(scalingFactors[0] * scalingFactors[1] * scalingFactors[2] < 0.0f)
+        {
+            for(int i = 0; i < indicesSize / 3; i++)
+            {
+                int tmp = indices[3 * i + 0];
+                indices[3 * i + 0] = indices[3 * i + 1];
+                indices[3 * i + 1] = tmp;
+            }
+        }
+        // Remove the old shape and create a new one with the scaled data:
+        simRemoveObject(shapeHandle);
+        newShapeHandle = simCreateMeshShape(2, 20.0f * piValue / 180.0f, vertices, verticesSize, indices, indicesSize, NULL);
+        simReleaseBuffer((char*)vertices);
+        simReleaseBuffer((char*)indices);
+    }
+    return newShapeHandle;
+}
+
 C7Vector getPose(const ImportOptions &opts, optional<Pose>& pose)
 {
     C7Vector v;
@@ -217,6 +271,11 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
         else if(extension == "dae") extensionNum = 5;
         else throw (boost::format("ERROR: the mesh extension '%s' is not currently supported") % extension).str();
         handle = simImportShape(extensionNum, filename.c_str(), 0, 0.0001f, 1.0f);
+        if(geometry.mesh->scale)
+        {
+            float scalingFactors[3] = {geometry.mesh->scale->x, geometry.mesh->scale->y, geometry.mesh->scale->z};
+            handle = scaleShape(handle, scalingFactors);
+        }
     }
     else if(geometry.image)
     {
