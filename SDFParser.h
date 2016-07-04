@@ -641,7 +641,7 @@ PARSER_CLASS(SurfaceFrictionODE)
 {
     optional<double> mu;
     optional<double> mu2;
-    optional<double> fdir1;
+    optional<Vector> fdir1;
     optional<double> slip1;
     optional<double> slip2;
 
@@ -652,7 +652,7 @@ PARSER_CLASS(SurfaceFrictionBullet)
 {
     optional<double> friction;
     optional<double> friction2;
-    optional<double> fdir1;
+    optional<Vector> fdir1;
     optional<double> rollingFriction;
 
     PARSER_METHODS(SurfaceFrictionBullet)

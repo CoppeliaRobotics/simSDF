@@ -1643,7 +1643,7 @@ void SurfaceFrictionODE::parse(XMLElement *e, const char *tagName)
 
     mu = getSubValDoubleOpt(e, "mu");
     mu2 = getSubValDoubleOpt(e, "mu2");
-    fdir1 = getSubValDoubleOpt(e, "fdir1");
+    parse1Opt(e, "fdir1", fdir1);
     slip1 = getSubValDoubleOpt(e, "slip1");
     slip2 = getSubValDoubleOpt(e, "slip2");
 
@@ -1668,7 +1668,7 @@ void SurfaceFrictionBullet::parse(XMLElement *e, const char *tagName)
 
     friction = getSubValDoubleOpt(e, "friction");
     friction2 = getSubValDoubleOpt(e, "friction2");
-    fdir1 = getSubValDoubleOpt(e, "fdir1");
+    parse1Opt(e, "fdir1", fdir1);
     rollingFriction = getSubValDoubleOpt(e, "rolling_friction");
 
     WRAP_EXCEPTIONS_END(SurfaceFrictionBullet)
