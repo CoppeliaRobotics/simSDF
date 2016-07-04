@@ -148,17 +148,26 @@ void SDFDialog::showDialogForFile(std::string f)
 {
     sdfFile = f;
 
+    ParseOptions opts;
     SDF sdf;
     try
     {
-        sdf.parse(f);
+        sdf.parse(opts, f);
     }
     catch(std::string &err)
     {
-        //QWidget *mainWindow = (QWidget*)simGetMainWindow(1);
-        //QMessageBox::warning(mainWindow, "SDF Plugin", msg, QMessageBox::Ok);
-        UIProxy::getInstance()->onError(err.c_str());
-        return;
+        std::cout << "SDF: error: could not parse SDF file. trying again ignoring mandatory values..." << std::endl;
+        opts.ignoreMissingValues = true;
+        try
+        {
+            sdf.parse(opts, f);
+        }
+        catch(std::string &err)
+        {
+            std::cout << "SDF: error: could not parse SDF file (again)." << std::endl;
+            UIProxy::getInstance()->onError(err.c_str());
+            return;
+        }
     }
 
     // TODO: show import options for this file in the dialog
