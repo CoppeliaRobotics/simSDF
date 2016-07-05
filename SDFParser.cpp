@@ -422,7 +422,19 @@ void SDF::parse(const ParseOptions &opts, string filename)
     tinyxml2::XMLDocument xmldoc;
     tinyxml2::XMLError err = xmldoc.LoadFile(filename.c_str());
     if(err != tinyxml2::XML_NO_ERROR)
-        throw (boost::format("xml load error: %s (%s; %s)") % xmldoc.ErrorName() % xmldoc.GetErrorStr1() % xmldoc.GetErrorStr2()).str();
+    {
+        string err(xmldoc.ErrorName());
+        const char *e1 = xmldoc.GetErrorStr1(), *e2 = xmldoc.GetErrorStr2();
+        string s1(e1 ? e1 : ""), s2(e2 ? e2 : "");
+        if(s1.size() || s2.size())
+        {
+            err += " (";
+            if(s1.size()) {err += e1; if(s2.size()) err += "; ";}
+            if(s2.size()) err += e2;
+            err += ")";
+        }
+        throw (boost::format("error trying to load '%s': %s") % filename % err).str();
+    }
     XMLElement *root = xmldoc.FirstChildElement();
     if(!root)
         throw string("xml internal error: cannot get root element");
