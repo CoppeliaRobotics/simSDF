@@ -34,6 +34,7 @@ void SDFDialog::refresh()
 	ui->qqModelDefinition->setEnabled(simulationStopped);
 	ui->qqPositionCtrl->setEnabled(simulationStopped);
 
+	ui->qqIgnoreMissingValues->setChecked(options.ignoreMissingValues);
 	ui->qqAlternateMasks->setChecked(!options.noSelfCollision);
 	ui->qqCenterModel->setChecked(options.centerModel);
 	ui->qqCollisionLinksHidden->setChecked(options.hideCollisionLinks);
@@ -75,67 +76,78 @@ void SDFDialog::reject()
 
 void SDFDialog::on_qqImport_clicked()
 { // Called from the UI thread
-    UIProxy::getInstance()->import(sdfFile.c_str(), &options);
+    DBG << "ImportOptions: " << options.str() << std::endl;
+    UIProxy::getInstance()->import(&options);
 	setVisible(false);
 }
 
 void SDFDialog::on_qqIgnoreMissingValues_clicked()
 { // Called from the UI thread
 	options.ignoreMissingValues=!options.ignoreMissingValues;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqCollisionLinksHidden_clicked()
 { // Called from the UI thread
 	options.hideCollisionLinks=!options.hideCollisionLinks;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqJointsHidden_clicked()
 { // Called from the UI thread
 	options.hideJoints=!options.hideJoints;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqConvexDecompose_clicked()
 { // Called from the UI thread
 	options.convexDecompose=!options.convexDecompose;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqConvexDecomposeDlg_clicked()
 { // Called from the UI thread
 	options.showConvexDecompositionDlg=!options.showConvexDecompositionDlg;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqCreateVisualLinks_clicked()
 { // Called from the UI thread
 	options.createVisualIfNone=!options.createVisualIfNone;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqCenterModel_clicked()
 { // Called from the UI thread
 	options.centerModel=!options.centerModel;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqModelDefinition_clicked()
 { // Called from the UI thread
 	options.prepareModel=!options.prepareModel;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqAlternateMasks_clicked()
 { // Called from the UI thread
 	options.noSelfCollision=!options.noSelfCollision;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
 void SDFDialog::on_qqPositionCtrl_clicked()
 { // Called from the UI thread
 	options.positionCtrl=!options.positionCtrl;
+    DBG << "ImportOptions: " << options.str() << std::endl;
 	refresh();
 }
 
@@ -146,21 +158,23 @@ void SDFDialog::setSimulationStopped(bool stopped)
 
 void SDFDialog::showDialogForFile(std::string f)
 {
-    sdfFile = f;
+    options.fileName = f;
+    options.ignoreMissingValues = false;
 
-    ParseOptions opts;
+    ParseOptions parseOpts;
     SDF sdf;
     try
     {
-        sdf.parse(opts, f);
+        sdf.parse(parseOpts, f);
     }
     catch(std::string &err)
     {
         std::cout << "SDF: error: could not parse SDF file. trying again ignoring mandatory values..." << std::endl;
-        opts.ignoreMissingValues = true;
+        parseOpts.ignoreMissingValues = true;
         try
         {
-            sdf.parse(opts, f);
+            sdf.parse(parseOpts, f);
+            options.ignoreMissingValues = true;
         }
         catch(std::string &err)
         {
@@ -170,7 +184,6 @@ void SDFDialog::showDialogForFile(std::string f)
         }
     }
 
-    // TODO: show import options for this file in the dialog
     ui->txtFilename->setText(QString::fromStdString(f));
     std::stringstream ss;
     ss << "SDF version " << sdf.version << "\n"
@@ -180,5 +193,6 @@ void SDFDialog::showDialogForFile(std::string f)
         << sdf.lights.size() << " lights.";
     ui->txtContent->setText(QString::fromStdString(ss.str()));
     setVisible(true);
+    refresh();
 }
 

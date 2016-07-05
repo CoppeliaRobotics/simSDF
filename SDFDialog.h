@@ -35,7 +35,6 @@ public:
 private:
     ImportOptions options;
     bool simulationStopped;
-    std::string sdfFile;
 
 private slots:
 	void on_qqImport_clicked();
