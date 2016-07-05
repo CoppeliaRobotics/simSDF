@@ -2,6 +2,8 @@
 #define IMPORTOPTIONS_H_INCLUDED
 
 #define ImportOptions_Fields \
+    Field(std::string, fileName, "") \
+    FieldSep \
     Field(bool, ignoreMissingValues, false) \
     FieldSep \
     Field(bool, hideCollisionLinks, true) \
@@ -34,7 +36,7 @@ struct ImportOptions
     ImportOptions_Fields
 #undef Field
 
-    std::string str();
+    std::string str() const;
 
     template<typename T>
     void copyFrom(const T *o)
