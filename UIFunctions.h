@@ -24,7 +24,7 @@ private:
 public slots:
 
 private slots:
-    void onImport(const char *fileName, const ImportOptions *options);
+    void onImport(const ImportOptions *options);
 
 signals:
     void error(const char *msg);

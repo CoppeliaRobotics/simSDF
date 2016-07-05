@@ -30,7 +30,7 @@ public slots:
 private slots:
 
 signals:
-    void import(const char *filename, const ImportOptions *options);
+    void import(const ImportOptions *options);
 };
 
 #endif // UIPROXY_H_INCLUDED

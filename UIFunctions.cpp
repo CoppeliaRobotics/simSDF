@@ -19,7 +19,7 @@ UIFunctions::UIFunctions(QObject *parent)
 
     UIProxy *uiproxy = UIProxy::getInstance();
     connect(this, SIGNAL(error(const char*)), uiproxy, SLOT(onError(const char*)), Qt::BlockingQueuedConnection);
-    connect(uiproxy, SIGNAL(import(const char *,const ImportOptions*)), this, SLOT(onImport(const char *,const ImportOptions*)));
+    connect(uiproxy, SIGNAL(import(const ImportOptions*)), this, SLOT(onImport(const ImportOptions*)));
 }
 
 UIFunctions::~UIFunctions()
@@ -46,11 +46,10 @@ void UIFunctions::destroyInstance()
         delete UIFunctions::instance;
 }
 
-void UIFunctions::onImport(const char *fileName, const ImportOptions *options)
+void UIFunctions::onImport(const ImportOptions *options)
 {
     import_in in_args;
-    in_args.fileName = std::string(fileName);
-    if(options) options->copyTo(&in_args);
+    options->copyTo(&in_args);
     import_out out_args;
     try
     {
