@@ -52,6 +52,7 @@
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
 #include <QThread>
 #ifdef _WIN32
     #ifdef QT_COMPIL
@@ -103,6 +104,41 @@ int menuItemHandle = -1;
 
 using namespace tinyxml2;
 using std::set;
+
+string getResourceFullPath(string uri, string sdfFile)
+{
+    const string prefix = "model://";
+    string uri1 = uri;
+    if(boost::starts_with(uri, prefix)) uri1 = uri1.substr(prefix.size());
+    else throw (boost::format("URI '%s' does not start with '%s'") % uri % prefix).str();
+
+    string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
+    string sdfDirName = sdfDir.substr(sdfDir.find_last_of('/') + 1);
+    DBG << "sdfDir=" << sdfDir << ", sdfDirName=" << sdfDirName << std::endl;
+
+    string uriRoot = uri1.substr(0, uri1.find_first_of('/'));
+    string uriRest = uri1.substr(uri1.find_first_of('/'));
+    DBG << "uriRoot=" << uriRoot << ", uriRest=" << uriRest << std::endl;
+
+    if(sdfDirName == uriRoot)
+    {
+        string fullPath = sdfDir + uriRest;
+        DBG << "fullPath=" << fullPath << std::endl;
+        return fullPath;
+    }
+    else
+    {
+        // try to match one level upper
+        string sdfDirParent = sdfDir.substr(0, sdfDir.find_last_of('/'));
+        DBG << "sdfDirParent=" << sdfDirParent << std::endl;
+        string fullPath = sdfDirParent + "/" + uri1;
+        DBG << "fullPath=" << fullPath << std::endl;
+        if(simDoesFileExist(fullPath.c_str()))
+            return fullPath;
+        else
+            throw (boost::format("could not determine the filesystem location of URI %s") % uri).str();
+    }
+}
 
 void setVrepObjectName(const ImportOptions &opts, int objectHandle, string desiredName)
 {
@@ -258,7 +294,8 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
             + 1 // backface culling
             + 2 // show edges
             ;
-        string filename = geometry.mesh->uri;
+        DBG << "ImportOptions: " << opts.str() << std::endl;
+        string filename = getResourceFullPath(geometry.mesh->uri, opts.fileName);
         if(!simDoesFileExist(filename.c_str()))
             throw (boost::format("ERROR: mesh '%s' does not exist") % filename).str();
         string extension = filename.substr(filename.size() - 3, filename.size());
@@ -600,6 +637,7 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
 {
     ImportOptions importOpts;
     importOpts.copyFrom(in);
+    DBG << "ImportOptions: " << importOpts.str() << std::endl;
     SDF sdf;
     ParseOptions parseOpts;
     parseOpts.ignoreMissingValues = importOpts.ignoreMissingValues;
