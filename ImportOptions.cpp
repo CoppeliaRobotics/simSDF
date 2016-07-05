@@ -16,7 +16,7 @@ ImportOptions::ImportOptions()
 #define Field(type, name, defaultVal) ss << #name << "=" << name;
 #define FieldSep ss << ", ";
 
-std::string ImportOptions::str()
+std::string ImportOptions::str() const
 {
     std::stringstream ss;
     ss << "{";
