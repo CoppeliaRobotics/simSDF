@@ -33,6 +33,9 @@ macx {
     #INCLUDEPATH += "/usr/local/Cellar/tinyxml/2.6.2/include"
     #QMAKE_LIBDIR += "/usr/local/Cellar/sdformat/2.3.2/lib"
     #LIBS += "-lsdformat"
+    LIBS += "-L/usr/local/lib"
+    LIBS += "-lboost_filesystem"
+    LIBS += "-lboost_system"
 }
 
 unix:!macx {
