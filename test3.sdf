@@ -94,7 +94,7 @@
             <parent>chassis</parent>
             <axis>
                 <xyz>0 1 0</xyz>
-                <use_parent_model_frame>false</use_parent_model_frame>
+                <use_parent_model_frame>true</use_parent_model_frame>
             </axis>
         </joint>
 
@@ -104,7 +104,7 @@
             <parent>chassis</parent>
             <axis>
                 <xyz>0 1 0</xyz>
-                <use_parent_model_frame>false</use_parent_model_frame>
+                <use_parent_model_frame>true</use_parent_model_frame>
             </axis>
         </joint>
     </model>
