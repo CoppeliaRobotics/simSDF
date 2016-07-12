@@ -540,21 +540,25 @@ void adjustJointPose(const ImportOptions &opts, Model &model, Joint *joint, simI
         jointAxisMatrix = m.getMatrix();
     }
 
-    C4X4Matrix jointMatrix;
+    // if use_parent_model_frame is true, the joint axis is relative to model frame,
+    // otherwise it is relative to joint frame.
+    //
+    // in any case, the joint frame corresponds with the child's frame.
+
+    Link *childLink = joint->getChildLink(model);
+    C7Vector childLinkPose = modelPose * getPose(opts, childLink->pose);
+
+    C4X4Matrix m1 = childLinkPose * getPose(opts, joint->pose).getMatrix() * jointAxisMatrix,
+               m2 = modelPose * jointAxisMatrix;
+
+    C4X4Matrix m = m1;
     if(axis.useParentModelFrame)
     {
-        jointMatrix = jointPose.getMatrix();
-        jointMatrix = jointMatrix * jointAxisMatrix;
+        m = m2;
+        m.X = m1.X;
     }
-    else
-    {
-        simGetObjectPosition(childLinkHandle, -1, jointMatrix.X.data);
-        C3Vector euler;
-        simGetObjectOrientation(childLinkHandle, -1, euler.data);
-        jointMatrix.M.setEulerAngles(euler);
-        jointMatrix = jointMatrix * getPose(opts, joint->pose).getMatrix();
-    }
-    C7Vector t = jointMatrix.getTransformation();
+
+    C7Vector t = m.getTransformation();
     simSetObjectPosition(joint->vrepHandle, -1, t.X.data);
     simSetObjectOrientation(joint->vrepHandle, -1, t.Q.getEulerAngles().data);
 }
