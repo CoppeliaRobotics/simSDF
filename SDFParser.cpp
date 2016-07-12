@@ -475,24 +475,14 @@ void Vector::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     WRAP_EXCEPTIONS_BEGIN(Vector)
     Parser::parse(opts, e, tagName);
 
-    try
-    {
-        x = getSubValDouble(opts, e, "x");
-        y = getSubValDouble(opts, e, "y");
-        z = getSubValDouble(opts, e, "z");
-    }
-    catch(string &ex)
-    {
-        // a vector can be parsed also as a space delimited list
-        string text = e->GetText();
-        vector<string> tokens;
-        boost::split(tokens, text, boost::is_any_of(" "));
-        if(tokens.size() != 3)
-            throw (boost::format("invalid vector length: %d") % tokens.size()).str();
-        x = boost::lexical_cast<double>(tokens[0]);
-        y = boost::lexical_cast<double>(tokens[1]);
-        z = boost::lexical_cast<double>(tokens[2]);
-    }
+    string text = e->GetText();
+    vector<string> tokens;
+    boost::split(tokens, text, boost::is_any_of(" "));
+    if(tokens.size() != 3)
+        throw (boost::format("invalid vector length: %d") % tokens.size()).str();
+    x = boost::lexical_cast<double>(tokens[0]);
+    y = boost::lexical_cast<double>(tokens[1]);
+    z = boost::lexical_cast<double>(tokens[2]);
 
     WRAP_EXCEPTIONS_END(Vector)
 }
@@ -511,22 +501,13 @@ void Time::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     WRAP_EXCEPTIONS_BEGIN(Time)
     Parser::parse(opts, e, tagName);
 
-    try
-    {
-        seconds = getSubValDouble(opts, e, "seconds");
-        nanoseconds = getSubValDouble(opts, e, "nanoseconds");
-    }
-    catch(string &ex)
-    {
-        // a time can be parsed also as a space delimited list
-        string text = e->GetText();
-        vector<string> tokens;
-        boost::split(tokens, text, boost::is_any_of(" "));
-        if(tokens.size() != 2)
-            throw (boost::format("invalid time length: %d") % tokens.size()).str();
-        seconds = boost::lexical_cast<double>(tokens[0]);
-        nanoseconds = boost::lexical_cast<double>(tokens[1]);
-    }
+    string text = e->GetText();
+    vector<string> tokens;
+    boost::split(tokens, text, boost::is_any_of(" "));
+    if(tokens.size() != 2)
+        throw (boost::format("invalid time length: %d") % tokens.size()).str();
+    seconds = boost::lexical_cast<double>(tokens[0]);
+    nanoseconds = boost::lexical_cast<double>(tokens[1]);
 
     WRAP_EXCEPTIONS_END(Time)
 }
@@ -544,26 +525,15 @@ void Color::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     WRAP_EXCEPTIONS_BEGIN(Color)
     Parser::parse(opts, e, tagName);
 
-    try
-    {
-        r = getSubValDouble(opts, e, "r");
-        g = getSubValDouble(opts, e, "g");
-        b = getSubValDouble(opts, e, "b");
-        a = getSubValDouble(opts, e, "a");
-    }
-    catch(string &ex)
-    {
-        // a color can be parsed also as a space delimited list
-        string text = e->GetText();
-        vector<string> tokens;
-        boost::split(tokens, text, boost::is_any_of(" "));
-        if(tokens.size() != 4)
-            throw (boost::format("invalid color length: %d") % tokens.size()).str();
-        r = boost::lexical_cast<double>(tokens[0]);
-        g = boost::lexical_cast<double>(tokens[1]);
-        b = boost::lexical_cast<double>(tokens[2]);
-        a = boost::lexical_cast<double>(tokens[3]);
-    }
+    string text = e->GetText();
+    vector<string> tokens;
+    boost::split(tokens, text, boost::is_any_of(" "));
+    if(tokens.size() != 4)
+        throw (boost::format("invalid color length: %d") % tokens.size()).str();
+    r = boost::lexical_cast<double>(tokens[0]);
+    g = boost::lexical_cast<double>(tokens[1]);
+    b = boost::lexical_cast<double>(tokens[2]);
+    a = boost::lexical_cast<double>(tokens[3]);
 
     WRAP_EXCEPTIONS_END(Color)
 }
@@ -583,24 +553,14 @@ void Orientation::parse(const ParseOptions &opts, XMLElement *e, const char *tag
     WRAP_EXCEPTIONS_BEGIN(Orientation)
     Parser::parse(opts, e, tagName);
 
-    try
-    {
-        roll = getSubValDouble(opts, e, "roll");
-        pitch = getSubValDouble(opts, e, "pitch");
-        yaw = getSubValDouble(opts, e, "yaw");
-    }
-    catch(string &ex)
-    {
-        // a orientation can be parsed also as a space delimited list
-        string text = e->GetText();
-        vector<string> tokens;
-        boost::split(tokens, text, boost::is_any_of(" "));
-        if(tokens.size() != 3)
-            throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
-        roll = boost::lexical_cast<double>(tokens[0]);
-        pitch = boost::lexical_cast<double>(tokens[1]);
-        yaw = boost::lexical_cast<double>(tokens[2]);
-    }
+    string text = e->GetText();
+    vector<string> tokens;
+    boost::split(tokens, text, boost::is_any_of(" "));
+    if(tokens.size() != 3)
+        throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
+    roll = boost::lexical_cast<double>(tokens[0]);
+    pitch = boost::lexical_cast<double>(tokens[1]);
+    yaw = boost::lexical_cast<double>(tokens[2]);
 
     WRAP_EXCEPTIONS_END(Orientation)
 }
@@ -619,26 +579,18 @@ void Pose::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     WRAP_EXCEPTIONS_BEGIN(Pose)
     Parser::parse(opts, e, tagName);
 
-    try
-    {
-        parse1(opts, e, "position", position);
-        parse1(opts, e, "orientation", orientation);
-    }
-    catch(string &ex)
-    {
-        // a pose can be parsed also as a space delimited list
-        string text = e->GetText();
-        vector<string> tokens;
-        boost::split(tokens, text, boost::is_any_of(" "));
-        if(tokens.size() != 6)
-            throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
-        position.x = boost::lexical_cast<double>(tokens[0]);
-        position.y = boost::lexical_cast<double>(tokens[1]);
-        position.z = boost::lexical_cast<double>(tokens[2]);
-        orientation.roll = boost::lexical_cast<double>(tokens[3]);
-        orientation.pitch = boost::lexical_cast<double>(tokens[4]);
-        orientation.yaw = boost::lexical_cast<double>(tokens[5]);
-    }
+    string text = e->GetText();
+    vector<string> tokens;
+    boost::split(tokens, text, boost::is_any_of(" "));
+    if(tokens.size() != 6)
+        throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
+    position.x = boost::lexical_cast<double>(tokens[0]);
+    position.y = boost::lexical_cast<double>(tokens[1]);
+    position.z = boost::lexical_cast<double>(tokens[2]);
+    orientation.roll = boost::lexical_cast<double>(tokens[3]);
+    orientation.pitch = boost::lexical_cast<double>(tokens[4]);
+    orientation.yaw = boost::lexical_cast<double>(tokens[5]);
+
     frame = getAttrStrOpt(opts, e, "frame");
 
     WRAP_EXCEPTIONS_END(Pose)
