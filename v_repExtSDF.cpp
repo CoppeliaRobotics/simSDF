@@ -111,20 +111,15 @@ void alternateRespondableMasks(int objHandle, bool bitSet = false)
     {
         int p;
         simGetObjectIntParameter(objHandle, sim_shapeintparam_respondable, &p);
-        if(p != 0)
+        if(p)
         {
-            if(bitSet)
-                simSetObjectIntParameter(objHandle, sim_shapeintparam_respondable_mask, 0xff01);
-            else
-                simSetObjectIntParameter(objHandle, sim_shapeintparam_respondable_mask, 0xff02);
+            simSetObjectIntParameter(objHandle, sim_shapeintparam_respondable_mask, bitSet ? 0xff01 : 0xff02);
             bitSet = !bitSet;
         }
     }
-    int index = 0;
-    while(true)
+    for(int index = 0, childHandle; ; index++)
     {
-        int childHandle = simGetObjectChild(objHandle, index++);
-        if(childHandle == -1) break;
+        if((childHandle = simGetObjectChild(objHandle, index)) == -1) break;
         alternateRespondableMasks(childHandle, bitSet);
     }
 }
