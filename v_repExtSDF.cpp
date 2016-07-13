@@ -105,6 +105,30 @@ int menuItemHandle = -1;
 using namespace tinyxml2;
 using std::set;
 
+void alternateRespondableMasks(int objHandle, bool bitSet = false)
+{
+    if(simGetObjectType(objHandle) == sim_object_shape_type)
+    {
+        int p;
+        simGetObjectIntParameter(objHandle, sim_shapeintparam_respondable, &p);
+        if(p != 0)
+        {
+            if(bitSet)
+                simSetObjectIntParameter(objHandle, sim_shapeintparam_respondable_mask, 0xff01);
+            else
+                simSetObjectIntParameter(objHandle, sim_shapeintparam_respondable_mask, 0xff02);
+            bitSet = !bitSet;
+        }
+    }
+    int index = 0;
+    while(true)
+    {
+        int childHandle = simGetObjectChild(objHandle, index++);
+        if(childHandle == -1) break;
+        alternateRespondableMasks(childHandle, bitSet);
+    }
+}
+
 string getResourceFullPath(string uri, string sdfFile)
 {
     const string prefix = "model://";
@@ -597,6 +621,15 @@ void importModel(const ImportOptions &opts, Model &model)
     BOOST_FOREACH(Model &x, model.submodels)
     {
         importModel(opts, x);
+    }
+
+    BOOST_FOREACH(Link &link, model.links)
+    {
+        if(link.getParentJoint(model)) continue;
+        if(link.selfCollide && *link.selfCollide == true) continue;
+        if(model.selfCollide && *model.selfCollide == true) continue;
+        if(link.selfCollide || model.selfCollide || opts.noSelfCollision)
+            alternateRespondableMasks(link.vrepHandle);
     }
 }
 
