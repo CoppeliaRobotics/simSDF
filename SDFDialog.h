@@ -19,16 +19,16 @@ public:
     explicit SDFDialog(QWidget *parent = 0);
     ~SDFDialog();
 
-	void refresh();
+    void refresh();
 
-	void makeVisible(bool visible);
-	bool getVisible();
+    void makeVisible(bool visible);
+    bool getVisible();
 
-	int dialogMenuItemHandle;
+    int dialogMenuItemHandle;
 
-	void reject();
+    void reject();
 
-	void setSimulationStopped(bool stopped);
+    void setSimulationStopped(bool stopped);
 
     void showDialogForFile(std::string f);
 
@@ -37,27 +37,27 @@ private:
     bool simulationStopped;
 
 private slots:
-	void on_qqImport_clicked();
+    void on_qqImport_clicked();
 
-	void on_qqIgnoreMissingValues_clicked();
+    void on_qqIgnoreMissingValues_clicked();
 
-	void on_qqCollisionLinksHidden_clicked();
+    void on_qqCollisionLinksHidden_clicked();
 
-	void on_qqJointsHidden_clicked();
+    void on_qqJointsHidden_clicked();
 
-	void on_qqConvexDecompose_clicked();
+    void on_qqConvexDecompose_clicked();
 
-	void on_qqConvexDecomposeDlg_clicked();
+    void on_qqConvexDecomposeDlg_clicked();
 
-	void on_qqCreateVisualLinks_clicked();
+    void on_qqCreateVisualLinks_clicked();
 
-	void on_qqCenterModel_clicked();
+    void on_qqCenterModel_clicked();
 
-	void on_qqModelDefinition_clicked();
+    void on_qqModelDefinition_clicked();
 
-	void on_qqAlternateMasks_clicked();
+    void on_qqAlternateMasks_clicked();
 
-	void on_qqPositionCtrl_clicked();
+    void on_qqPositionCtrl_clicked();
 
 private:
     Ui::SDFDialog *ui;
