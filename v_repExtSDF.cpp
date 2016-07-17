@@ -359,6 +359,7 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
     m2[ 8] = m.M(2,0); m2[ 9] = m.M(2,1); m2[10] = m.M(2,2); m2[11] = m.X(2); \
     simMultiplyMatrices(m2, m1, m3); \
     simSetObjectMatrix(obj, -1, m3); \
+    simSetObjectProperty(obj, simGetObjectProperty(obj) | sim_objectproperty_selectmodelbaseinstead); \
 }
 
 void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt parentJointHandle)
@@ -635,6 +636,14 @@ void importModel(const ImportOptions &opts, Model &model)
         if(model.selfCollide && *model.selfCollide == true) continue;
         if(link.selfCollide || model.selfCollide || opts.noSelfCollision)
             alternateRespondableMasks(link.vrepHandle);
+
+        // mark root object as model base
+        simSetModelProperty(link.vrepHandle,
+                simGetModelProperty(link.vrepHandle)
+                & ~sim_modelproperty_not_model);
+        simSetObjectProperty(link.vrepHandle,
+                simGetObjectProperty(link.vrepHandle)
+                & ~sim_objectproperty_selectmodelbaseinstead);
     }
 }
 
