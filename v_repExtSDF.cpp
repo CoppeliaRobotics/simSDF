@@ -349,6 +349,18 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
     return handle;
 }
 
+#define simMultiplyObjectMatrix(obj,pose) \
+{ \
+    simFloat m1[12], m2[12], m3[12]; \
+    simGetObjectMatrix(obj, -1, m1); \
+    C4X4Matrix m = pose.getMatrix(); \
+    m2[ 0] = m.M(0,0); m2[ 1] = m.M(0,1); m2[ 2] = m.M(0,2); m2[ 3] = m.X(0); \
+    m2[ 4] = m.M(1,0); m2[ 5] = m.M(1,1); m2[ 6] = m.M(1,2); m2[ 7] = m.X(1); \
+    m2[ 8] = m.M(2,0); m2[ 9] = m.M(2,1); m2[10] = m.M(2,2); m2[11] = m.X(2); \
+    simMultiplyMatrices(m2, m1, m3); \
+    simSetObjectMatrix(obj, -1, m3); \
+}
+
 void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt parentJointHandle)
 {
     DBG << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
@@ -372,8 +384,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         shapeHandlesColl.push_back(shapeHandle);
         C7Vector collPose = linkPose * getPose(opts, collision.pose);
         DBG << "collision " << collision.name << " pose: " << collPose << std::endl;
-        simSetObjectPosition(shapeHandle, -1, collPose.X.data);
-        simSetObjectOrientation(shapeHandle, -1, collPose.Q.getEulerAngles().data);
+        simMultiplyObjectMatrix(shapeHandle, collPose);
     }
     simInt shapeHandleColl = -1;
     if(shapeHandlesColl.size() == 0)
@@ -432,8 +443,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         if(shapeHandle == -1) continue;
         C7Vector visPose = linkPose * getPose(opts, visual.pose);
         DBG << "visual " << visual.name << " pose: " << visPose << std::endl;
-        simSetObjectPosition(shapeHandle, -1, visPose.X.data);
-        simSetObjectOrientation(shapeHandle, -1, visPose.Q.getEulerAngles().data);
+        simMultiplyObjectMatrix(shapeHandle, visPose);
         simSetObjectParent(shapeHandle, shapeHandleColl, true);
         setVrepObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
     }
