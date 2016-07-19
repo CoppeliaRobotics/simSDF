@@ -328,6 +328,8 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
             float scalingFactors[3] = {geometry.mesh->scale->x, geometry.mesh->scale->y, geometry.mesh->scale->z};
             handle = scaleShape(handle, scalingFactors);
         }
+        // edges can make things very ugly if the mesh is not nice:
+        simSetInt32Parameter(handle, sim_shapeintparam_edge_visibility, 0);
     }
     else if(geometry.image)
     {
