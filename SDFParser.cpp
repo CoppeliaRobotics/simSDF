@@ -770,8 +770,8 @@ void Clip::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     WRAP_EXCEPTIONS_BEGIN(Clip)
     Parser::parse(opts, e, tagName);
 
-    near = getSubValDouble(opts, e, "near");
-    far = getSubValDouble(opts, e, "far");
+    near_ = getSubValDouble(opts, e, "near");
+    far_ = getSubValDouble(opts, e, "far");
 
     WRAP_EXCEPTIONS_END(Clip)
 }
@@ -779,8 +779,8 @@ void Clip::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
 void Clip::dump(const DumpOptions &opts, ostream &stream, int i) const
 {
     BEGIN_DUMP(Clip);
-    DUMP_FIELD(near);
-    DUMP_FIELD(far);
+    DUMP_FIELD(near_);
+    DUMP_FIELD(far_);
     END_DUMP(Clip);
 }
 
@@ -1113,8 +1113,8 @@ void LogicalCameraSensor::parse(const ParseOptions &opts, XMLElement *e, const c
     WRAP_EXCEPTIONS_BEGIN(LogicalCameraSensor)
     Parser::parse(opts, e, tagName);
 
-    near = getSubValDouble(opts, e, "near");
-    far = getSubValDouble(opts, e, "far");
+    near_ = getSubValDouble(opts, e, "near");
+    far_ = getSubValDouble(opts, e, "far");
     aspectRatio = getSubValDouble(opts, e, "aspect_ratio");
     horizontalFOV = getSubValDouble(opts, e, "horizontal_fov");
 
@@ -1124,8 +1124,8 @@ void LogicalCameraSensor::parse(const ParseOptions &opts, XMLElement *e, const c
 void LogicalCameraSensor::dump(const DumpOptions &opts, ostream &stream, int i) const
 {
     BEGIN_DUMP(LogicalCameraSensor);
-    DUMP_FIELD(near);
-    DUMP_FIELD(far);
+    DUMP_FIELD(near_);
+    DUMP_FIELD(far_);
     DUMP_FIELD(aspectRatio);
     DUMP_FIELD(horizontalFOV);
     END_DUMP(LogicalCameraSensor);

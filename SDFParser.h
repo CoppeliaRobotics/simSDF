@@ -257,8 +257,8 @@ PARSER_CLASS(Image)
 
 PARSER_CLASS(Clip)
 {
-    double near;
-    double far;
+    double near_;
+    double far_;
 
     PARSER_METHODS(Clip)
 };
@@ -395,8 +395,8 @@ PARSER_CLASS(IMUSensor)
 
 PARSER_CLASS(LogicalCameraSensor)
 {
-    double near;
-    double far;
+    double near_;
+    double far_;
     double aspectRatio;
     double horizontalFOV;
 
