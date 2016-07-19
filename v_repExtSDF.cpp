@@ -329,7 +329,7 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
             handle = scaleShape(handle, scalingFactors);
         }
         // edges can make things very ugly if the mesh is not nice:
-        simSetInt32Parameter(handle, sim_shapeintparam_edge_visibility, 0);
+        simSetObjectIntParameter(handle, sim_shapeintparam_edge_visibility, 0);
     }
     else if(geometry.image)
     {
@@ -425,6 +425,10 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         };
         simSetShapeMassAndInertia(shapeHandleColl, mass, inertia, C3Vector::zeroVector.data, m);
     }
+    if(link.inertial && (!link.kinematic || *link.kinematic == false))
+        simSetObjectInt32Parameter(shapeHandleColl, sim_shapeintparam_static, 0);
+    else
+        simSetObjectInt32Parameter(shapeHandleColl, sim_shapeintparam_static, 1);
 
     if(parentJointHandle != -1)
     {
