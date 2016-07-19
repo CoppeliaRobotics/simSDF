@@ -309,10 +309,6 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
     }
     else if(geometry.mesh)
     {
-        simInt options = 0
-            + 1 // backface culling
-            + 2 // show edges
-            ;
         DBG << "ImportOptions: " << opts.str() << std::endl;
         string filename = getResourceFullPath(geometry.mesh->uri, opts.fileName);
         if(!simDoesFileExist(filename.c_str()))
