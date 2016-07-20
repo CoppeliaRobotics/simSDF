@@ -384,6 +384,51 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         C7Vector collPose = linkPose * getPose(opts, collision.pose);
         DBG << "collision " << collision.name << " pose: " << collPose << std::endl;
         simMultiplyObjectMatrix(shapeHandle, collPose);
+        if(collision.surface)
+        {
+            simSetShapeMaterial(shapeHandle, -1);
+            if(collision.surface->friction)
+            {
+                SurfaceFriction &f = *collision.surface->friction;
+                simFloat friction = 0.0;
+                bool set = false;
+                if(f.ode && f.ode->mu)
+                {
+                    friction = 0.5 * (*f.ode->mu + (f.ode->mu2 ? *f.ode->mu2 : *f.ode->mu));
+                    set = true;
+                }
+                if(f.bullet && f.bullet->friction)
+                {
+                    friction = 0.5 * (*f.bullet->friction + (f.bullet->friction2 ? *f.bullet->friction2 : *f.bullet->friction));
+                    set = true;
+                }
+                if(set)
+                {
+                    simSetEngineFloatParameter(sim_bullet_body_oldfriction, shapeHandle, NULL, friction);
+                    simSetEngineFloatParameter(sim_bullet_body_friction, shapeHandle, NULL, friction);
+                    simSetEngineFloatParameter(sim_ode_body_friction, shapeHandle, NULL, friction);
+                    simSetEngineFloatParameter(sim_vortex_body_primlinearaxisfriction, shapeHandle, NULL, friction);
+                    simSetEngineFloatParameter(sim_vortex_body_seclinearaxisfriction, shapeHandle, NULL, friction);
+                    simSetEngineFloatParameter(sim_newton_body_staticfriction, shapeHandle, NULL, friction);
+                    simSetEngineFloatParameter(sim_newton_body_kineticfriction, shapeHandle, NULL, friction);
+                }
+            }
+            if(collision.surface->bounce)
+            {
+                SurfaceBounce &b = *collision.surface->bounce;
+                if(b.restitutionCoefficient)
+                {
+                    simSetShapeMaterial(shapeHandle, -1);
+                    simSetEngineFloatParameter(sim_bullet_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                    simSetEngineFloatParameter(sim_vortex_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                    simSetEngineFloatParameter(sim_newton_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                }
+                if(b.threshold)
+                {
+                    simSetEngineFloatParameter(sim_vortex_body_restitutionthreshold, shapeHandle, NULL, *b.restitutionCoefficient);
+                }
+            }
+        }
     }
     simInt shapeHandleColl = -1;
     if(shapeHandlesColl.size() == 0)
