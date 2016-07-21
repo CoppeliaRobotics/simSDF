@@ -184,7 +184,9 @@ void SDFDialog::showDialogForFile(std::string f)
         }
     }
 
-    ui->txtFilename->setText(QString::fromStdString(f));
+    QString fshort = QString::fromStdString(f);
+    if(fshort.length() > 40) fshort = QString("...") + fshort.rightRef(40).toString();
+    ui->txtFilename->setText(fshort);
     std::stringstream ss;
     ss << "SDF version " << sdf.version << "\n"
         << sdf.worlds.size() << " worlds;\n"
