@@ -2360,7 +2360,7 @@ void Link::dump(const DumpOptions &opts, ostream &stream, int i) const
     DUMP_FIELD(inertial);
     DUMP_FIELD(collisions);
     DUMP_FIELD(visuals);
-    DUMP_FIELD(sensor);
+    DUMP_FIELD(sensors);
     DUMP_FIELD(projector);
     DUMP_FIELD(audioSources);
     DUMP_FIELD(audioSinks);
@@ -2596,7 +2596,7 @@ void Joint::dump(const DumpOptions &opts, ostream &stream, int i) const
     DUMP_FIELD(physics);
     DUMP_FIELD(frames);
     DUMP_FIELD(pose);
-    DUMP_FIELD(sensor);
+    DUMP_FIELD(sensors);
     END_DUMP(Joint);
 }
 
