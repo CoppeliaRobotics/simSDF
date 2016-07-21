@@ -920,7 +920,7 @@ PARSER_CLASS(Link)
     optional<LinkInertial> inertial;
     vector<LinkCollision> collisions;
     vector<LinkVisual> visuals;
-    optional<Sensor> sensor;
+    vector<Sensor> sensors;
     optional<Projector> projector;
     vector<AudioSource> audioSources;
     vector<AudioSink> audioSinks;
@@ -1026,7 +1026,7 @@ PARSER_CLASS(Joint)
     optional<JointPhysics> physics;
     vector<Frame> frames;
     optional<Pose> pose;
-    optional<Sensor> sensor;
+    vector<Sensor> sensors;
 
     PARSER_METHODS(Joint)
 

@@ -2334,7 +2334,7 @@ void Link::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     parse1Opt(opts, e, "inertial", inertial);
     parseMany(opts, e, "collision", collisions);
     parseMany(opts, e, "visual", visuals);
-    parse1Opt(opts, e, "sensor", sensor);
+    parseMany(opts, e, "sensor", sensors);
     parse1Opt(opts, e, "projector", projector);
     parseMany(opts, e, "audio_source", audioSources);
     parseMany(opts, e, "audio_sink", audioSinks);
@@ -2574,7 +2574,7 @@ void Joint::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     parse1Opt(opts, e, "physics", physics);
     parseMany(opts, e, "frame", frames);
     parse1Opt(opts, e, "pose", pose);
-    parse1Opt(opts, e, "sensor", sensor);
+    parseMany(opts, e, "sensor", sensors);
 
     vrepHandle = -1;
 
