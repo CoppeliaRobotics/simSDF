@@ -360,6 +360,110 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
     simSetObjectProperty(obj, simGetObjectProperty(obj) | sim_objectproperty_selectmodelbaseinstead); \
 }
 
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, Sensor &sensor)
+{
+    simInt handle = -1;
+
+    if(sensor.type == "altimeter")
+    {
+    }
+    else if(sensor.type == "camera")
+    {
+        CameraSensor &camera = *sensor.camera;
+        simInt options = 0
+            + 1*1   // the sensor will be explicitely handled
+            + 0*2   // the sensor will be in perspective operation mode
+            + 0*4   // the sensor volume will not be shown when not detecting anything
+            + 0*8   // the sensor volume will not be shown when detecting something
+            + 0*16  // the sensor will be passive (use an external image)
+            + 0*32  // the sensor will use local lights
+            + 0*64  // the sensor will not render any fog
+            + 0*128 // the sensor will use a specific color for default background (i.e. "null" pixels)
+            ;
+        simInt intParams[4] = {
+            int(camera.image.width), // sensor resolution x
+            int(camera.image.height), // sensor resolution y
+            0, // reserved. Set to 0
+            0 // reserver. Set to 0
+        };
+        simFloat floatParams[11] = {
+            camera.clip.near_, // near clipping plane
+            camera.clip.far_, // far clipping plane
+            camera.horizontalFOV, // view angle / ortho view size
+            0.2f, // sensor size x
+            0.2f, // sensor size y
+            0.4f, // sensor size z
+            0.0f, // "null" pixel red-value
+            0.0f, // "null" pixel green-value
+            0.0f, // "null" pixel blue-value
+            0.0f, // reserved. Set to 0.0
+            0.0f // reserved. Set to 0.0
+        };
+        handle = simCreateVisionSensor(options, intParams, floatParams, NULL);
+    }
+    else if(sensor.type == "contact")
+    {
+    }
+    else if(sensor.type == "depth")
+    {
+    }
+    else if(sensor.type == "force_torque")
+    {
+    }
+    else if(sensor.type == "gps")
+    {
+    }
+    else if(sensor.type == "gpu_ray")
+    {
+    }
+    else if(sensor.type == "imu")
+    {
+    }
+    else if(sensor.type == "logical_camera")
+    {
+    }
+    else if(sensor.type == "magnetometer")
+    {
+    }
+    else if(sensor.type == "multicamera")
+    {
+    }
+    else if(sensor.type == "ray")
+    {
+    }
+    else if(sensor.type == "rfid")
+    {
+    }
+    else if(sensor.type == "rfidtag")
+    {
+    }
+    else if(sensor.type == "sonar")
+    {
+    }
+    else if(sensor.type == "wireless_receiver")
+    {
+    }
+    else if(sensor.type == "wireless_transmitter")
+    {
+    }
+    else throw (boost::format("ERROR: the sensor type '%s' is not currently supported") % sensor.type).str();
+
+    // for sensors with missing implementation, we create just a dummy
+    if(handle == -1)
+    {
+        handle = simCreateDummy(0, NULL);
+    }
+
+    setVrepObjectName(opts, handle, sensor.name);
+
+    C7Vector pose = parentPose * getPose(opts, sensor.pose);
+    simMultiplyObjectMatrix(handle, pose);
+
+    simSetObjectParent(handle, parentHandle, true);
+
+    return handle;
+}
+
 void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt parentJointHandle)
 {
     DBG << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
@@ -494,6 +598,11 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         simMultiplyObjectMatrix(shapeHandle, visPose);
         simSetObjectParent(shapeHandle, shapeHandleColl, true);
         setVrepObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
+    }
+
+    BOOST_FOREACH(Sensor &sensor, link.sensors)
+    {
+        simInt sensorHandle = importSensor(opts, shapeHandleColl, linkPose, sensor);
     }
 }
 
