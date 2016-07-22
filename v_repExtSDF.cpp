@@ -421,6 +421,49 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
     }
     else if(sensor.type == "logical_camera")
     {
+        LogicalCameraSensor &lc = *sensor.logicalCamera;
+        simInt sensorType = sim_proximitysensor_pyramid_subtype;
+        simInt subType = sim_objectspecialproperty_detectable_all;
+        simInt options = 0
+            + 1*1   // the sensor will be explicitely handled
+            + 0*2   // the detection volumes are not shown when detecting something
+            + 0*4   // the detection volumes are not shown when not detecting anything
+            + 0*8   // front faces are not detected
+            + 0*16  // back faces are not detected
+            + 0*32  // fast detection (i.e. not exact detection)
+            + 0*64  // the normal of the detected surface with the detection ray will have to lie below a specified threshold angle
+            + 0*128 // occlusion check is active
+            + 0*256 // smallest distance threshold will be active
+            + 0*512 // randomized detection (only with ray-type proximity sensors)
+            ;
+        simInt intParams[8] = {
+            0, // face count (volume description)
+            0, // face count far (volume description)
+            0, // subdivisions (volume description)
+            0, // subdivisions far (volume description)
+            0, // randomized detection, sample count per reading
+            0, // randomized detection, individual ray detection count for triggering
+            0, // reserved. Set to 0
+            0  // reserved. Set to 0
+        };
+        simFloat floatParams[15] = {
+            0.1, // offset (volume description)
+            0.2, // range (volume description)
+            0.2, // x size (volume description)
+            0.1, // y size (volume description)
+            0.4, // x size far (volume description)
+            0.2, // y size far (volume description)
+            0, // inside gap (volume description)
+            0, // radius (volume description)
+            0, // radius far (volume description)
+            0, // angle (volume description)
+            0, // threshold angle for limited angle detection (see bit 6 above)
+            0, // smallest detection distance (see bit 8 above)
+            0, // sensing point size
+            0, // reserved. Set to 0.0
+            0  // reserved. Set to 0.0
+        };
+        handle = simCreateProximitySensor(sensorType, subType, options, intParams, floatParams, NULL);
     }
     else if(sensor.type == "magnetometer")
     {
