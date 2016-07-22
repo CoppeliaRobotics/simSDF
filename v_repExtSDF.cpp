@@ -447,12 +447,12 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
             0  // reserved. Set to 0
         };
         simFloat floatParams[15] = {
-            0.1, // offset (volume description)
-            0.2, // range (volume description)
-            0.2, // x size (volume description)
-            0.1, // y size (volume description)
-            0.4, // x size far (volume description)
-            0.2, // y size far (volume description)
+            lc.near_, // offset (volume description)
+            lc.far_-lc.near_, // range (volume description)
+            2*lc.near_*tan(lc.horizontalFOV/2), // x size (volume description)
+            2*lc.near_*tan(lc.horizontalFOV/2), // y size (volume description)
+            2*lc.far_*tan(lc.horizontalFOV*lc.aspectRatio/2), // x size far (volume description)
+            2*lc.far_*tan(lc.horizontalFOV*lc.aspectRatio/2), // y size far (volume description)
             0, // inside gap (volume description)
             0, // radius (volume description)
             0, // radius far (volume description)
