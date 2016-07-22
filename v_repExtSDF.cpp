@@ -253,96 +253,130 @@ void importWorld(const ImportOptions &opts, World &world)
     DBG << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
+simInt importGeometry(const ImportOptions &opts, EmptyGeometry &empty, bool static_, bool respondable, double mass)
+{
+    return simCreateDummy(0, NULL);
+}
+
+simInt importGeometry(const ImportOptions &opts, BoxGeometry &box, bool static_, bool respondable, double mass)
+{
+    simInt primitiveType = 0;
+    simInt options = 0
+        + 1 // backface culling
+        + 2 // show edges
+        + (respondable ? 8 : 0)
+        + (static_ ? 16 : 0) // static shape?
+        ;
+    simFloat sizes[3] = {box.size.x, box.size.y, box.size.z};
+    return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
+}
+
+simInt importGeometry(const ImportOptions &opts, SphereGeometry &sphere, bool static_, bool respondable, double mass)
+{
+    simInt primitiveType = 1;
+    simInt options = 0
+        + 1 // backface culling
+        + 2 // show edges
+        + (respondable ? 8 : 0)
+        + (static_ ? 16 : 0) // static shape?
+        ;
+    simFloat sizes[3];
+    sizes[0] = sizes[1] = sizes[2] = 2 * sphere.radius;
+    return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
+}
+
+simInt importGeometry(const ImportOptions &opts, CylinderGeometry &cylinder, bool static_, bool respondable, double mass)
+{
+    simInt primitiveType = 2;
+    simInt options = 0
+        + 1 // backface culling
+        + 2 // show edges
+        + (respondable ? 8 : 0)
+        + (static_ ? 16 : 0) // static shape?
+        ;
+    simFloat sizes[3];
+    sizes[0] = sizes[1] = 2 * cylinder.radius;
+    sizes[2] = cylinder.length;
+    return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
+}
+
+simInt importGeometry(const ImportOptions &opts, HeightMapGeometry &heightmap, bool static_, bool respondable, double mass)
+{
+    simInt options = 0
+        + 1 // backface culling
+        + 2 // overlay mesh visible
+        + (respondable ? 0 : 8)
+        ;
+    simFloat shadingAngle = 45;
+    simInt xPointCount = 0;
+    simInt yPointCount = 0;
+    simFloat xSize = 0;
+    simFloat *heights = 0;
+    return simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
+}
+
+simInt importGeometry(const ImportOptions &opts, MeshGeometry &mesh, bool static_, bool respondable, double mass)
+{
+    string filename = getResourceFullPath(mesh.uri, opts.fileName);
+    if(!simDoesFileExist(filename.c_str()))
+        throw (boost::format("ERROR: mesh '%s' does not exist") % filename).str();
+    string extension = filename.substr(filename.size() - 3, filename.size());
+    boost::algorithm::to_lower(extension);
+    int extensionNum = -1;
+    if(extension == "obj") extensionNum = 0;
+    else if(extension == "dxf") extensionNum = 1;
+    else if(extension == "3ds") extensionNum = 2;
+    else if(extension == "stl") extensionNum = 4;
+    else if(extension == "dae") extensionNum = 5;
+    else throw (boost::format("ERROR: the mesh extension '%s' is not currently supported") % extension).str();
+    simInt handle = simImportShape(extensionNum, filename.c_str(), 0, 0.0001f, 1.0f);
+    if(mesh.scale)
+    {
+        float scalingFactors[3] = {mesh.scale->x, mesh.scale->y, mesh.scale->z};
+        handle = scaleShape(handle, scalingFactors);
+    }
+    // edges can make things very ugly if the mesh is not nice:
+    simSetObjectIntParameter(handle, sim_shapeintparam_edge_visibility, 0);
+    return handle;
+}
+
+simInt importGeometry(const ImportOptions &opts, ImageGeometry &image, bool static_, bool respondable, double mass)
+{
+    throw string("image geometry not currently supported");
+}
+
+simInt importGeometry(const ImportOptions &opts, PlaneGeometry &plane, bool static_, bool respondable, double mass)
+{
+    throw string("plane geometry not currently supported");
+}
+
+simInt importGeometry(const ImportOptions &opts, PolylineGeometry &polyline, bool static_, bool respondable, double mass)
+{
+    throw string("polyline geometry not currently supported");
+}
+
 simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static_, bool respondable, double mass)
 {
     simInt handle = -1;
 
     if(geometry.empty)
-    {
-        handle = simCreateDummy(0, NULL);
-    }
-    else if(geometry.box || geometry.sphere || geometry.cylinder)
-    {
-        // pure shape
-        simInt primitiveType =
-            geometry.box ? 0 :
-            geometry.sphere ? 1 :
-            geometry.cylinder ? 2 :
-            -1;
-        simInt options = 0
-            + 1 // backface culling
-            + 2 // show edges
-            + (respondable ? 8 : 0)
-            + (static_ ? 16 : 0) // static shape?
-            ;
-        simFloat sizes[3];
-        if(geometry.box)
-        {
-            sizes[0] = geometry.box->size.x;
-            sizes[1] = geometry.box->size.y;
-            sizes[2] = geometry.box->size.z;
-        }
-        else if(geometry.sphere)
-        {
-            sizes[0] = sizes[1] = sizes[2] = 2 * geometry.sphere->radius;
-        }
-        else if(geometry.cylinder)
-        {
-            sizes[0] = sizes[1] = 2 * geometry.cylinder->radius;
-            sizes[2] = geometry.cylinder->length;
-        }
-        handle = simCreatePureShape(primitiveType, options, sizes, mass, NULL);
-    }
+        return importGeometry(opts, *geometry.empty, static_, respondable, mass);
+    else if(geometry.box)
+        return importGeometry(opts, *geometry.box, static_, respondable, mass);
+    else if(geometry.sphere)
+        return importGeometry(opts, *geometry.sphere, static_, respondable, mass);
+    else if(geometry.cylinder)
+        return importGeometry(opts, *geometry.cylinder, static_, respondable, mass);
     else if(geometry.heightmap)
-    {
-        simInt options = 0
-            + 1 // backface culling
-            + 2 // overlay mesh visible
-            + (respondable ? 0 : 8)
-            ;
-        simFloat shadingAngle = 45;
-        simInt xPointCount = 0;
-        simInt yPointCount = 0;
-        simFloat xSize = 0;
-        simFloat *heights = 0;
-        handle = simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
-    }
+        return importGeometry(opts, *geometry.heightmap, static_, respondable, mass);
     else if(geometry.mesh)
-    {
-        DBG << "ImportOptions: " << opts.str() << std::endl;
-        string filename = getResourceFullPath(geometry.mesh->uri, opts.fileName);
-        if(!simDoesFileExist(filename.c_str()))
-            throw (boost::format("ERROR: mesh '%s' does not exist") % filename).str();
-        string extension = filename.substr(filename.size() - 3, filename.size());
-        boost::algorithm::to_lower(extension);
-        int extensionNum = -1;
-        if(extension == "obj") extensionNum = 0;
-        else if(extension == "dxf") extensionNum = 1;
-        else if(extension == "3ds") extensionNum = 2;
-        else if(extension == "stl") extensionNum = 4;
-        else if(extension == "dae") extensionNum = 5;
-        else throw (boost::format("ERROR: the mesh extension '%s' is not currently supported") % extension).str();
-        handle = simImportShape(extensionNum, filename.c_str(), 0, 0.0001f, 1.0f);
-        if(geometry.mesh->scale)
-        {
-            float scalingFactors[3] = {geometry.mesh->scale->x, geometry.mesh->scale->y, geometry.mesh->scale->z};
-            handle = scaleShape(handle, scalingFactors);
-        }
-        // edges can make things very ugly if the mesh is not nice:
-        simSetObjectIntParameter(handle, sim_shapeintparam_edge_visibility, 0);
-    }
+        return importGeometry(opts, *geometry.mesh, static_, respondable, mass);
     else if(geometry.image)
-    {
-        throw string("ERROR: image geometry not currently supported");
-    }
+        return importGeometry(opts, *geometry.image, static_, respondable, mass);
     else if(geometry.plane)
-    {
-        throw string("ERROR: plane geometry not currently supported");
-    }
+        return importGeometry(opts, *geometry.plane, static_, respondable, mass);
     else if(geometry.polyline)
-    {
-        throw string("ERROR: polyline geometry not currently supported");
-    }
+        return importGeometry(opts, *geometry.polyline, static_, respondable, mass);
 
     return handle;
 }
@@ -360,68 +394,116 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
     simSetObjectProperty(obj, simGetObjectProperty(obj) | sim_objectproperty_selectmodelbaseinstead); \
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, Sensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, AltimeterSensor &sensor)
 {
-    simInt handle = -1;
+    return -1;
+}
 
-    if(sensor.type == "altimeter")
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, CameraSensor &camera)
+{
+    simInt options = 0
+        + 1*1   // the sensor will be explicitely handled
+        + 0*2   // the sensor will be in perspective operation mode
+        + 0*4   // the sensor volume will not be shown when not detecting anything
+        + 0*8   // the sensor volume will not be shown when detecting something
+        + 0*16  // the sensor will be passive (use an external image)
+        + 0*32  // the sensor will use local lights
+        + 0*64  // the sensor will not render any fog
+        + 0*128 // the sensor will use a specific color for default background (i.e. "null" pixels)
+        ;
+    simInt intParams[4] = {
+        int(camera.image.width), // sensor resolution x
+        int(camera.image.height), // sensor resolution y
+        0, // reserved. Set to 0
+        0 // reserver. Set to 0
+    };
+    simFloat floatParams[11] = {
+        camera.clip.near_, // near clipping plane
+        camera.clip.far_, // far clipping plane
+        camera.horizontalFOV, // view angle / ortho view size
+        0.2f, // sensor size x
+        0.2f, // sensor size y
+        0.4f, // sensor size z
+        0.0f, // "null" pixel red-value
+        0.0f, // "null" pixel green-value
+        0.0f, // "null" pixel blue-value
+        0.0f, // reserved. Set to 0.0
+        0.0f // reserved. Set to 0.0
+    };
+    return simCreateVisionSensor(options, intParams, floatParams, NULL);
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, ContactSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, GPSSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, IMUSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, LogicalCameraSensor &lc)
+{
+    simInt sensorType = sim_proximitysensor_pyramid_subtype;
+    simInt subType = sim_objectspecialproperty_detectable_all;
+    simInt options = 0
+        + 1*1   // the sensor will be explicitely handled
+        + 0*2   // the detection volumes are not shown when detecting something
+        + 0*4   // the detection volumes are not shown when not detecting anything
+        + 0*8   // front faces are not detected
+        + 0*16  // back faces are not detected
+        + 0*32  // fast detection (i.e. not exact detection)
+        + 0*64  // the normal of the detected surface with the detection ray will have to lie below a specified threshold angle
+        + 0*128 // occlusion check is active
+        + 0*256 // smallest distance threshold will be active
+        + 0*512 // randomized detection (only with ray-type proximity sensors)
+        ;
+    simInt intParams[8] = {
+        0, // face count (volume description)
+        0, // face count far (volume description)
+        0, // subdivisions (volume description)
+        0, // subdivisions far (volume description)
+        0, // randomized detection, sample count per reading
+        0, // randomized detection, individual ray detection count for triggering
+        0, // reserved. Set to 0
+        0  // reserved. Set to 0
+    };
+    simFloat floatParams[15] = {
+        lc.near_, // offset (volume description)
+        lc.far_-lc.near_, // range (volume description)
+        2*lc.near_*tan(lc.horizontalFOV/2), // x size (volume description)
+        2*lc.near_*tan(lc.horizontalFOV/2), // y size (volume description)
+        2*lc.far_*tan(lc.horizontalFOV*lc.aspectRatio/2), // x size far (volume description)
+        2*lc.far_*tan(lc.horizontalFOV*lc.aspectRatio/2), // y size far (volume description)
+        0, // inside gap (volume description)
+        0, // radius (volume description)
+        0, // radius far (volume description)
+        0, // angle (volume description)
+        0, // threshold angle for limited angle detection (see bit 6 above)
+        0, // smallest detection distance (see bit 8 above)
+        0, // sensing point size
+        0, // reserved. Set to 0.0
+        0  // reserved. Set to 0.0
+    };
+    return simCreateProximitySensor(sensorType, subType, options, intParams, floatParams, NULL);
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, MagnetometerSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, RaySensor &ray)
+{
+    if(!ray.scan.vertical && ray.scan.horizontal.samples == 1)
     {
-    }
-    else if(sensor.type == "camera")
-    {
-        CameraSensor &camera = *sensor.camera;
-        simInt options = 0
-            + 1*1   // the sensor will be explicitely handled
-            + 0*2   // the sensor will be in perspective operation mode
-            + 0*4   // the sensor volume will not be shown when not detecting anything
-            + 0*8   // the sensor volume will not be shown when detecting something
-            + 0*16  // the sensor will be passive (use an external image)
-            + 0*32  // the sensor will use local lights
-            + 0*64  // the sensor will not render any fog
-            + 0*128 // the sensor will use a specific color for default background (i.e. "null" pixels)
-            ;
-        simInt intParams[4] = {
-            int(camera.image.width), // sensor resolution x
-            int(camera.image.height), // sensor resolution y
-            0, // reserved. Set to 0
-            0 // reserver. Set to 0
-        };
-        simFloat floatParams[11] = {
-            camera.clip.near_, // near clipping plane
-            camera.clip.far_, // far clipping plane
-            camera.horizontalFOV, // view angle / ortho view size
-            0.2f, // sensor size x
-            0.2f, // sensor size y
-            0.4f, // sensor size z
-            0.0f, // "null" pixel red-value
-            0.0f, // "null" pixel green-value
-            0.0f, // "null" pixel blue-value
-            0.0f, // reserved. Set to 0.0
-            0.0f // reserved. Set to 0.0
-        };
-        handle = simCreateVisionSensor(options, intParams, floatParams, NULL);
-    }
-    else if(sensor.type == "contact")
-    {
-    }
-    else if(sensor.type == "depth")
-    {
-    }
-    else if(sensor.type == "force_torque")
-    {
-    }
-    else if(sensor.type == "gps")
-    {
-    }
-    else if(sensor.type == "gpu_ray")
-    {
-    }
-    else if(sensor.type == "imu")
-    {
-    }
-    else if(sensor.type == "logical_camera")
-    {
-        LogicalCameraSensor &lc = *sensor.logicalCamera;
+        // single ray -> use proximity sensor
         simInt sensorType = sim_proximitysensor_pyramid_subtype;
         simInt subType = sim_objectspecialproperty_detectable_all;
         simInt options = 0
@@ -447,12 +529,12 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
             0  // reserved. Set to 0
         };
         simFloat floatParams[15] = {
-            lc.near_, // offset (volume description)
-            lc.far_-lc.near_, // range (volume description)
-            2*lc.near_*tan(lc.horizontalFOV/2), // x size (volume description)
-            2*lc.near_*tan(lc.horizontalFOV/2), // y size (volume description)
-            2*lc.far_*tan(lc.horizontalFOV*lc.aspectRatio/2), // x size far (volume description)
-            2*lc.far_*tan(lc.horizontalFOV*lc.aspectRatio/2), // y size far (volume description)
+            0.1, // offset (volume description)
+            0.4, // range (volume description)
+            0.2, // x size (volume description)
+            0.2, // y size (volume description)
+            0.4, // x size far (volume description)
+            0.4, // y size far (volume description)
             0, // inside gap (volume description)
             0, // radius (volume description)
             0, // radius far (volume description)
@@ -463,33 +545,115 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
             0, // reserved. Set to 0.0
             0  // reserved. Set to 0.0
         };
-        handle = simCreateProximitySensor(sensorType, subType, options, intParams, floatParams, NULL);
+        return simCreateProximitySensor(sensorType, subType, options, intParams, floatParams, NULL);
     }
+    else
+    {
+        // use a vision sensor, which is faster
+        simInt options = 0
+            + 1*1   // the sensor will be explicitely handled
+            + 0*2   // the sensor will be in perspective operation mode
+            + 0*4   // the sensor volume will not be shown when not detecting anything
+            + 0*8   // the sensor volume will not be shown when detecting something
+            + 0*16  // the sensor will be passive (use an external image)
+            + 0*32  // the sensor will use local lights
+            + 0*64  // the sensor will not render any fog
+            + 0*128 // the sensor will use a specific color for default background (i.e. "null" pixels)
+            ;
+        simInt intParams[4] = {
+            // FIXME: this is wrong, as it does not take into account nonlinearity of spherical coordinates:
+            ray.scan.horizontal.samples, // sensor resolution x
+            ray.scan.vertical ? ray.scan.vertical->samples : 1, // sensor resolution y
+            0, // reserved. Set to 0
+            0 // reserver. Set to 0
+        };
+        double fov = ray.scan.horizontal.maxAngle - ray.scan.horizontal.minAngle;
+        if(ray.scan.vertical)
+        {
+            double vfov = ray.scan.vertical->maxAngle - ray.scan.vertical->minAngle;
+            if(vfov > fov) fov = vfov;
+        }
+        simFloat floatParams[11] = {
+            ray.range.min, // near clipping plane
+            ray.range.max, // far clipping plane
+            fov, // view angle / ortho view size
+            0.2f, // sensor size x
+            0.2f, // sensor size y
+            0.4f, // sensor size z
+            0.0f, // "null" pixel red-value
+            0.0f, // "null" pixel green-value
+            0.0f, // "null" pixel blue-value
+            0.0f, // reserved. Set to 0.0
+            0.0f // reserved. Set to 0.0
+        };
+        return simCreateVisionSensor(options, intParams, floatParams, NULL);
+    }
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, RFIDTagSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, RFIDSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, SonarSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, TransceiverSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, ForceTorqueSensor &sensor)
+{
+    return -1;
+}
+
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, Sensor &sensor)
+{
+    simInt handle = -1;
+
+    if(sensor.type == "altimeter")
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
+    else if(sensor.type == "camera")
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.camera);
+    else if(sensor.type == "contact")
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.contact);
+    //else if(sensor.type == "depth")
+    //    handle = importSensor(opts, parentHandle, parentPose, *sensor.depth);
+    else if(sensor.type == "force_torque")
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.forceTorque);
+    else if(sensor.type == "gps")
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.gps);
+    //else if(sensor.type == "gpu_ray")
+    //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
+    else if(sensor.type == "imu")
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.imu);
+    else if(sensor.type == "logical_camera")
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.logicalCamera);
     else if(sensor.type == "magnetometer")
-    {
-    }
-    else if(sensor.type == "multicamera")
-    {
-    }
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.magnetometer);
+    //else if(sensor.type == "multicamera")
+    //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
     else if(sensor.type == "ray")
-    {
-    }
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.ray);
     else if(sensor.type == "rfid")
-    {
-    }
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.rfid);
     else if(sensor.type == "rfidtag")
-    {
-    }
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.rfidTag);
     else if(sensor.type == "sonar")
-    {
-    }
-    else if(sensor.type == "wireless_receiver")
-    {
-    }
-    else if(sensor.type == "wireless_transmitter")
-    {
-    }
-    else throw (boost::format("ERROR: the sensor type '%s' is not currently supported") % sensor.type).str();
+        handle = importSensor(opts, parentHandle, parentPose, *sensor.sonar);
+    //else if(sensor.type == "wireless_receiver")
+    //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
+    //else if(sensor.type == "wireless_transmitter")
+    //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
+    else throw (boost::format("the sensor type '%s' is not currently supported") % sensor.type).str();
 
     // for sensors with missing implementation, we create just a dummy
     if(handle == -1)
