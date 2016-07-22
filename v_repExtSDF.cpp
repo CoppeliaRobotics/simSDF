@@ -791,7 +791,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         //simSetObjectParent(shapeHandleColl, parentJointHandle, true);
     }
 
-    if(true /* hideCollisions */)
+    if(opts.hideCollisionLinks)
     {
         simSetObjectIntParameter(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
     }
@@ -852,12 +852,12 @@ simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, s
             }
         }
 
-        if(false /* positionCtrl */)
+        if(opts.positionCtrl)
         {
             simSetObjectIntParameter(handle, sim_jointintparam_motor_enabled, 1);
         }
 
-        if(true /* hideJoints */)
+        if(opts.hideJoints)
         {
             simSetObjectIntParameter(handle, sim_objintparam_visibility_layer, 512); // layer 10
         }
