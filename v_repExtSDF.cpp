@@ -971,7 +971,7 @@ void visitLink(const ImportOptions &opts, Model &model, Link *link)
     }
 }
 
-void importModel(const ImportOptions &opts, Model &model)
+void importModel(const ImportOptions &opts, Model &model, bool topLevel = true)
 {
     DBG << "Importing model '" << model.name << "'..." << std::endl;
 
@@ -989,24 +989,30 @@ void importModel(const ImportOptions &opts, Model &model)
 
     BOOST_FOREACH(Model &x, model.submodels)
     {
-        importModel(opts, x);
+        // FIXME: parent of the submodel?
+        importModel(opts, x, false);
     }
 
     BOOST_FOREACH(Link &link, model.links)
     {
         if(link.getParentJoint(model)) continue;
+
+        // here link has no parent (i.e. top-level for this model object)
+        if(topLevel)
+        {
+            // mark it as model base
+            simSetModelProperty(link.vrepHandle,
+                    simGetModelProperty(link.vrepHandle)
+                    & ~sim_modelproperty_not_model);
+            simSetObjectProperty(link.vrepHandle,
+                    simGetObjectProperty(link.vrepHandle)
+                    & ~sim_objectproperty_selectmodelbaseinstead);
+        }
+
         if(link.selfCollide && *link.selfCollide == true) continue;
         if(model.selfCollide && *model.selfCollide == true) continue;
         if(link.selfCollide || model.selfCollide || opts.noSelfCollision)
             alternateRespondableMasks(link.vrepHandle);
-
-        // mark root object as model base
-        simSetModelProperty(link.vrepHandle,
-                simGetModelProperty(link.vrepHandle)
-                & ~sim_modelproperty_not_model);
-        simSetObjectProperty(link.vrepHandle,
-                simGetObjectProperty(link.vrepHandle)
-                & ~sim_objectproperty_selectmodelbaseinstead);
     }
 }
 
