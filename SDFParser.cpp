@@ -433,6 +433,10 @@ void SDF::parse(const ParseOptions &opts, string filename)
             if(s2.size()) err += e2;
             err += ")";
         }
+        if(err.size() > 500)
+        {
+            err = err.substr(0, 500) + string("...\n\n(error message too long)");
+        }
         throw (boost::format("error trying to load '%s': %s") % filename % err).str();
     }
     XMLElement *root = xmldoc.FirstChildElement();
