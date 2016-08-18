@@ -73,6 +73,7 @@ QMAKE_EXTRA_TARGETS += reference_html
 PRE_TARGETDEPS += reference.html
 
 HEADERS += \
+    plugin.h \
     debug.h \
     ../include/v_repLib.h \
     ../v_repMath/3Vector.h \
