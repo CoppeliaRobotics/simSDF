@@ -28,6 +28,7 @@
 // -------------------------------------------------------------------
 
 #include "v_repExtSDF.h"
+#include "plugin.h"
 #include "debug.h"
 #include "SDFDialog.h"
 #include "ImportOptions.h"
@@ -69,17 +70,6 @@
 
 #define CONCAT(x, y, z) x y z
 #define strConCat(x, y, z)    CONCAT(x, y, z)
-
-#define PLUGIN_NAME "SDF"
-#define VREP_COMPATIBILITY 9    // 1 until 20/1/2013 (1 was a very early beta)
-                                // 2 until 10/1/2014 (V-REP3.0.5)
-                                // 3: new lock
-                                // 4: since V-REP 3.1.2
-                                // 5: since after V-REP 3.1.3
-                                // 6: since V-REP 3.2.2
-                                // 7: since V-REP 3.2.2 rev2
-                                // 8: since V-REP 3.3.0 (headless mode detect)
-                                // 9: since V-REP 3.3.1 (Using stacks to exchange data with scripts)
 
 // stream facilities:
 
@@ -1145,7 +1135,7 @@ VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer, int reservedInt)
 
     UIProxy::getInstance(); // construct UIProxy here (UI thread)
 
-    return VREP_COMPATIBILITY; // initialization went fine, we return the V-REP compatibility version
+    return PLUGIN_VERSION; // initialization went fine, we return the V-REP compatibility version
 }
 
 VREP_DLLEXPORT void v_repEnd()
