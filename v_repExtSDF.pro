@@ -22,6 +22,9 @@ INCLUDEPATH += "../v_repMath"
 }
 
 win32 {
+    INCLUDEPATH += "c:/boost_1_54_0"
+    LIBS += "c:/local/boost_1_60_0/stage/lib/libboost_filesystem-mgw49-mt-1_60.a"
+    LIBS += "c:/local/boost_1_60_0/stage/lib/libboost_system-mgw49-mt-1_60.a"
     DEFINES += WIN_VREP
 }
 
@@ -39,6 +42,8 @@ macx {
 }
 
 unix:!macx {
+    LIBS += -lboost_filesystem
+    LIBS += -lboost_system
     DEFINES += LIN_VREP
 }
 
