@@ -8,6 +8,7 @@ DEFINES += QT_COMPIL
 CONFIG += shared debug_and_release
 INCLUDEPATH += "../include"
 INCLUDEPATH += "../v_repMath"
+INCLUDEPATH += "generated"
 
 *-msvc* {
     QMAKE_CXXFLAGS += -O2
