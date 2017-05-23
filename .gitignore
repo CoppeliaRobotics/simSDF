@@ -7,9 +7,6 @@
 .DS_Store
 .AppleDouble
 .LSOverride
-reference.html
-stubs.cpp
-stubs.h
 .qmake.stash
 moc_*.cpp
 ui_*.cpp
@@ -17,3 +14,4 @@ ui_*.h
 Makefile
 Makefile.Debug
 Makefile.Release
+generated
