@@ -1,6 +1,6 @@
 # SDF plugin for V-REP
 
-Can import SDF 1.6 files. Some feature are not implemented yet.
+Can import [SDF 1.6](http://sdformat.org/spec?ver=1.6) files. Some feature are not implemented yet.
 
 ### Compiling
 
