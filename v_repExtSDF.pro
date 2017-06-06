@@ -32,6 +32,7 @@ win32 {
 macx {
     DEFINES += MAC_VREP
     INCLUDEPATH += "/usr/local/Cellar/boost/1.60.0_1/include"
+    INCLUDEPATH += "/usr/local/Cellar/boost/1.64.0_1/include"
     ## libsdformat currently has some problems
     #INCLUDEPATH += "/usr/local/Cellar/sdformat/2.3.2/include/sdformat-2.3"
     #INCLUDEPATH += "/usr/local/Cellar/tinyxml/2.6.2/include"
@@ -81,7 +82,7 @@ HEADERS += \
     ../v_repMath/VPoint.h \
     ../v_repMath/Vector.h \
     ../v_repMath/mathDefines.h \
-    stubs.h \
+    generated/stubs.h \
     tinyxml2.h \
     SDFParser.h \
     UIFunctions.h \
@@ -104,7 +105,7 @@ SOURCES += \
     ../v_repMath/MMatrix.cpp \
     ../v_repMath/MyMath.cpp \
     ../v_repMath/Vector.cpp \
-    stubs.cpp \
+    generated/stubs.cpp \
     tinyxml2.cpp \
     SDFParser.cpp \
     UIFunctions.cpp \
