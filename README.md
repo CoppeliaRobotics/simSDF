@@ -1,5 +1,7 @@
 # SDF plugin for V-REP
 
+Can import SDF 1.6 files. Some feature are not implemented yet.
+
 ### Compiling
 
 1. Install required packages for [v_repStubsGen](https://github.com/fferri/v_repStubsGen): see v_repStubsGen's [README](external/v_repStubsGen/README.md)
