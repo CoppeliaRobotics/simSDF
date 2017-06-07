@@ -9,6 +9,6 @@ Can import [SDF 1.6](http://sdformat.org/spec?ver=1.6) files. Some feature are n
 3. Checkout and compile
 ```
 $ git clone --recursive https://github.com/fferri/v_repExtSDF.git
-$ /path/to/Qt5.5.0/5.5/.../bin/qmake v_repExtSDF.pro
-$ make
+$ cmake .
+$ cmake --build .
 ```
