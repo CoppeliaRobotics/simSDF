@@ -47,11 +47,4 @@ set(SOURCES
     ${CMAKE_SOURCE_DIR}/../v_repMath/Vector.cpp
 )
 add_library(v_repExtSDF SHARED ${SOURCES} ${CMAKE_BINARY_DIR}/generated/stubs.cpp "${VREP_COMMON}/v_repLib.cpp")
-
-if(WIN32)
-    set(SHLWAPI shlwapi)
-else()
-    set(SHLWAPI)
-endif()
-
-target_link_libraries(v_repExtSDF ${Boost_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport ${SHLWAPI})
+target_link_libraries(v_repExtSDF ${Boost_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport ${VREP_LIBRARIES})
