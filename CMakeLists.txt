@@ -12,6 +12,11 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 
+if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} LESS 3.0)
+    qt5_wrap_ui(FORMS SDFDialog.ui)
+    add_custom_target(uic_cmake28_compat ALL DEPENDS ${FORMS})
+endif()
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 find_package(VREP REQUIRED)
 
