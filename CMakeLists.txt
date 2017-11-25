@@ -55,3 +55,5 @@ set(SOURCES
 )
 add_library(v_repExtSDF SHARED ${SOURCES} ${CMAKE_BINARY_DIR}/generated/stubs.cpp "${VREP_EXPORTED_SOURCES}")
 target_link_libraries(v_repExtSDF ${Boost_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport ${VREP_LIBRARIES})
+
+install(TARGETS v_repExtSDF DESTINATION ${VREP_ROOT})
