@@ -33,25 +33,25 @@ include_directories(${Boost_INCLUDE_DIRS})
 vrep_generate_stubs(${CMAKE_BINARY_DIR}/generated XML_FILE ${CMAKE_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_SOURCE_DIR}/simExtSDF.lua)
 
 set(SOURCES
-    ImportOptions.cpp
-    SDFDialog.cpp
-    SDFParser.cpp
-    UIFunctions.cpp
-    UIProxy.cpp
-    debug.cpp
-    tinyxml2.cpp
-    v_repExtSDF.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/3Vector.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/3X3Matrix.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/4Vector.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/4X4FullMatrix.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/4X4Matrix.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/6Vector.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/6X6Matrix.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/7Vector.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/MMatrix.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/MyMath.cpp
-    ${CMAKE_SOURCE_DIR}/../v_repMath/Vector.cpp
+  ImportOptions.cpp
+  SDFDialog.cpp
+  SDFParser.cpp
+  UIFunctions.cpp
+  UIProxy.cpp
+  debug.cpp
+  tinyxml2.cpp
+  v_repExtSDF.cpp
+  ${VREP_ROOT}/programming/v_repMath/3Vector.cpp
+  ${VREP_ROOT}/programming/v_repMath/3X3Matrix.cpp
+  ${VREP_ROOT}/programming/v_repMath/4Vector.cpp
+  ${VREP_ROOT}/programming/v_repMath/4X4FullMatrix.cpp
+  ${VREP_ROOT}/programming/v_repMath/4X4Matrix.cpp
+  ${VREP_ROOT}/programming/v_repMath/6Vector.cpp
+  ${VREP_ROOT}/programming/v_repMath/6X6Matrix.cpp
+  ${VREP_ROOT}/programming/v_repMath/7Vector.cpp
+  ${VREP_ROOT}/programming/v_repMath/MMatrix.cpp
+  ${VREP_ROOT}/programming/v_repMath/MyMath.cpp
+  ${VREP_ROOT}/programming/v_repMath/Vector.cpp
 )
 add_library(v_repExtSDF SHARED ${SOURCES} ${CMAKE_BINARY_DIR}/generated/stubs.cpp "${VREP_EXPORTED_SOURCES}")
 target_link_libraries(v_repExtSDF ${Boost_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport ${VREP_LIBRARIES})
