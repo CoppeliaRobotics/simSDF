@@ -1,15 +1,3 @@
-#include "v_repExtSDF.h"
-#include "plugin.h"
-#include "debug.h"
-#include "SDFDialog.h"
-#include "ImportOptions.h"
-#include "tinyxml2.h"
-#include "SDFParser.h"
-#include "stubs.h"
-#include "UIFunctions.h"
-#include "UIProxy.h"
-#include "v_repLib.h"
-#include "MyMath.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -19,28 +7,26 @@
 #include <map>
 #include <set>
 #include <algorithm>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
-#include <QThread>
-#ifdef _WIN32
-    #ifdef QT_COMPIL
-        #include <direct.h>
-    #else
-        #include <shlwapi.h>
-        #pragma comment(lib, "Shlwapi.lib")
-    #endif
-#endif /* _WIN32 */
-#if defined (__linux) || defined (__APPLE__)
-    #include <unistd.h>
-#define _stricmp strcasecmp
-#endif /* __linux || __APPLE__ */
 
-#define CONCAT(x, y, z) x y z
-#define strConCat(x, y, z)    CONCAT(x, y, z)
+#include <QThread>
+
+#include "plugin.h"
+#include "debug.h"
+#include "SDFDialog.h"
+#include "ImportOptions.h"
+#include "tinyxml2.h"
+#include "SDFParser.h"
+#include "stubs.h"
+#include "UIFunctions.h"
+#include "UIProxy.h"
+#include "MyMath.h"
 
 // stream facilities:
 
@@ -59,7 +45,6 @@ std::ostream &operator<<(std::ostream &os, const C7Vector& o)
     return os << "C7Vector(" << o.X << ", " << o.Q << ")";
 }
 
-LIBRARY vrepLib; // the V-REP library that we will dynamically load and bind
 SDFDialog *sdfDialog = NULL;
 int menuItemHandle = -1;
 
@@ -1038,112 +1023,46 @@ void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
     sdf.dump(dumpOpts, std::cout);
 }
 
-VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer, int reservedInt)
+class Plugin : public vrep::Plugin
 {
-    char curDirAndFile[1024];
-#ifdef _WIN32
-    #ifdef QT_COMPIL
-        _getcwd(curDirAndFile, sizeof(curDirAndFile));
-    #else
-        GetModuleFileName(NULL, curDirAndFile, 1023);
-        PathRemoveFileSpec(curDirAndFile);
-    #endif
-#elif defined (__linux) || defined (__APPLE__)
-    getcwd(curDirAndFile, sizeof(curDirAndFile));
-#endif
+public:
+    void onStart()
+    {
+        if(simGetBooleanParameter(sim_boolparam_headless) > 0)
+            throw std::runtime_error("doesn't work in headless mode");
 
-    std::string currentDirAndPath(curDirAndFile);
-    std::string temp(currentDirAndPath);
-#ifdef _WIN32
-    temp+="\\v_rep.dll";
-#elif defined (__linux)
-    temp+="/libv_rep.so";
-#elif defined (__APPLE__)
-    temp+="/libv_rep.dylib";
-#endif /* __linux || __APPLE__ */
-    vrepLib = loadVrepLibrary(temp.c_str());
-    if(vrepLib == NULL)
-    {
-        std::cout << "Error, could not find or correctly load the V-REP library. Cannot start '" PLUGIN_NAME "' plugin.\n";
-        return(0);
-    }
-    if(getVrepProcAddresses(vrepLib)==0)
-    {
-        std::cout << "Error, could not find all required functions in the V-REP library. Cannot start '" PLUGIN_NAME "' plugin.\n";
-        unloadVrepLibrary(vrepLib);
-        return(0);
-    }
+        if(!registerScriptStuff())
+            throw std::runtime_error("failed to register script stuff");
 
-    int vrepVer;
-    simGetIntegerParameter(sim_intparam_program_version, &vrepVer);
-    if(vrepVer < 30301) // if V-REP version is smaller than 3.03.01
-    {
-        std::cout << "Sorry, your V-REP copy is somewhat old. Cannot start '" PLUGIN_NAME "' plugin.\n";
-        unloadVrepLibrary(vrepLib);
-        return(0);
-    }
-
-    if(simGetBooleanParameter(sim_boolparam_headless) > 0)
-    {
-        //std::cout << "V-REP runs in headless mode. Cannot start 'Urdf' plugin.\n";
-        //unloadVrepLibrary(vrepLib);
-        //return(0); // Means error, V-REP will unload this plugin
-    }
-    else
-    {
         QWidget *mainWindow = (QWidget *)simGetMainWindow(1);
         sdfDialog = new SDFDialog(mainWindow);
         simAddModuleMenuEntry("", 1, &menuItemHandle);
         simSetModuleMenuItemState(menuItemHandle, 1, "SDF import...");
+
+        UIProxy::getInstance(); // construct UIProxy here (UI thread)
     }
 
-    if(!registerScriptStuff())
+    void onEnd()
     {
-        std::cout << "Initialization failed.\n";
-        unloadVrepLibrary(vrepLib);
-        return(0);
+        if(sdfDialog)
+            delete sdfDialog;
+
+        UIFunctions::destroyInstance();
+        UIProxy::destroyInstance();
     }
 
-    UIProxy::getInstance(); // construct UIProxy here (UI thread)
-
-    return PLUGIN_VERSION; // initialization went fine, we return the V-REP compatibility version
-}
-
-VREP_DLLEXPORT void v_repEnd()
-{
-    if(sdfDialog)
-        delete sdfDialog;
-
-    UIFunctions::destroyInstance();
-    UIProxy::destroyInstance();
-
-    unloadVrepLibrary(vrepLib); // release the library
-}
-
-VREP_DLLEXPORT void* v_repMessage(int message, int* auxiliaryData, void* customData, int* replyData)
-{
-    // Keep following 5 lines at the beginning and unchanged:
-    static bool refreshDlgFlag = true;
-    int errorModeSaved;
-    simGetIntegerParameter(sim_intparam_error_report_mode, &errorModeSaved);
-    simSetIntegerParameter(sim_intparam_error_report_mode, sim_api_errormessage_ignore);
-    void* retVal=NULL;
-
-    static bool firstInstancePass = true;
-    if(firstInstancePass && message == sim_message_eventcallback_instancepass)
+    void onInstancePass(bool objectsErased, bool objectsCreated, bool modelLoaded, bool sceneLoaded, bool undoCalled, bool redoCalled, bool sceneSwitched, bool editModeActive, bool objectsScaled, bool selectionStateChanged, bool keyPressed, bool simulationStarted, bool simulationEnded, bool scriptCreated, bool scriptErased)
     {
-        firstInstancePass = false;
-        UIFunctions::getInstance(); // construct UIFunctions here (SIM thread)
+        if(firstInstancePass)
+        {
+            firstInstancePass = false;
+            UIFunctions::getInstance(); // construct UIFunctions here (SIM thread)
+        }
     }
 
-    if(message == sim_message_eventcallback_simulationended)
-    { // Simulation just ended
-        // TODO: move this to sim_message_eventcallback_simulationabouttoend
-    }
-
-    if(message == sim_message_eventcallback_menuitemselected)
-    { // A custom menu bar entry was selected
-        if(auxiliaryData[0] == menuItemHandle)
+    void onMenuItemSelected(int itemHandle, int itemState)
+    {
+        if(itemHandle == menuItemHandle)
         {
             // 'SDF Import...' was selected
             simChar* pathAndFile = simFileDialog(sim_filedlg_type_load, "SDF PLUGIN LOADER", "", "", "SDF Files", "sdf");
@@ -1156,8 +1075,8 @@ VREP_DLLEXPORT void* v_repMessage(int message, int* auxiliaryData, void* customD
         }
     }
 
-    // Keep following unchanged:
-    simSetIntegerParameter(sim_intparam_error_report_mode, errorModeSaved); // restore previous settings
-    return(retVal);
-}
+private:
+    bool firstInstancePass = true;
+};
 
+VREP_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)

@@ -40,7 +40,8 @@ set(SOURCES
     UIProxy.cpp
     debug.cpp
     tinyxml2.cpp
-    v_repExtSDF.cpp
+    plugin.cpp
+    ${CMAKE_SOURCE_DIR}/external/v_repPlusPlus/Plugin.cpp
     ${VREP_ROOT}/programming/v_repMath/3Vector.cpp
     ${VREP_ROOT}/programming/v_repMath/3X3Matrix.cpp
     ${VREP_ROOT}/programming/v_repMath/4Vector.cpp
@@ -52,8 +53,10 @@ set(SOURCES
     ${VREP_ROOT}/programming/v_repMath/MMatrix.cpp
     ${VREP_ROOT}/programming/v_repMath/MyMath.cpp
     ${VREP_ROOT}/programming/v_repMath/Vector.cpp
+    ${CMAKE_BINARY_DIR}/generated/stubs.cpp
+    ${VREP_EXPORTED_SOURCES}
 )
-add_library(v_repExtSDF SHARED ${SOURCES} ${CMAKE_BINARY_DIR}/generated/stubs.cpp "${VREP_EXPORTED_SOURCES}")
+add_library(v_repExtSDF SHARED ${SOURCES})
 target_link_libraries(v_repExtSDF ${Boost_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport ${VREP_LIBRARIES})
 
 install(TARGETS v_repExtSDF DESTINATION ${VREP_ROOT})
