@@ -19,6 +19,9 @@ using std::map;
 using std::set;
 using std::ostream;
 
+namespace sdf
+{
+
 struct ParseOptions
 {
     bool ignoreMissingValues = false;
@@ -1446,5 +1449,7 @@ PARSER_CLASS(Light)
 
     PARSER_METHODS(Light)
 };
+
+} // namespace sdf
 
 #endif // SDFPARSER_H_INCLUDED

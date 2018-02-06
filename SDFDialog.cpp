@@ -161,8 +161,8 @@ void SDFDialog::showDialogForFile(std::string f)
     options.fileName = f;
     options.ignoreMissingValues = false;
 
-    ParseOptions parseOpts;
-    SDF sdf;
+    sdf::ParseOptions parseOpts;
+    sdf::SDF sdf;
     try
     {
         sdf.parse(parseOpts, f);

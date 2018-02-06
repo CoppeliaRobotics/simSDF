@@ -29,6 +29,9 @@
         throw ss.str(); \
     }
 
+namespace sdf
+{
+
 void indent(const DumpOptions &opts, ostream &stream, int level)
 {
     if(opts.oneLine)
@@ -3591,4 +3594,6 @@ void Light::dump(const DumpOptions &opts, ostream &stream, int i) const
     DUMP_FIELD(pose);
     END_DUMP(Light);
 }
+
+} // namespace sdf
 

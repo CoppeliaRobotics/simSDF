@@ -17,6 +17,7 @@
 
 #include <QThread>
 
+#include "v_repPlusPlus/Plugin.h"
 #include "plugin.h"
 #include "debug.h"
 #include "SDFDialog.h"
@@ -175,14 +176,14 @@ int scaleShape(int shapeHandle, float scalingFactors[3])
     return newShapeHandle;
 }
 
-C7Vector getPose(const ImportOptions &opts, optional<Pose>& pose)
+C7Vector getPose(const ImportOptions &opts, optional<sdf::Pose>& pose)
 {
     C7Vector v;
     v.setIdentity();
     if(pose)
     {
-        Vector &p = pose->position;
-        Orientation &o = pose->orientation;
+        sdf::Vector &p = pose->position;
+        sdf::Orientation &o = pose->orientation;
         v.X.set(p.x, p.y, p.z);
         C4Vector roll, pitch, yaw;
         roll.setEulerAngles(C3Vector(o.roll, 0.0f, 0.0f));
@@ -193,18 +194,18 @@ C7Vector getPose(const ImportOptions &opts, optional<Pose>& pose)
     return v;
 }
 
-void importWorld(const ImportOptions &opts, World &world)
+void importWorld(const ImportOptions &opts, sdf::World &world)
 {
     DBG << "Importing world '" << world.name << "'..." << std::endl;
     DBG << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
-simInt importGeometry(const ImportOptions &opts, EmptyGeometry &empty, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::EmptyGeometry &empty, bool static_, bool respondable, double mass)
 {
     return simCreateDummy(0, NULL);
 }
 
-simInt importGeometry(const ImportOptions &opts, BoxGeometry &box, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::BoxGeometry &box, bool static_, bool respondable, double mass)
 {
     simInt primitiveType = 0;
     simInt options = 0
@@ -217,7 +218,7 @@ simInt importGeometry(const ImportOptions &opts, BoxGeometry &box, bool static_,
     return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
 }
 
-simInt importGeometry(const ImportOptions &opts, SphereGeometry &sphere, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::SphereGeometry &sphere, bool static_, bool respondable, double mass)
 {
     simInt primitiveType = 1;
     simInt options = 0
@@ -231,7 +232,7 @@ simInt importGeometry(const ImportOptions &opts, SphereGeometry &sphere, bool st
     return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
 }
 
-simInt importGeometry(const ImportOptions &opts, CylinderGeometry &cylinder, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::CylinderGeometry &cylinder, bool static_, bool respondable, double mass)
 {
     simInt primitiveType = 2;
     simInt options = 0
@@ -246,7 +247,7 @@ simInt importGeometry(const ImportOptions &opts, CylinderGeometry &cylinder, boo
     return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
 }
 
-simInt importGeometry(const ImportOptions &opts, HeightMapGeometry &heightmap, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::HeightMapGeometry &heightmap, bool static_, bool respondable, double mass)
 {
     simInt options = 0
         + 1 // backface culling
@@ -261,7 +262,7 @@ simInt importGeometry(const ImportOptions &opts, HeightMapGeometry &heightmap, b
     return simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
 }
 
-simInt importGeometry(const ImportOptions &opts, MeshGeometry &mesh, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::MeshGeometry &mesh, bool static_, bool respondable, double mass)
 {
     string filename = getResourceFullPath(mesh.uri, opts.fileName);
     if(!simDoesFileExist(filename.c_str()))
@@ -286,22 +287,22 @@ simInt importGeometry(const ImportOptions &opts, MeshGeometry &mesh, bool static
     return handle;
 }
 
-simInt importGeometry(const ImportOptions &opts, ImageGeometry &image, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::ImageGeometry &image, bool static_, bool respondable, double mass)
 {
     throw string("image geometry not currently supported");
 }
 
-simInt importGeometry(const ImportOptions &opts, PlaneGeometry &plane, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::PlaneGeometry &plane, bool static_, bool respondable, double mass)
 {
     throw string("plane geometry not currently supported");
 }
 
-simInt importGeometry(const ImportOptions &opts, PolylineGeometry &polyline, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::PolylineGeometry &polyline, bool static_, bool respondable, double mass)
 {
     throw string("polyline geometry not currently supported");
 }
 
-simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static_, bool respondable, double mass)
+simInt importGeometry(const ImportOptions &opts, sdf::Geometry &geometry, bool static_, bool respondable, double mass)
 {
     simInt handle = -1;
 
@@ -340,12 +341,12 @@ simInt importGeometry(const ImportOptions &opts, Geometry &geometry, bool static
     simSetObjectProperty(obj, simGetObjectProperty(obj) | sim_objectproperty_selectmodelbaseinstead); \
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, AltimeterSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::AltimeterSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, CameraSensor &camera)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::CameraSensor &camera)
 {
     simInt options = 0
         + 1*1   // the sensor will be explicitely handled
@@ -379,22 +380,22 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
     return simCreateVisionSensor(options, intParams, floatParams, NULL);
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, ContactSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::ContactSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, GPSSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::GPSSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, IMUSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::IMUSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, LogicalCameraSensor &lc)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::LogicalCameraSensor &lc)
 {
     simInt sensorType = sim_proximitysensor_pyramid_subtype;
     simInt subType = sim_objectspecialproperty_detectable_all;
@@ -440,12 +441,12 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
     return simCreateProximitySensor(sensorType, subType, options, intParams, floatParams, NULL);
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, MagnetometerSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::MagnetometerSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, RaySensor &ray)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::RaySensor &ray)
 {
     if(!ray.scan.vertical && ray.scan.horizontal.samples == 1)
     {
@@ -536,32 +537,32 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
     }
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, RFIDTagSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::RFIDTagSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, RFIDSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::RFIDSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, SonarSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::SonarSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, TransceiverSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::TransceiverSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, ForceTorqueSensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::ForceTorqueSensor &sensor)
 {
     return -1;
 }
 
-simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, Sensor &sensor)
+simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::Sensor &sensor)
 {
     simInt handle = -1;
 
@@ -617,7 +618,7 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
     return handle;
 }
 
-void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt parentJointHandle)
+void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &link, simInt parentJointHandle)
 {
     DBG << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
 
@@ -633,7 +634,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
     }
 
     vector<simInt> shapeHandlesColl;
-    BOOST_FOREACH(LinkCollision &collision, link.collisions)
+    BOOST_FOREACH(sdf::LinkCollision &collision, link.collisions)
     {
         simInt shapeHandle = importGeometry(opts, collision.geometry, false, true, mass);
         if(shapeHandle == -1) continue;
@@ -646,7 +647,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
             simSetShapeMaterial(shapeHandle, -1);
             if(collision.surface->friction)
             {
-                SurfaceFriction &f = *collision.surface->friction;
+                sdf::SurfaceFriction &f = *collision.surface->friction;
                 simFloat friction = 0.0;
                 bool set = false;
                 if(f.ode && f.ode->mu)
@@ -672,7 +673,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
             }
             if(collision.surface->bounce)
             {
-                SurfaceBounce &b = *collision.surface->bounce;
+                sdf::SurfaceBounce &b = *collision.surface->bounce;
                 if(b.restitutionCoefficient)
                 {
                     simSetShapeMaterial(shapeHandle, -1);
@@ -690,9 +691,9 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
     simInt shapeHandleColl = -1;
     if(shapeHandlesColl.size() == 0)
     {
-        BoxGeometry box;
-        Geometry g;
-        g.box = BoxGeometry();
+        sdf::BoxGeometry box;
+        sdf::Geometry g;
+        g.box = sdf::BoxGeometry();
         g.box->size.x = 0.01;
         g.box->size.y = 0.01;
         g.box->size.z = 0.01;
@@ -713,7 +714,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
 
     if(link.inertial && link.inertial->inertia)
     {
-        InertiaMatrix &i = *link.inertial->inertia;
+        sdf::InertiaMatrix &i = *link.inertial->inertia;
         float inertia[9] = {
             i.ixx, i.ixy, i.ixz,
             i.ixy, i.iyy, i.iyz,
@@ -742,7 +743,7 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         simSetObjectIntParameter(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
     }
 
-    BOOST_FOREACH(LinkVisual &visual, link.visuals)
+    BOOST_FOREACH(sdf::LinkVisual &visual, link.visuals)
     {
         simInt shapeHandle = importGeometry(opts, visual.geometry, true, false, 0);
         if(shapeHandle == -1) continue;
@@ -753,13 +754,13 @@ void importModelLink(const ImportOptions &opts, Model &model, Link &link, simInt
         setVrepObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
     }
 
-    BOOST_FOREACH(Sensor &sensor, link.sensors)
+    BOOST_FOREACH(sdf::Sensor &sensor, link.sensors)
     {
         simInt sensorHandle = importSensor(opts, shapeHandleColl, linkPose, sensor);
     }
 }
 
-simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, simInt parentLinkHandle)
+simInt importModelJoint(const ImportOptions &opts, sdf::Model &model, sdf::Joint &joint, simInt parentLinkHandle)
 {
     DBG << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
 
@@ -770,7 +771,7 @@ simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, s
         throw string("ERROR: joint must have exactly one axis");
     }
 
-    const Axis &axis = *joint.axis;
+    const sdf::Axis &axis = *joint.axis;
 
     if(joint.type == "revolute" || joint.type == "prismatic")
     {
@@ -782,7 +783,7 @@ simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, s
 
         if(axis.limit)
         {
-            const AxisLimits &limits = *axis.limit;
+            const sdf::AxisLimits &limits = *axis.limit;
 
             float interval[2] = {limits.lower, limits.upper - limits.lower};
             simSetJointInterval(handle, 0, interval);
@@ -838,9 +839,9 @@ simInt importModelJoint(const ImportOptions &opts, Model &model, Joint &joint, s
     return handle;
 }
 
-void adjustJointPose(const ImportOptions &opts, Model &model, Joint *joint, simInt childLinkHandle)
+void adjustJointPose(const ImportOptions &opts, sdf::Model &model, sdf::Joint *joint, simInt childLinkHandle)
 {
-    const Axis &axis = *joint->axis;
+    const sdf::Axis &axis = *joint->axis;
 
     C7Vector modelPose = getPose(opts, model.pose);
     C7Vector jointPose = modelPose * getPose(opts, joint->pose);
@@ -884,7 +885,7 @@ void adjustJointPose(const ImportOptions &opts, Model &model, Joint *joint, simI
     //
     // in any case, the joint frame corresponds with the child's frame.
 
-    Link *childLink = joint->getChildLink(model);
+    sdf::Link *childLink = joint->getChildLink(model);
     C7Vector childLinkPose = modelPose * getPose(opts, childLink->pose);
 
     C4X4Matrix m1 = childLinkPose * getPose(opts, joint->pose).getMatrix() * jointAxisMatrix,
@@ -902,12 +903,12 @@ void adjustJointPose(const ImportOptions &opts, Model &model, Joint *joint, simI
     simSetObjectOrientation(joint->vrepHandle, -1, t.Q.getEulerAngles().data);
 }
 
-void visitLink(const ImportOptions &opts, Model &model, Link *link)
+void visitLink(const ImportOptions &opts, sdf::Model &model, sdf::Link *link)
 {
-    set<Joint*> childJoints = link->getChildJoints(model);
-    BOOST_FOREACH(Joint *joint, childJoints)
+    set<sdf::Joint*> childJoints = link->getChildJoints(model);
+    BOOST_FOREACH(sdf::Joint *joint, childJoints)
     {
-        Link *childLink = joint->getChildLink(model);
+        sdf::Link *childLink = joint->getChildLink(model);
         importModelJoint(opts, model, *joint, link->vrepHandle);
         importModelLink(opts, model, *childLink, joint->vrepHandle);
         adjustJointPose(opts, model, joint, childLink->vrepHandle);
@@ -917,7 +918,7 @@ void visitLink(const ImportOptions &opts, Model &model, Link *link)
     }
 }
 
-void importModel(const ImportOptions &opts, Model &model, bool topLevel = true)
+void importModel(const ImportOptions &opts, sdf::Model &model, bool topLevel = true)
 {
     DBG << "Importing model '" << model.name << "'..." << std::endl;
 
@@ -926,20 +927,20 @@ void importModel(const ImportOptions &opts, Model &model, bool topLevel = true)
         static_ = false;
 
     // import model's links starting from top-level links (i.e. those without parent link)
-    BOOST_FOREACH(Link &link, model.links)
+    BOOST_FOREACH(sdf::Link &link, model.links)
     {
         if(link.getParentJoint(model)) continue;
         importModelLink(opts, model, link, -1);
         visitLink(opts, model, &link);
     }
 
-    BOOST_FOREACH(Model &x, model.submodels)
+    BOOST_FOREACH(sdf::Model &x, model.submodels)
     {
         // FIXME: parent of the submodel?
         importModel(opts, x, false);
     }
 
-    BOOST_FOREACH(Link &link, model.links)
+    BOOST_FOREACH(sdf::Link &link, model.links)
     {
         if(link.getParentJoint(model)) continue;
 
@@ -962,38 +963,38 @@ void importModel(const ImportOptions &opts, Model &model, bool topLevel = true)
     }
 }
 
-void importActor(const ImportOptions &opts, Actor &actor)
+void importActor(const ImportOptions &opts, sdf::Actor &actor)
 {
     DBG << "Importing actor '" << actor.name << "'..." << std::endl;
     DBG << "ERROR: actors are not currently supported" << std::endl;
 }
 
-void importLight(const ImportOptions &opts, Light &light)
+void importLight(const ImportOptions &opts, sdf::Light &light)
 {
     DBG << "Importing light '" << light.name << "'..." << std::endl;
     DBG << "ERROR: importing lights not currently supported" << std::endl;
 }
 
-void importSDF(const ImportOptions &opts, SDF &sdf)
+void importSDF(const ImportOptions &opts, sdf::SDF &sdf)
 {
     DBG << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
 #ifdef DEBUG
-    DumpOptions dumpOpts;
+    sdf::DumpOptions dumpOpts;
     sdf.dump(dumpOpts, std::cout);
 #endif
-    BOOST_FOREACH(World &x, sdf.worlds)
+    BOOST_FOREACH(sdf::World &x, sdf.worlds)
     {
         importWorld(opts, x);
     }
-    BOOST_FOREACH(Model &x, sdf.models)
+    BOOST_FOREACH(sdf::Model &x, sdf.models)
     {
         importModel(opts, x);
     }
-    BOOST_FOREACH(Actor &x, sdf.actors)
+    BOOST_FOREACH(sdf::Actor &x, sdf.actors)
     {
         importActor(opts, x);
     }
-    BOOST_FOREACH(Light &x, sdf.lights)
+    BOOST_FOREACH(sdf::Light &x, sdf.lights)
     {
         importLight(opts, x);
     }
@@ -1004,8 +1005,8 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
     ImportOptions importOpts;
     importOpts.copyFrom(in);
     DBG << "ImportOptions: " << importOpts.str() << std::endl;
-    SDF sdf;
-    ParseOptions parseOpts;
+    sdf::SDF sdf;
+    sdf::ParseOptions parseOpts;
     parseOpts.ignoreMissingValues = importOpts.ignoreMissingValues;
     sdf.parse(parseOpts, in->fileName);
     DBG << "parsed SDF successfully" << std::endl;
@@ -1014,9 +1015,9 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
 
 void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
 {
-    DumpOptions dumpOpts;
-    SDF sdf;
-    ParseOptions parseOpts;
+    sdf::DumpOptions dumpOpts;
+    sdf::SDF sdf;
+    sdf::ParseOptions parseOpts;
     parseOpts.ignoreMissingValues = true;
     sdf.parse(parseOpts, in->fileName);
     DBG << "parsed SDF successfully" << std::endl;
