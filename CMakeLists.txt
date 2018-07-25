@@ -22,7 +22,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.0)
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
-find_package(VREP REQUIRED)
+find_package(VREP 3.5.0 REQUIRED)
 
 include_directories(${VREP_INCLUDE})
 include_directories(${VREP_ROOT}/programming/v_repMath)
