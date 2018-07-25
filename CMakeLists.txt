@@ -21,16 +21,19 @@ if(${CMAKE_VERSION} VERSION_LESS 3.0)
     add_custom_target(uic_cmake28_compat ALL DEPENDS ${FORMS})
 endif()
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+set(CMAKE_MODULE_PATH
+    ${CMAKE_MODULE_PATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CoppeliaRobotics-modules)
 find_package(VREP 3.5.0 REQUIRED)
 
 include_directories(${VREP_INCLUDE})
 include_directories(${VREP_ROOT}/programming/v_repMath)
-include_directories(${CMAKE_BINARY_DIR}/generated)
-include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${Boost_INCLUDE_DIRS})
 
-vrep_generate_stubs(${CMAKE_BINARY_DIR}/generated XML_FILE ${CMAKE_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_SOURCE_DIR}/simExtSDF.lua)
+vrep_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simExtSDF.lua)
 
 set(SOURCES
     ImportOptions.cpp
@@ -41,7 +44,7 @@ set(SOURCES
     debug.cpp
     tinyxml2.cpp
     plugin.cpp
-    ${CMAKE_SOURCE_DIR}/external/v_repPlusPlus/Plugin.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/v_repPlusPlus/Plugin.cpp
     ${VREP_ROOT}/programming/v_repMath/3Vector.cpp
     ${VREP_ROOT}/programming/v_repMath/3X3Matrix.cpp
     ${VREP_ROOT}/programming/v_repMath/4Vector.cpp
@@ -53,7 +56,7 @@ set(SOURCES
     ${VREP_ROOT}/programming/v_repMath/MMatrix.cpp
     ${VREP_ROOT}/programming/v_repMath/MyMath.cpp
     ${VREP_ROOT}/programming/v_repMath/Vector.cpp
-    ${CMAKE_BINARY_DIR}/generated/stubs.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/stubs.cpp
     ${VREP_EXPORTED_SOURCES}
 )
 add_library(v_repExtSDF SHARED ${SOURCES})
