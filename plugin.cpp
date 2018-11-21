@@ -74,9 +74,11 @@ void alternateRespondableMasks(int objHandle, bool bitSet = false)
 string getResourceFullPath(string uri, string sdfFile)
 {
     const string prefix = "model://";
+    const string filePrefix = "file://";
     string uri1 = uri;
     if(boost::starts_with(uri, prefix)) uri1 = uri1.substr(prefix.size());
-    else throw (boost::format("URI '%s' does not start with '%s'") % uri % prefix).str();
+    else if(boost::starts_with(uri, filePrefix)) return uri.substr(filePrefix.size());
+    else throw (boost::format("URI '%s' does not start with '%s' or '%s'") % uri % prefix % filePrefix).str();
 
     string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
     string sdfDirName = sdfDir.substr(sdfDir.find_last_of('/') + 1);
