@@ -29,9 +29,9 @@ void simThread();
 #endif
 
 #ifdef DEBUG
-#define DBG DEBUG_STREAM << "\033[1;33m[" << PLUGIN_NAME << ":" << threadNickname() << "] \033[1;31m" << __FILE__ << ":" << __LINE__ << "  \033[1;32m" << DBG_WHAT << "\033[0m" << "  "
+#define DEBUG_OUT DEBUG_STREAM << "\033[1;33m[" << PLUGIN_NAME << ":" << threadNickname() << "] \033[1;31m" << __FILE__ << ":" << __LINE__ << "  \033[1;32m" << DBG_WHAT << "\033[0m" << "  "
 #else // DEBUG
-#define DBG if(true) {} else DEBUG_STREAM
+#define DEBUG_OUT if(true) {} else DEBUG_STREAM
 #endif // DEBUG
 
 #endif // DEBUG_H_INCLUDED

@@ -82,25 +82,25 @@ string getResourceFullPath(string uri, string sdfFile)
 
     string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
     string sdfDirName = sdfDir.substr(sdfDir.find_last_of('/') + 1);
-    DBG << "sdfDir=" << sdfDir << ", sdfDirName=" << sdfDirName << std::endl;
+    DEBUG_OUT << "sdfDir=" << sdfDir << ", sdfDirName=" << sdfDirName << std::endl;
 
     string uriRoot = uri1.substr(0, uri1.find_first_of('/'));
     string uriRest = uri1.substr(uri1.find_first_of('/'));
-    DBG << "uriRoot=" << uriRoot << ", uriRest=" << uriRest << std::endl;
+    DEBUG_OUT << "uriRoot=" << uriRoot << ", uriRest=" << uriRest << std::endl;
 
     if(sdfDirName == uriRoot)
     {
         string fullPath = sdfDir + uriRest;
-        DBG << "fullPath=" << fullPath << std::endl;
+        DEBUG_OUT << "fullPath=" << fullPath << std::endl;
         return fullPath;
     }
     else
     {
         // try to match one level upper
         string sdfDirParent = sdfDir.substr(0, sdfDir.find_last_of('/'));
-        DBG << "sdfDirParent=" << sdfDirParent << std::endl;
+        DEBUG_OUT << "sdfDirParent=" << sdfDirParent << std::endl;
         string fullPath = sdfDirParent + "/" + uri1;
-        DBG << "fullPath=" << fullPath << std::endl;
+        DEBUG_OUT << "fullPath=" << fullPath << std::endl;
         if(simDoesFileExist(fullPath.c_str()))
             return fullPath;
         else
@@ -198,8 +198,8 @@ C7Vector getPose(const ImportOptions &opts, optional<sdf::Pose>& pose)
 
 void importWorld(const ImportOptions &opts, sdf::World &world)
 {
-    DBG << "Importing world '" << world.name << "'..." << std::endl;
-    DBG << "ERROR: importing worlds not implemented yet" << std::endl;
+    DEBUG_OUT << "Importing world '" << world.name << "'..." << std::endl;
+    DEBUG_OUT << "ERROR: importing worlds not implemented yet" << std::endl;
 }
 
 simInt importGeometry(const ImportOptions &opts, sdf::EmptyGeometry &empty, bool static_, bool respondable, double mass)
@@ -622,12 +622,12 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
 
 void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &link, simInt parentJointHandle)
 {
-    DBG << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
+    DEBUG_OUT << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
 
     C7Vector modelPose = getPose(opts, model.pose);
     C7Vector linkPose = modelPose * getPose(opts, link.pose);
-    DBG << "modelPose: " << modelPose << std::endl;
-    DBG << "linkPose: " << linkPose << std::endl;
+    DEBUG_OUT << "modelPose: " << modelPose << std::endl;
+    DEBUG_OUT << "linkPose: " << linkPose << std::endl;
 
     double mass = 0;
     if(link.inertial && link.inertial->mass)
@@ -642,7 +642,7 @@ void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &li
         if(shapeHandle == -1) continue;
         shapeHandlesColl.push_back(shapeHandle);
         C7Vector collPose = linkPose * getPose(opts, collision.pose);
-        DBG << "collision " << collision.name << " pose: " << collPose << std::endl;
+        DEBUG_OUT << "collision " << collision.name << " pose: " << collPose << std::endl;
         simMultiplyObjectMatrix(shapeHandle, collPose);
         if(collision.surface)
         {
@@ -750,7 +750,7 @@ void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &li
         simInt shapeHandle = importGeometry(opts, visual.geometry, true, false, 0);
         if(shapeHandle == -1) continue;
         C7Vector visPose = linkPose * getPose(opts, visual.pose);
-        DBG << "visual " << visual.name << " pose: " << visPose << std::endl;
+        DEBUG_OUT << "visual " << visual.name << " pose: " << visPose << std::endl;
         simMultiplyObjectMatrix(shapeHandle, visPose);
         simSetObjectParent(shapeHandle, shapeHandleColl, true);
         setVrepObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
@@ -764,7 +764,7 @@ void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &li
 
 simInt importModelJoint(const ImportOptions &opts, sdf::Model &model, sdf::Joint &joint, simInt parentLinkHandle)
 {
-    DBG << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
+    DEBUG_OUT << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
 
     simInt handle = -1;
 
@@ -922,7 +922,7 @@ void visitLink(const ImportOptions &opts, sdf::Model &model, sdf::Link *link)
 
 void importModel(const ImportOptions &opts, sdf::Model &model, bool topLevel = true)
 {
-    DBG << "Importing model '" << model.name << "'..." << std::endl;
+    DEBUG_OUT << "Importing model '" << model.name << "'..." << std::endl;
 
     bool static_ = true;
     if(model.static_ && *model.static_ == false)
@@ -967,19 +967,19 @@ void importModel(const ImportOptions &opts, sdf::Model &model, bool topLevel = t
 
 void importActor(const ImportOptions &opts, sdf::Actor &actor)
 {
-    DBG << "Importing actor '" << actor.name << "'..." << std::endl;
-    DBG << "ERROR: actors are not currently supported" << std::endl;
+    DEBUG_OUT << "Importing actor '" << actor.name << "'..." << std::endl;
+    DEBUG_OUT << "ERROR: actors are not currently supported" << std::endl;
 }
 
 void importLight(const ImportOptions &opts, sdf::Light &light)
 {
-    DBG << "Importing light '" << light.name << "'..." << std::endl;
-    DBG << "ERROR: importing lights not currently supported" << std::endl;
+    DEBUG_OUT << "Importing light '" << light.name << "'..." << std::endl;
+    DEBUG_OUT << "ERROR: importing lights not currently supported" << std::endl;
 }
 
 void importSDF(const ImportOptions &opts, sdf::SDF &sdf)
 {
-    DBG << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
+    DEBUG_OUT << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
 #ifdef DEBUG
     sdf::DumpOptions dumpOpts;
     sdf.dump(dumpOpts, std::cout);
@@ -1006,12 +1006,12 @@ void import(SScriptCallBack *p, const char *cmd, import_in *in, import_out *out)
 {
     ImportOptions importOpts;
     importOpts.copyFrom(in);
-    DBG << "ImportOptions: " << importOpts.str() << std::endl;
+    DEBUG_OUT << "ImportOptions: " << importOpts.str() << std::endl;
     sdf::SDF sdf;
     sdf::ParseOptions parseOpts;
     parseOpts.ignoreMissingValues = importOpts.ignoreMissingValues;
     sdf.parse(parseOpts, in->fileName);
-    DBG << "parsed SDF successfully" << std::endl;
+    DEBUG_OUT << "parsed SDF successfully" << std::endl;
     importSDF(importOpts, sdf);
 }
 
@@ -1022,7 +1022,7 @@ void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
     sdf::ParseOptions parseOpts;
     parseOpts.ignoreMissingValues = true;
     sdf.parse(parseOpts, in->fileName);
-    DBG << "parsed SDF successfully" << std::endl;
+    DEBUG_OUT << "parsed SDF successfully" << std::endl;
     sdf.dump(dumpOpts, std::cout);
 }
 
