@@ -278,7 +278,7 @@ simInt importGeometry(const ImportOptions &opts, sdf::MeshGeometry &mesh, bool s
     else if(extension == "stl") extensionNum = 4;
     else if(extension == "dae") extensionNum = 5;
     else throw (boost::format("ERROR: the mesh extension '%s' is not currently supported") % extension).str();
-    simInt handle = simImportShape(extensionNum, filename.c_str(), 0, 0.0001f, 1.0f);
+    simInt handle = simImportShape(extensionNum, filename.c_str(), 16+128, 0.0001f, 1.0f);
     if(mesh.scale)
     {
         float scalingFactors[3] = {mesh.scale->x, mesh.scale->y, mesh.scale->z};
