@@ -484,7 +484,8 @@ void Vector::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
 
     string text = e->GetText();
     vector<string> tokens;
-    boost::split(tokens, text, boost::is_any_of(" "));
+    boost::algorithm::trim_if(text,boost::is_any_of("\t "));
+    boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 3)
         throw (boost::format("invalid vector length: %d") % tokens.size()).str();
     x = boost::lexical_cast<double>(tokens[0]);
@@ -510,7 +511,8 @@ void Time::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
 
     string text = e->GetText();
     vector<string> tokens;
-    boost::split(tokens, text, boost::is_any_of(" "));
+    boost::algorithm::trim_if(text,boost::is_any_of("\t "));
+    boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 2)
         throw (boost::format("invalid time length: %d") % tokens.size()).str();
     seconds = boost::lexical_cast<double>(tokens[0]);
@@ -534,7 +536,8 @@ void Color::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
 
     string text = e->GetText();
     vector<string> tokens;
-    boost::split(tokens, text, boost::is_any_of(" "));
+    boost::algorithm::trim_if(text,boost::is_any_of("\t "));
+    boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 4)
         throw (boost::format("invalid color length: %d") % tokens.size()).str();
     r = boost::lexical_cast<double>(tokens[0]);
@@ -562,7 +565,8 @@ void Orientation::parse(const ParseOptions &opts, XMLElement *e, const char *tag
 
     string text = e->GetText();
     vector<string> tokens;
-    boost::split(tokens, text, boost::is_any_of(" "));
+    boost::algorithm::trim_if(text,boost::is_any_of("\t "));
+    boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 3)
         throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
     roll = boost::lexical_cast<double>(tokens[0]);
@@ -588,7 +592,8 @@ void Pose::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
 
     string text = e->GetText();
     vector<string> tokens;
-    boost::split(tokens, text, boost::is_any_of(" "));
+    boost::algorithm::trim_if(text,boost::is_any_of("\t "));
+    boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 6)
         throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
     position.x = boost::lexical_cast<double>(tokens[0]);
@@ -2026,8 +2031,7 @@ void Shader::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Shader)
     Parser::parse(opts, e, tagName);
-
-    static const char *validTypes[] = {"vertex", "pixel", "normal_map_objectspace", "normal_map_tangentspace"};
+    static const char *validTypes[] = {"vertex", "pixel", "normal_map_object_space", "normal_map_tangent_space"};
     type = getAttrOneOf(opts, e, "type", validTypes, ARRAYSIZE(validTypes));
     normalMap = getSubValStr(opts, e, "normal_map");
 
