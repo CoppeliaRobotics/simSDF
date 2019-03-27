@@ -2031,8 +2031,12 @@ void Shader::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
 {
     WRAP_EXCEPTIONS_BEGIN(Shader)
     Parser::parse(opts, e, tagName);
-    static const char *validTypes[] = {"vertex", "pixel", "normal_map_object_space", "normal_map_tangent_space"};
+    static const char *validTypes[] = {"vertex", "pixel", "normal_map_object_space", "normal_map_tangent_space", "normal_map_objectspace", "normal_map_tangentspace"};
     type = getAttrOneOf(opts, e, "type", validTypes, ARRAYSIZE(validTypes));
+    if (type.compare("normal_map_tangent_space")==0)
+        type="normal_map_tangentspace"; // correct according to specs, but "normal_map_tangent_space" also found is SDF files!
+    if (type.compare("normal_map_object_space")==0)
+        type="normal_map_objectspace";  // correct according to specs, but "normal_map_object_space" also found is SDF files!
     normalMap = getSubValStr(opts, e, "normal_map");
 
     WRAP_EXCEPTIONS_END(Shader)
