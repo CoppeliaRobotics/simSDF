@@ -101,7 +101,7 @@ string getResourceFullPath(string uri, string sdfFile)
         DEBUG_OUT << "sdfDirParent=" << sdfDirParent << std::endl;
         string fullPath = sdfDirParent + "/" + uri1;
         DEBUG_OUT << "fullPath=" << fullPath << std::endl;
-        if(simDoesFileExist(fullPath.c_str()))
+        if(boost::filesystem::exists(fullPath))
             return fullPath;
         else
             throw (boost::format("could not determine the filesystem location of URI %s") % uri).str();
