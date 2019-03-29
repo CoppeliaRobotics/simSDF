@@ -71,21 +71,22 @@ void alternateRespondableMasks(int objHandle, bool bitSet = false)
     }
 }
 
-string getResourceFullPath(string uri, string sdfFile)
+string getFileResourceFullPath(string path, string sdfFile)
 {
-    const string prefix = "model://";
-    const string filePrefix = "file://";
-    string uri1 = uri;
-    if(boost::starts_with(uri, prefix)) uri1 = uri1.substr(prefix.size());
-    else if(boost::starts_with(uri, filePrefix)) return uri.substr(filePrefix.size());
-    else throw (boost::format("URI '%s' does not start with '%s' or '%s'") % uri % prefix % filePrefix).str();
+    if(boost::filesystem::exists(path))
+        return path;
+    else
+        throw (boost::format("could not determine the filesystem location of URI file://%s") % path).str();
+}
 
+string getModelResourceFullPath(string path, string sdfFile)
+{
     string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
     string sdfDirName = sdfDir.substr(sdfDir.find_last_of('/') + 1);
     DEBUG_OUT << "sdfDir=" << sdfDir << ", sdfDirName=" << sdfDirName << std::endl;
 
-    string uriRoot = uri1.substr(0, uri1.find_first_of('/'));
-    string uriRest = uri1.substr(uri1.find_first_of('/'));
+    string uriRoot = path.substr(0, path.find_first_of('/'));
+    string uriRest = path.substr(path.find_first_of('/'));
     DEBUG_OUT << "uriRoot=" << uriRoot << ", uriRest=" << uriRest << std::endl;
 
     if(sdfDirName == uriRoot)
@@ -99,13 +100,31 @@ string getResourceFullPath(string uri, string sdfFile)
         // try to match one level upper
         string sdfDirParent = sdfDir.substr(0, sdfDir.find_last_of('/'));
         DEBUG_OUT << "sdfDirParent=" << sdfDirParent << std::endl;
-        string fullPath = sdfDirParent + "/" + uri1;
+        string fullPath = sdfDirParent + "/" + path;
         DEBUG_OUT << "fullPath=" << fullPath << std::endl;
         if(boost::filesystem::exists(fullPath))
             return fullPath;
-        else
-            throw (boost::format("could not determine the filesystem location of URI %s") % uri).str();
+        else try
+            {
+                return getFileResourceFullPath(path, sdfFile);
+            }
+            catch(...)
+            {
+                throw (boost::format("could not determine the filesystem location of URI model://%s") % path).str();
+            }
     }
+}
+
+string getResourceFullPath(string uri, string sdfFile)
+{
+    const string modelScheme = "model://";
+    const string fileScheme = "file://";
+    if(boost::starts_with(uri, modelScheme))
+        return getModelResourceFullPath(uri.substr(modelScheme.size()), sdfFile);
+    else if(boost::starts_with(uri, fileScheme))
+        return getFileResourceFullPath(uri.substr(fileScheme.size()), sdfFile);
+    else
+        throw (boost::format("URI '%s' does not start with '%s' or '%s'") % uri % modelScheme % fileScheme).str();
 }
 
 void setVrepObjectName(const ImportOptions &opts, int objectHandle, string desiredName)
