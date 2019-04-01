@@ -73,7 +73,12 @@ void alternateRespondableMasks(int objHandle, bool bitSet = false)
 
 string getFileResourceFullPath(string path, string sdfFile)
 {
-    if(boost::filesystem::exists(path))
+    string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
+    DEBUG_OUT << "sdfDir=" << sdfDir << std::endl;
+
+    if(boost::filesystem::exists(sdfDir + "/" + path))
+        return sdfDir + "/" + path;
+    else if(boost::filesystem::exists(path))
         return path;
     else
         throw (boost::format("could not determine the filesystem location of URI file://%s") % path).str();
