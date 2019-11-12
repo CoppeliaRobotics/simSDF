@@ -11,6 +11,7 @@
 
 #include "tinyxml2.h"
 
+using namespace simExtSDF;
 using tinyxml2::XMLElement;
 using boost::optional;
 using std::string;
@@ -931,7 +932,7 @@ PARSER_CLASS(Link)
 
     PARSER_METHODS(Link)
 
-    int vrepHandle;
+    int simHandle;
 
     // utility methods:
     set<Joint*> getChildJoints(Model &model) const;
@@ -1033,7 +1034,7 @@ PARSER_CLASS(Joint)
 
     PARSER_METHODS(Joint)
 
-    int vrepHandle;
+    int simHandle;
 
     // utility methods:
     Link * getParentLink(Model &model) const;
@@ -1073,7 +1074,7 @@ PARSER_CLASS(Model)
     vector<Plugin> plugins;
     vector<Gripper> grippers;
 
-    int vrepHandle;
+    int simHandle;
 
     PARSER_METHODS(Model)
 };

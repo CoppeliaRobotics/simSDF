@@ -2355,7 +2355,7 @@ void Link::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     parseMany(opts, e, "audio_sink", audioSinks);
     parseMany(opts, e, "battery", batteries);
 
-    vrepHandle = -1;
+    simHandle = -1;
 
     WRAP_EXCEPTIONS_END(Link)
 }
@@ -2591,7 +2591,7 @@ void Joint::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     parse1Opt(opts, e, "pose", pose);
     parseMany(opts, e, "sensor", sensors);
 
-    vrepHandle = -1;
+    simHandle = -1;
 
     WRAP_EXCEPTIONS_END(Joint)
 }
@@ -2682,7 +2682,7 @@ void Model::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     parseMany(opts, e, "plugin", plugins);
     parseMany(opts, e, "gripper", grippers);
 
-    vrepHandle = -1;
+    simHandle = -1;
 
     WRAP_EXCEPTIONS_END(Model)
 }

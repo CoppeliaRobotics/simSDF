@@ -17,7 +17,7 @@
 
 #include <QThread>
 
-#include "v_repPlusPlus/Plugin.h"
+#include "simPlusPlus/Plugin.h"
 #include "plugin.h"
 #include "debug.h"
 #include "SDFDialog.h"
@@ -132,9 +132,9 @@ string getResourceFullPath(string uri, string sdfFile)
         throw (boost::format("URI '%s' does not start with '%s' or '%s'") % uri % modelScheme % fileScheme).str();
 }
 
-void setVrepObjectName(const ImportOptions &opts, int objectHandle, string desiredName)
+void setSimObjectName(const ImportOptions &opts, int objectHandle, string desiredName)
 {
-    // Objects in V-REP can only contain a-z, A-Z, 0-9, '_' or exaclty one '#' optionally followed by a number
+    // Objects in CoppeliaSim can only contain a-z, A-Z, 0-9, '_' or exaclty one '#' optionally followed by a number
     string baseName(desiredName);
     for(int i = 0; i < baseName.size(); i++)
     {
@@ -150,7 +150,7 @@ void setVrepObjectName(const ImportOptions &opts, int objectHandle, string desir
 
 int scaleShape(int shapeHandle, float scalingFactors[3])
 {
-    // in future there will be a non-iso scaling function for objects in V-REP, but until then...
+    // in future there will be a non-iso scaling function for objects in CoppeliaSim, but until then...
     if(scalingFactors[0] * scalingFactors[1] * scalingFactors[2] > 0.99999f && scalingFactors[0] > 0.0f && scalingFactors[1] > 0.0f)
         return shapeHandle; // no scaling required
     if(fabs(scalingFactors[0]) < 0.00001f)
@@ -634,7 +634,7 @@ simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector par
         handle = simCreateDummy(0, NULL);
     }
 
-    setVrepObjectName(opts, handle, sensor.name);
+    setSimObjectName(opts, handle, sensor.name);
 
     C7Vector pose = parentPose * getPose(opts, sensor.pose);
     simMultiplyObjectMatrix(handle, pose);
@@ -733,10 +733,10 @@ void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &li
     {
         shapeHandleColl = simGroupShapes(&shapeHandlesColl[0], shapeHandlesColl.size());
     }
-    link.vrepHandle = shapeHandleColl;
-    if(model.vrepHandle == -1)
-        model.vrepHandle = link.vrepHandle;
-    setVrepObjectName(opts, shapeHandleColl, (boost::format("%s_collision") % link.name).str());
+    link.simHandle = shapeHandleColl;
+    if(model.simHandle == -1)
+        model.simHandle = link.simHandle;
+    setSimObjectName(opts, shapeHandleColl, (boost::format("%s_collision") % link.name).str());
 
     if(link.inertial && link.inertial->inertia)
     {
@@ -777,7 +777,7 @@ void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &li
         DEBUG_OUT << "visual " << visual.name << " pose: " << visPose << std::endl;
         simMultiplyObjectMatrix(shapeHandle, visPose);
         simSetObjectParent(shapeHandle, shapeHandleColl, true);
-        setVrepObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
+        setSimObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
     }
 
     BOOST_FOREACH(sdf::Sensor &sensor, link.sensors)
@@ -853,14 +853,14 @@ simInt importModelJoint(const ImportOptions &opts, sdf::Model &model, sdf::Joint
     if(handle == -1)
         return handle;
 
-    joint.vrepHandle = handle;
+    joint.simHandle = handle;
 
     if(parentLinkHandle != -1)
     {
         //simSetObjectParent(handle, parentLinkHandle, true);
     }
 
-    setVrepObjectName(opts, handle, joint.name);
+    setSimObjectName(opts, handle, joint.name);
 
     return handle;
 }
@@ -925,8 +925,8 @@ void adjustJointPose(const ImportOptions &opts, sdf::Model &model, sdf::Joint *j
     }
 
     C7Vector t = m.getTransformation();
-    simSetObjectPosition(joint->vrepHandle, -1, t.X.data);
-    simSetObjectOrientation(joint->vrepHandle, -1, t.Q.getEulerAngles().data);
+    simSetObjectPosition(joint->simHandle, -1, t.X.data);
+    simSetObjectOrientation(joint->simHandle, -1, t.Q.getEulerAngles().data);
 }
 
 void visitLink(const ImportOptions &opts, sdf::Model &model, sdf::Link *link)
@@ -935,11 +935,11 @@ void visitLink(const ImportOptions &opts, sdf::Model &model, sdf::Link *link)
     BOOST_FOREACH(sdf::Joint *joint, childJoints)
     {
         sdf::Link *childLink = joint->getChildLink(model);
-        importModelJoint(opts, model, *joint, link->vrepHandle);
-        importModelLink(opts, model, *childLink, joint->vrepHandle);
-        adjustJointPose(opts, model, joint, childLink->vrepHandle);
-        simSetObjectParent(joint->vrepHandle, link->vrepHandle, true);
-        simSetObjectParent(childLink->vrepHandle, joint->vrepHandle, true);
+        importModelJoint(opts, model, *joint, link->simHandle);
+        importModelLink(opts, model, *childLink, joint->simHandle);
+        adjustJointPose(opts, model, joint, childLink->simHandle);
+        simSetObjectParent(joint->simHandle, link->simHandle, true);
+        simSetObjectParent(childLink->simHandle, joint->simHandle, true);
         visitLink(opts, model, childLink);
     }
 }
@@ -974,18 +974,18 @@ void importModel(const ImportOptions &opts, sdf::Model &model, bool topLevel = t
         if(topLevel)
         {
             // mark it as model base
-            simSetModelProperty(link.vrepHandle,
-                    simGetModelProperty(link.vrepHandle)
+            simSetModelProperty(link.simHandle,
+                    simGetModelProperty(link.simHandle)
                     & ~sim_modelproperty_not_model);
-            simSetObjectProperty(link.vrepHandle,
-                    simGetObjectProperty(link.vrepHandle)
+            simSetObjectProperty(link.simHandle,
+                    simGetObjectProperty(link.simHandle)
                     & ~sim_objectproperty_selectmodelbaseinstead);
         }
 
         if(link.selfCollide && *link.selfCollide == true) continue;
         if(model.selfCollide && *model.selfCollide == true) continue;
         if(link.selfCollide || model.selfCollide || opts.noSelfCollision)
-            alternateRespondableMasks(link.vrepHandle);
+            alternateRespondableMasks(link.simHandle);
     }
 }
 
@@ -1004,10 +1004,10 @@ void importLight(const ImportOptions &opts, sdf::Light &light)
 void importSDF(const ImportOptions &opts, sdf::SDF &sdf)
 {
     DEBUG_OUT << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
-#ifdef DEBUG
+#ifndef NDEBUG
     sdf::DumpOptions dumpOpts;
     sdf.dump(dumpOpts, std::cout);
-#endif
+#endif // NDEBUG
     BOOST_FOREACH(sdf::World &x, sdf.worlds)
     {
         importWorld(opts, x);
@@ -1050,7 +1050,7 @@ void dump(SScriptCallBack *p, const char *cmd, dump_in *in, dump_out *out)
     sdf.dump(dumpOpts, std::cout);
 }
 
-class Plugin : public vrep::Plugin
+class Plugin : public sim::Plugin
 {
 public:
     void onStart()
@@ -1084,7 +1084,7 @@ public:
         SIM_THREAD = NULL;
     }
 
-    void onInstancePass(const vrep::InstancePassFlags &flags, bool first)
+    void onInstancePass(const sim::InstancePassFlags &flags, bool first)
     {
         if(first)
         {
@@ -1108,4 +1108,4 @@ public:
     }
 };
 
-VREP_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)
+SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)

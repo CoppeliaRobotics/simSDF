@@ -2,7 +2,7 @@
 #include "debug.h"
 #include "UIProxy.h"
 #include "ui_SDFDialog.h"
-#include "v_repLib.h"
+#include "simLib.h"
 #include "SDFParser.h"
 #include <string>
 #include <sstream>
