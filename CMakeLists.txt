@@ -70,5 +70,5 @@ set(SOURCES
 add_library(simExtSDF SHARED ${SOURCES})
 target_link_libraries(simExtSDF ${Boost_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport ${COPPELIASIM_LIBRARIES})
 
-install(TARGETS simExtSDF DESTINATION ${COPPELIASIM_ROOT_DIR})
+install(TARGETS simExtSDF DESTINATION ${COPPELIASIM_PLUGINS_DIR})
 
