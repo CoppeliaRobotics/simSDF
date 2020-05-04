@@ -1061,8 +1061,8 @@ public:
         if(!registerScriptStuff())
             throw std::runtime_error("failed to register script stuff");
 
-        simSetModuleInfo(PLUGIN_NAME, 0, "SDF Importer Plugin", 0);
-        simSetModuleInfo(PLUGIN_NAME, 1, BUILD_DATE, 0);
+        setExtVersion("SDF Importer Plugin");
+        setBuildDate(BUILD_DATE);
 
         QWidget *mainWindow = (QWidget *)simGetMainWindow(1);
         sdfDialog = new SDFDialog(mainWindow);
