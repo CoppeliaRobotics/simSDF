@@ -41,7 +41,7 @@ UIProxy * UIProxy::getInstance(QObject *parent)
 
         uiThread();
 
-        DEBUG_OUT << "UIProxy constructed in thread " << QThread::currentThreadId() << std::endl;
+        log(sim_verbosity_debug, boost::format("UIProxy constructed in thread %s") % QThread::currentThreadId());
     }
     return UIProxy::instance;
 }

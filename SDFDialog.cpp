@@ -76,7 +76,7 @@ void SDFDialog::reject()
 
 void SDFDialog::on_qqImport_clicked()
 { // Called from the UI thread
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     UIProxy::getInstance()->import(&options);
     setVisible(false);
 }
@@ -84,70 +84,70 @@ void SDFDialog::on_qqImport_clicked()
 void SDFDialog::on_qqIgnoreMissingValues_clicked()
 { // Called from the UI thread
     options.ignoreMissingValues=!options.ignoreMissingValues;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqCollisionLinksHidden_clicked()
 { // Called from the UI thread
     options.hideCollisionLinks=!options.hideCollisionLinks;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqJointsHidden_clicked()
 { // Called from the UI thread
     options.hideJoints=!options.hideJoints;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqConvexDecompose_clicked()
 { // Called from the UI thread
     options.convexDecompose=!options.convexDecompose;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqConvexDecomposeDlg_clicked()
 { // Called from the UI thread
     options.showConvexDecompositionDlg=!options.showConvexDecompositionDlg;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqCreateVisualLinks_clicked()
 { // Called from the UI thread
     options.createVisualIfNone=!options.createVisualIfNone;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqCenterModel_clicked()
 { // Called from the UI thread
     options.centerModel=!options.centerModel;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqModelDefinition_clicked()
 { // Called from the UI thread
     options.prepareModel=!options.prepareModel;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqAlternateMasks_clicked()
 { // Called from the UI thread
     options.noSelfCollision=!options.noSelfCollision;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqPositionCtrl_clicked()
 { // Called from the UI thread
     options.positionCtrl=!options.positionCtrl;
-    DEBUG_OUT << "ImportOptions: " << options.str() << std::endl;
+    log(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 

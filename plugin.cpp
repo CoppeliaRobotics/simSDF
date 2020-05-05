@@ -141,7 +141,7 @@ public:
     string getFileResourceFullPath(string path, string sdfFile)
     {
         string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
-        DEBUG_OUT << "sdfDir=" << sdfDir << std::endl;
+        log(sim_verbosity_debug, "sdfDir=" + sdfDir);
 
         if(boost::filesystem::exists(sdfDir + "/" + path))
             return sdfDir + "/" + path;
@@ -155,25 +155,25 @@ public:
     {
         string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
         string sdfDirName = sdfDir.substr(sdfDir.find_last_of('/') + 1);
-        DEBUG_OUT << "sdfDir=" << sdfDir << ", sdfDirName=" << sdfDirName << std::endl;
+        log(sim_verbosity_debug, "sdfDir=" + sdfDir + ", sdfDirName=" + sdfDirName);
 
         string uriRoot = path.substr(0, path.find_first_of('/'));
         string uriRest = path.substr(path.find_first_of('/'));
-        DEBUG_OUT << "uriRoot=" << uriRoot << ", uriRest=" << uriRest << std::endl;
+        log(sim_verbosity_debug, "uriRoot=" + uriRoot + ", uriRest=" + uriRest);
 
         if(sdfDirName == uriRoot)
         {
             string fullPath = sdfDir + uriRest;
-            DEBUG_OUT << "fullPath=" << fullPath << std::endl;
+            log(sim_verbosity_debug, "fullPath=" + fullPath);
             return fullPath;
         }
         else
         {
             // try to match one level upper
             string sdfDirParent = sdfDir.substr(0, sdfDir.find_last_of('/'));
-            DEBUG_OUT << "sdfDirParent=" << sdfDirParent << std::endl;
+            log(sim_verbosity_debug, "sdfDirParent=" + sdfDirParent);
             string fullPath = sdfDirParent + "/" + path;
-            DEBUG_OUT << "fullPath=" << fullPath << std::endl;
+            log(sim_verbosity_debug, "fullPath=" + fullPath);
             if(boost::filesystem::exists(fullPath))
                 return fullPath;
             else try
@@ -289,8 +289,8 @@ public:
 
     void importWorld(const ImportOptions &opts, sdf::World &world)
     {
-        DEBUG_OUT << "Importing world '" << world.name << "'..." << std::endl;
-        DEBUG_OUT << "ERROR: importing worlds not implemented yet" << std::endl;
+        log(sim_verbosity_debug, "Importing world '" + world.name + "'...");
+        log(sim_verbosity_debug, "ERROR: importing worlds not implemented yet");
     }
 
     simInt importGeometry(const ImportOptions &opts, sdf::EmptyGeometry &empty, bool static_, bool respondable, double mass)
@@ -700,12 +700,12 @@ public:
 
     void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &link, simInt parentJointHandle)
     {
-        DEBUG_OUT << "Importing link '" << link.name << "' of model '" << model.name << "'..." << std::endl;
+        log(sim_verbosity_debug, "Importing link '" + link.name + "' of model '" + model.name + "'...");
 
         C7Vector modelPose = getPose(opts, model.pose);
         C7Vector linkPose = modelPose * getPose(opts, link.pose);
-        DEBUG_OUT << "modelPose: " << modelPose << std::endl;
-        DEBUG_OUT << "linkPose: " << linkPose << std::endl;
+        log(sim_verbosity_debug, boost::format("modelPose: %s") % modelPose);
+        log(sim_verbosity_debug, boost::format("linkPose: %s") % linkPose);
 
         double mass = 0;
         if(link.inertial && link.inertial->mass)
@@ -720,7 +720,7 @@ public:
             if(shapeHandle == -1) continue;
             shapeHandlesColl.push_back(shapeHandle);
             C7Vector collPose = linkPose * getPose(opts, collision.pose);
-            DEBUG_OUT << "collision " << collision.name << " pose: " << collPose << std::endl;
+            log(sim_verbosity_debug, boost::format("collision %s pose %s") % collision.name % collPose);
             simMultiplyObjectMatrix(shapeHandle, collPose);
             if(collision.surface)
             {
@@ -828,7 +828,7 @@ public:
             simInt shapeHandle = importGeometry(opts, visual.geometry, true, false, 0);
             if(shapeHandle == -1) continue;
             C7Vector visPose = linkPose * getPose(opts, visual.pose);
-            DEBUG_OUT << "visual " << visual.name << " pose: " << visPose << std::endl;
+            log(sim_verbosity_debug, boost::format("visual %s pose: %s") % visual.name % visPose);
             simMultiplyObjectMatrix(shapeHandle, visPose);
             simSetObjectParent(shapeHandle, shapeHandleColl, true);
             setSimObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
@@ -842,7 +842,7 @@ public:
 
     simInt importModelJoint(const ImportOptions &opts, sdf::Model &model, sdf::Joint &joint, simInt parentLinkHandle)
     {
-        DEBUG_OUT << "Importing joint '" << joint.name << "' of model '" << model.name << "'..." << std::endl;
+        log(sim_verbosity_debug, boost::format("Importing joint '%s' of model '%s'...") % joint.name % model.name);
 
         simInt handle = -1;
 
@@ -1000,7 +1000,7 @@ public:
 
     void importModel(const ImportOptions &opts, sdf::Model &model, bool topLevel = true)
     {
-        DEBUG_OUT << "Importing model '" << model.name << "'..." << std::endl;
+        log(sim_verbosity_debug, "Importing model '" + model.name + "'...");
 
         bool static_ = true;
         if(model.static_ && *model.static_ == false)
@@ -1045,19 +1045,19 @@ public:
 
     void importActor(const ImportOptions &opts, sdf::Actor &actor)
     {
-        DEBUG_OUT << "Importing actor '" << actor.name << "'..." << std::endl;
-        DEBUG_OUT << "ERROR: actors are not currently supported" << std::endl;
+        log(sim_verbosity_debug, "Importing actor '" + actor.name + "'...");
+        log(sim_verbosity_debug, "ERROR: actors are not currently supported");
     }
 
     void importLight(const ImportOptions &opts, sdf::Light &light)
     {
-        DEBUG_OUT << "Importing light '" << light.name << "'..." << std::endl;
-        DEBUG_OUT << "ERROR: importing lights not currently supported" << std::endl;
+        log(sim_verbosity_debug, "Importing light '" + light.name + "'...");
+        log(sim_verbosity_debug, "ERROR: importing lights not currently supported");
     }
 
     void importSDF(const ImportOptions &opts, sdf::SDF &sdf)
     {
-        DEBUG_OUT << "Importing SDF file (version " << sdf.version << ")..." << std::endl;
+        log(sim_verbosity_debug, "Importing SDF file (version " + sdf.version + ")...");
 #ifndef NDEBUG
         sdf::DumpOptions dumpOpts;
         sdf.dump(dumpOpts, std::cout);
@@ -1084,12 +1084,12 @@ public:
     {
         ImportOptions importOpts;
         importOpts.copyFrom(in);
-        DEBUG_OUT << "ImportOptions: " << importOpts.str() << std::endl;
+        log(sim_verbosity_debug, "ImportOptions: " + importOpts.str());
         sdf::SDF sdf;
         sdf::ParseOptions parseOpts;
         parseOpts.ignoreMissingValues = importOpts.ignoreMissingValues;
         sdf.parse(parseOpts, in->fileName);
-        DEBUG_OUT << "parsed SDF successfully" << std::endl;
+        log(sim_verbosity_debug, "parsed SDF successfully");
         importSDF(importOpts, sdf);
     }
 
@@ -1100,7 +1100,7 @@ public:
         sdf::ParseOptions parseOpts;
         parseOpts.ignoreMissingValues = true;
         sdf.parse(parseOpts, in->fileName);
-        DEBUG_OUT << "parsed SDF successfully" << std::endl;
+        log(sim_verbosity_debug, "parsed SDF successfully");
         sdf.dump(dumpOpts, std::cout);
     }
 
