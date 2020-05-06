@@ -1,4 +1,5 @@
 #include "SDFParser.h"
+#include "stubs.h"
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -455,7 +456,7 @@ void SDF::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     static const char *supportedVersions[] = {"1.4", "1.5", "1.6"};
     version = getAttrOneOf(opts, e, "version", supportedVersions, ARRAYSIZE(supportedVersions));
     if(version != "1.6")
-        std::cout << "SDF: warning: version is " << version << "; supported version is 1.6. trying to import anyway." << std::endl;
+        log(sim_verbosity_warnings, boost::format("warning: version is %s; supported version is 1.6. trying to import anyway.") % version);
 
     parseMany(opts, e, "world", worlds);
     parseMany(opts, e, "model", models);

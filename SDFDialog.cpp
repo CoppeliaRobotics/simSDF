@@ -168,7 +168,7 @@ void SDFDialog::showDialogForFile(std::string f)
     }
     catch(std::string &err)
     {
-        std::cout << "SDF: error: could not parse SDF file. trying again ignoring mandatory values..." << std::endl;
+        log(sim_verbosity_errors, "error: could not parse SDF file. trying again ignoring mandatory values...");
         parseOpts.ignoreMissingValues = true;
         try
         {
@@ -177,7 +177,7 @@ void SDFDialog::showDialogForFile(std::string f)
         }
         catch(std::string &err)
         {
-            std::cout << "SDF: error: could not parse SDF file (again)." << std::endl;
+            log(sim_verbosity_errors, "error: could not parse SDF file (again).");
             UIProxy::getInstance()->onError(err.c_str());
             return;
         }

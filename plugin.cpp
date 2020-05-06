@@ -1059,7 +1059,9 @@ public:
         log(sim_verbosity_debug, "Importing SDF file (version " + sdf.version + ")...");
 #ifndef NDEBUG
         sdf::DumpOptions dumpOpts;
-        sdf.dump(dumpOpts, std::cout);
+        std::stringstream ss;
+        sdf.dump(dumpOpts, ss);
+        log(sim_verbosity_debug, boost::format("Options: %s") % ss.str());
 #endif // NDEBUG
         BOOST_FOREACH(sdf::World &x, sdf.worlds)
         {
