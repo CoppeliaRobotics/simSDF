@@ -1,5 +1,4 @@
 #include "SDFParser.h"
-#include "debug.h"
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/classification.hpp>

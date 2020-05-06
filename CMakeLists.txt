@@ -40,6 +40,7 @@ include_directories(${COPPELIASIM_ROOT_DIR}/programming/simMath)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${Boost_INCLUDE_DIRS})
+add_definitions(-DQT_COMPIL)
 
 coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simExtSDF.lua)
 
@@ -51,7 +52,6 @@ set(SOURCES
     SDFParser.cpp
     UIFunctions.cpp
     UIProxy.cpp
-    debug.cpp
     tinyxml2.cpp
     plugin.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/3Vector.cpp

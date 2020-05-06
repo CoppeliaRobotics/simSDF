@@ -1,8 +1,7 @@
 #include "SDFDialog.h"
-#include "debug.h"
 #include "UIProxy.h"
 #include "ui_SDFDialog.h"
-#include "simLib.h"
+#include "stubs.h"
 #include "SDFParser.h"
 #include <string>
 #include <sstream>

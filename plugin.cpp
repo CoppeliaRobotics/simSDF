@@ -19,7 +19,6 @@
 
 #include "simPlusPlus/Plugin.h"
 #include "plugin.h"
-#include "debug.h"
 #include "SDFDialog.h"
 #include "ImportOptions.h"
 #include "tinyxml2.h"
