@@ -799,13 +799,30 @@ public:
                 i.ixy, i.iyy, i.iyz,
                 i.ixz, i.iyz, i.izz
             };
-            C4X4Matrix t(getPose(opts, link.inertial->pose).getMatrix());
+            
+#if SIM_PROGRAM_VERSION_NB_FULL<4010002
+            // simSetShapeMassAndInertia is deprecated
+            C4X4Matrix t((linkPose*getPose(opts, link.inertial->pose)).getMatrix());
             float m[12] = {
                 t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
                 t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
                 t.M(2,0), t.M(2,1), t.M(2,2), t.X(2)
             };
             simSetShapeMassAndInertia(shapeHandleColl, mass, inertia, C3Vector::zeroVector.data, m);
+#else
+            float _mtr[12];
+            simGetObjectMatrix(shapeHandleColl,-1,_mtr); 
+            C4X4Matrix mtr;
+            mtr.copyFromInterface(_mtr);
+            C4X4Matrix t(mtr.getInverse()*(linkPose*getPose(opts, link.inertial->pose)).getMatrix());
+            float m[12] = {
+                t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
+                t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
+                t.M(2,0), t.M(2,1), t.M(2,2), t.X(2)
+            };
+            simSetShapeMass(shapeHandleColl,mass);
+            simSetShapeInertia(shapeHandleColl,inertia,m);
+#endif
         }
         if(link.inertial && (!link.kinematic || *link.kinematic == false))
             simSetObjectInt32Parameter(shapeHandleColl, sim_shapeintparam_static, 0);
