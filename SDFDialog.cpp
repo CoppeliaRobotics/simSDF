@@ -75,7 +75,7 @@ void SDFDialog::reject()
 
 void SDFDialog::on_qqImport_clicked()
 { // Called from the UI thread
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     UIProxy::getInstance()->import(&options);
     setVisible(false);
 }
@@ -83,70 +83,70 @@ void SDFDialog::on_qqImport_clicked()
 void SDFDialog::on_qqIgnoreMissingValues_clicked()
 { // Called from the UI thread
     options.ignoreMissingValues=!options.ignoreMissingValues;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqCollisionLinksHidden_clicked()
 { // Called from the UI thread
     options.hideCollisionLinks=!options.hideCollisionLinks;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqJointsHidden_clicked()
 { // Called from the UI thread
     options.hideJoints=!options.hideJoints;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqConvexDecompose_clicked()
 { // Called from the UI thread
     options.convexDecompose=!options.convexDecompose;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqConvexDecomposeDlg_clicked()
 { // Called from the UI thread
     options.showConvexDecompositionDlg=!options.showConvexDecompositionDlg;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqCreateVisualLinks_clicked()
 { // Called from the UI thread
     options.createVisualIfNone=!options.createVisualIfNone;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqCenterModel_clicked()
 { // Called from the UI thread
     options.centerModel=!options.centerModel;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqModelDefinition_clicked()
 { // Called from the UI thread
     options.prepareModel=!options.prepareModel;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqAlternateMasks_clicked()
 { // Called from the UI thread
     options.noSelfCollision=!options.noSelfCollision;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
 void SDFDialog::on_qqPositionCtrl_clicked()
 { // Called from the UI thread
     options.positionCtrl=!options.positionCtrl;
-    log(sim_verbosity_debug, "ImportOptions: " + options.str());
+    sim::addLog(sim_verbosity_debug, "ImportOptions: " + options.str());
     refresh();
 }
 
@@ -168,7 +168,7 @@ void SDFDialog::showDialogForFile(std::string f)
     }
     catch(std::string &err)
     {
-        log(sim_verbosity_errors, "error: could not parse SDF file. trying again ignoring mandatory values...");
+        sim::addLog(sim_verbosity_errors, "could not parse SDF file. trying again ignoring mandatory values...");
         parseOpts.ignoreMissingValues = true;
         try
         {
@@ -177,7 +177,7 @@ void SDFDialog::showDialogForFile(std::string f)
         }
         catch(std::string &err)
         {
-            log(sim_verbosity_errors, "error: could not parse SDF file (again).");
+            sim::addLog(sim_verbosity_errors, "could not parse SDF file (again).");
             UIProxy::getInstance()->onError(err.c_str());
             return;
         }

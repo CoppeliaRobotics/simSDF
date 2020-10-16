@@ -34,7 +34,7 @@ UIFunctions * UIFunctions::getInstance(QObject *parent)
 
         simThread();
 
-        log(sim_verbosity_debug, boost::format("UIFunctions constructed in thread %s") % QThread::currentThreadId());
+        sim::addLog(sim_verbosity_debug, "UIFunctions constructed in thread %s", QThread::currentThreadId());
     }
     return UIFunctions::instance;
 }

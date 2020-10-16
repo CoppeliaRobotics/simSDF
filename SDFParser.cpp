@@ -456,7 +456,7 @@ void SDF::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     static const char *supportedVersions[] = {"1.4", "1.5", "1.6"};
     version = getAttrOneOf(opts, e, "version", supportedVersions, ARRAYSIZE(supportedVersions));
     if(version != "1.6")
-        log(sim_verbosity_warnings, boost::format("warning: version is %s; supported version is 1.6. trying to import anyway.") % version);
+        sim::addLog(sim_verbosity_warnings, "warning: version is %s; supported version is 1.6. trying to import anyway.", version);
 
     parseMany(opts, e, "world", worlds);
     parseMany(opts, e, "model", models);
