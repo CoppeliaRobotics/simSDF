@@ -18,6 +18,7 @@
 #include <QThread>
 
 #include "simPlusPlus/Plugin.h"
+#include "config.h"
 #include "plugin.h"
 #include "SDFDialog.h"
 #include "ImportOptions.h"
