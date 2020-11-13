@@ -10,7 +10,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-narrowing")
 endif()
 
-find_package(Boost COMPONENTS system filesystem REQUIRED)
+find_package(Boost COMPONENTS filesystem REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
@@ -34,11 +34,9 @@ set(CMAKE_MODULE_PATH
     ${LIBPLUGIN_DIR}/cmake)
 find_package(CoppeliaSim 4.1.0.0 REQUIRED)
 
-include_directories(${COPPELIASIM_INCLUDE_DIR})
 include_directories(${COPPELIASIM_ROOT_DIR}/programming/simMath)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
-include_directories(${Boost_INCLUDE_DIRS})
 add_definitions(-DQT_COMPIL)
 
 coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simExtSDF.lua)
@@ -64,10 +62,7 @@ set(SOURCES
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/MMatrix.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/MyMath.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/Vector.cpp
-    ${COPPELIASIM_EXPORTED_SOURCES}
 )
-add_library(simExtSDF SHARED ${SOURCES})
-target_link_libraries(simExtSDF ${Boost_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport ${COPPELIASIM_LIBRARIES})
-
-install(TARGETS simExtSDF DESTINATION ${COPPELIASIM_PLUGINS_DIR})
-
+coppeliasim_add_plugin(simExtSDF SOURCES ${SOURCES})
+target_link_libraries(simExtSDF Boost::boost Boost::filesystem)
+target_link_libraries(simExtSDF Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport)
