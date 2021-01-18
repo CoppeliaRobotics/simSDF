@@ -19,9 +19,7 @@
 #define WRAP_EXCEPTIONS_END(X) \
     } \
     catch(std::exception &ex) { \
-        std::stringstream ss; \
-        ss << "<" << tagName << ">: " << ex.what(); \
-        throw ss.str(); \
+        throw sim::exception("<%s>: %s", tagName, ex.what()); \
     }
 
 namespace sdf
