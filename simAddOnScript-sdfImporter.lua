@@ -1,5 +1,8 @@
 function importSDF()
-    simSDF.import(options.fileName,options)
+    local success,err=pcall(function() simSDF.import(options.fileName,options) end)
+    if err then
+        simUI.msgBox(simUI.msgbox_type.info,simUI.msgbox_buttons.ok,'Error','Error: '..err)
+    end
     closeDialog()
 end
 
