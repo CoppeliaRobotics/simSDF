@@ -1,5 +1,9 @@
 function importSDF()
     simSDF.import(options.fileName,options)
+    closeDialog()
+end
+
+function closeDialog()
     simUI.destroy(ui)
     ui=nil
 end
@@ -36,12 +40,8 @@ function bool2string(b)
     if b then return "true" else return "false" end
 end
 
-function label(text)
-    return '<label text="'..text..'" />\n'
-end
-
-function checkbox(id,varname)
-    return '<checkbox id="'..id..'" checked="'..bool2string(options[varname])..'" text="" on-change="updateOptions" />\n'
+function checkbox(id,text,varname)
+    return '<checkbox id="'..id..'" checked="'..bool2string(options[varname])..'" text="'..text..'" on-change="updateOptions" />\n'
 end
 
 function button(text,fn)
@@ -50,8 +50,7 @@ end
 
 function sysCall_init()
     if ui then
-        simUI.destroy(ui)
-        ui=nil
+        closeDialog()
     end
 
     options={
@@ -73,18 +72,18 @@ function sysCall_init()
     if fileName then
         options.fileName=fileName
         ui=simUI.create(
-            '<ui modal="true" layout="form" title="Importing '..fileName..'...">\n'..
-            label("Ignore missing values")..checkbox("10",'ignoreMissingValues')..
-            label("Hide collision links")..checkbox("20",'hideCollisionLinks')..
-            label("Hide joints")..checkbox("30",'hideJoints')..
-            label("Convex decompose")..checkbox("40",'convexDecompose')..
-            label("Show convex decomp. dlg")..checkbox("50",'showConvexDecompositionDlg')..
-            label("Create visual if none")..checkbox("60",'createVisualIfNone')..
-            label("Center model")..checkbox("70",'centerModel')..
-            label("Prepare model")..checkbox("80",'prepareModel')..
-            label("No self-collision")..checkbox("90",'noSelfCollision')..
-            label("Position ctrl")..checkbox("100",'positionCtrl')..
-            label("")..button('Import','importSDF')..
+            '<ui modal="true" layout="vbox" title="Importing '..fileName..'..." closeable="true" on-close="closeDialog">\n'..
+            checkbox("10","Ignore missing values",'ignoreMissingValues')..
+            checkbox("20","Hide collision links",'hideCollisionLinks')..
+            checkbox("30","Hide joints",'hideJoints')..
+            checkbox("40","Convex decompose",'convexDecompose')..
+            checkbox("50","Show convex decomp. dlg",'showConvexDecompositionDlg')..
+            checkbox("60","Create visual if none",'createVisualIfNone')..
+            checkbox("70","Center model",'centerModel')..
+            checkbox("80","Prepare model",'prepareModel')..
+            checkbox("90","No self-collision",'noSelfCollision')..
+            checkbox("100","Position ctrl",'positionCtrl')..
+            button('Import','importSDF')..
             '</ui>'
         )
     end
