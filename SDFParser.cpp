@@ -18,11 +18,6 @@
 
 #define WRAP_EXCEPTIONS_END(X) \
     } \
-    catch(std::string &exStr) { \
-        std::stringstream ss; \
-        ss << "<" << tagName << ">: " << exStr; \
-        throw ss.str(); \
-    } \
     catch(std::exception &ex) { \
         std::stringstream ss; \
         ss << "<" << tagName << ">: " << ex.what(); \
@@ -123,7 +118,7 @@ bool parseBool(const ParseOptions &opts, string v)
     boost::algorithm::to_lower(v);
     if(v == "true" || v == "1") return true;
     if(v == "false" || v == "0") return false;
-    throw (boost::format("invalid boolean value: %s") % v).str();
+    throw sim::exception("invalid boolean value: %s", v);
 }
 
 optional<int> parseInt(const ParseOptions &opts, optional<string> v)
@@ -172,7 +167,7 @@ optional<string> _getAttrStr(const ParseOptions &opts, XMLElement *e, const char
         else if(opts.ignoreMissingValues)
             return optional<string>("");
         else
-            throw (boost::format("missing attribute %s in element %s") % name % e->Name()).str();
+            throw sim::exception("missing attribute %s in element %s", name, e->Name());
     }
 
     return optional<string>(string(value));
@@ -189,7 +184,7 @@ optional<int> _getAttrInt(const ParseOptions &opts, XMLElement *e, const char *n
         else if(opts.ignoreMissingValues)
             return optional<int>(0);
         else
-            throw (boost::format("missing attribute %s in element %s") % name % e->Name()).str();
+            throw sim::exception("missing attribute %s in element %s", name, e->Name());
     }
 
     return optional<int>(parseInt(opts, string(value)));
@@ -206,7 +201,7 @@ optional<double> _getAttrDouble(const ParseOptions &opts, XMLElement *e, const c
         else if(opts.ignoreMissingValues)
             return optional<double>(0);
         else
-            throw (boost::format("missing attribute %s in element %s") % name % e->Name()).str();
+            throw sim::exception("missing attribute %s in element %s", name, e->Name());
     }
 
     return optional<double>(parseDouble(opts, string(value)));
@@ -223,7 +218,7 @@ optional<bool> _getAttrBool(const ParseOptions &opts, XMLElement *e, const char 
         else if(opts.ignoreMissingValues)
             return optional<bool>(false);
         else
-            throw (boost::format("missing attribute %s in element %s") % name % e->Name()).str();
+            throw sim::exception("missing attribute %s in element %s", name, e->Name());
     }
 
     return optional<bool>(parseBool(opts, string(value)));
@@ -237,7 +232,7 @@ optional<string> _getAttrOneOf(const ParseOptions &opts, XMLElement *e, const ch
     {
         string validValuesStr = "";
         if(!_isOneOf(opts, *value, validValues, numValues, &validValuesStr))
-            throw (boost::format("invalid value '%s' for attribute %s: must be one of %s") % *value % name % validValuesStr).str();
+            throw sim::exception("invalid value '%s' for attribute %s: must be one of %s", *value, name, validValuesStr);
     }
 
     return value;
@@ -254,7 +249,7 @@ optional<string> _getValStr(const ParseOptions &opts, XMLElement *e, bool opt)
         else if(opts.ignoreMissingValues)
             return optional<string>("");
         else
-            throw (boost::format("missing value in element %s") % e->Name()).str();
+            throw sim::exception("missing value in element %s", e->Name());
     }
 
     return optional<string>(string(value));
@@ -271,7 +266,7 @@ optional<int> _getValInt(const ParseOptions &opts, XMLElement *e, bool opt)
         else if(opts.ignoreMissingValues)
             return optional<int>(0);
         else
-            throw (boost::format("missing value in element %s") % e->Name()).str();
+            throw sim::exception("missing value in element %s", e->Name());
     }
 
     return optional<int>(parseInt(opts, string(value)));
@@ -288,7 +283,7 @@ optional<double> _getValDouble(const ParseOptions &opts, XMLElement *e, bool opt
         else if(opts.ignoreMissingValues)
             return optional<double>(0);
         else
-            throw (boost::format("missing value in element %s") % e->Name()).str();
+            throw sim::exception("missing value in element %s", e->Name());
     }
 
     return optional<double>(parseDouble(opts, string(value)));
@@ -305,7 +300,7 @@ optional<bool> _getValBool(const ParseOptions &opts, XMLElement *e, bool opt)
         else if(opts.ignoreMissingValues)
             return optional<bool>(false);
         else
-            throw (boost::format("missing value in element %s") % e->Name()).str();
+            throw sim::exception("missing value in element %s", e->Name());
     }
 
     return optional<bool>(parseBool(opts, string(value)));
@@ -319,7 +314,7 @@ optional<string> _getValOneOf(const ParseOptions &opts, XMLElement *e, const cha
     {
         string validValuesStr = "";
         if(!_isOneOf(opts, *value, validValues, numValues, &validValuesStr))
-            throw (boost::format("invalid value '%s' for element %s: must be one of %s") % *value % e->Name() % validValuesStr).str();
+            throw sim::exception("invalid value '%s' for element %s: must be one of %s", *value, e->Name(), validValuesStr);
     }
 
     return value;
@@ -335,10 +330,10 @@ optional<string> _getSubValStr(const ParseOptions &opts, XMLElement *e, const ch
         else if(opts.ignoreMissingValues)
             return optional<string>("");
         else
-            throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
+            throw sim::exception("missing element %s in element %s", name, e->Name());
     }
     if(ex->NextSiblingElement(name))
-        throw (boost::format("found more than one element %s in element %s") % name % e->Name()).str();
+        throw sim::exception("found more than one element %s in element %s", name, e->Name());
     return _getValStr(opts, ex, opt);
 }
 
@@ -352,10 +347,10 @@ optional<int> _getSubValInt(const ParseOptions &opts, XMLElement *e, const char 
         else if(opts.ignoreMissingValues)
             return optional<int>(0);
         else
-            throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
+            throw sim::exception("missing element %s in element %s", name, e->Name());
     }
     if(ex->NextSiblingElement(name))
-        throw (boost::format("found more than one element %s in element %s") % name % e->Name()).str();
+        throw sim::exception("found more than one element %s in element %s", name, e->Name());
     return _getValInt(opts, ex, opt);
 }
 
@@ -369,10 +364,10 @@ optional<double> _getSubValDouble(const ParseOptions &opts, XMLElement *e, const
         else if(opts.ignoreMissingValues)
             return optional<double>(0);
         else
-            throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
+            throw sim::exception("missing element %s in element %s", name, e->Name());
     }
     if(ex->NextSiblingElement(name))
-        throw (boost::format("found more than one element %s in element %s") % name % e->Name()).str();
+        throw sim::exception("found more than one element %s in element %s", name, e->Name());
     return _getValDouble(opts, ex, opt);
 }
 
@@ -386,10 +381,10 @@ optional<bool> _getSubValBool(const ParseOptions &opts, XMLElement *e, const cha
         else if(opts.ignoreMissingValues)
             return optional<bool>(false);
         else
-            throw (boost::format("missing element %s in element %s") % name % e->Name()).str();
+            throw sim::exception("missing element %s in element %s", name, e->Name());
     }
     if(ex->NextSiblingElement(name))
-        throw (boost::format("found more than one element %s in element %s") % name % e->Name()).str();
+        throw sim::exception("found more than one element %s in element %s", name, e->Name());
     return _getValBool(opts, ex, opt);
 }
 
@@ -401,7 +396,7 @@ optional<string> _getSubValOneOf(const ParseOptions &opts, XMLElement *e, const 
     {
         string validValuesStr = "";
         if(!_isOneOf(opts, *value, validValues, numValues, &validValuesStr))
-            throw (boost::format("invalid value '%s' for element %s: must be one of %s") % *value % name % validValuesStr).str();
+            throw sim::exception("invalid value '%s' for element %s: must be one of %s", *value, name, validValuesStr);
     }
 
     return value;
@@ -417,7 +412,7 @@ void Parser::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
 {
     string elemNameStr = e->Name();
     if(elemNameStr != tagName)
-        throw (boost::format("element %s not recognized") % elemNameStr).str();
+        throw sim::exception("element %s not recognized", elemNameStr);
 }
 
 void SDF::parse(const ParseOptions &opts, string filename)
@@ -440,11 +435,11 @@ void SDF::parse(const ParseOptions &opts, string filename)
         {
             err = err.substr(0, 500) + string("...\n\n(error message too long)");
         }
-        throw (boost::format("error trying to load '%s': %s") % filename % err).str();
+        throw sim::exception("error trying to load '%s': %s", filename, err);
     }
     XMLElement *root = xmldoc.FirstChildElement();
     if(!root)
-        throw string("xml internal error: cannot get root element");
+        throw sim::exception("xml internal error: cannot get root element");
     parse(opts, root, "sdf");
 }
 
@@ -487,7 +482,7 @@ void Vector::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     boost::algorithm::trim_if(text,boost::is_any_of("\t "));
     boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 3)
-        throw (boost::format("invalid vector length: %d") % tokens.size()).str();
+        throw sim::exception("invalid vector length: %d", tokens.size());
     x = boost::lexical_cast<double>(tokens[0]);
     y = boost::lexical_cast<double>(tokens[1]);
     z = boost::lexical_cast<double>(tokens[2]);
@@ -514,7 +509,7 @@ void Time::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     boost::algorithm::trim_if(text,boost::is_any_of("\t "));
     boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 2)
-        throw (boost::format("invalid time length: %d") % tokens.size()).str();
+        throw sim::exception("invalid time length: %d", tokens.size());
     seconds = boost::lexical_cast<double>(tokens[0]);
     nanoseconds = boost::lexical_cast<double>(tokens[1]);
 
@@ -539,7 +534,7 @@ void Color::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     boost::algorithm::trim_if(text,boost::is_any_of("\t "));
     boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 4)
-        throw (boost::format("invalid color length: %d") % tokens.size()).str();
+        throw sim::exception("invalid color length: %d", tokens.size());
     r = boost::lexical_cast<double>(tokens[0]);
     g = boost::lexical_cast<double>(tokens[1]);
     b = boost::lexical_cast<double>(tokens[2]);
@@ -568,7 +563,7 @@ void Orientation::parse(const ParseOptions &opts, XMLElement *e, const char *tag
     boost::algorithm::trim_if(text,boost::is_any_of("\t "));
     boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 3)
-        throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
+        throw sim::exception("invalid orientation length: %d", tokens.size());
     roll = boost::lexical_cast<double>(tokens[0]);
     pitch = boost::lexical_cast<double>(tokens[1]);
     yaw = boost::lexical_cast<double>(tokens[2]);
@@ -595,7 +590,7 @@ void Pose::parse(const ParseOptions &opts, XMLElement *e, const char *tagName)
     boost::algorithm::trim_if(text,boost::is_any_of("\t "));
     boost::split(tokens, text, boost::is_any_of("\t "),boost::token_compress_on);
     if(tokens.size() != 6)
-        throw (boost::format("invalid orientation length: %d") % tokens.size()).str();
+        throw sim::exception("invalid orientation length: %d", tokens.size());
     position.x = boost::lexical_cast<double>(tokens[0]);
     position.y = boost::lexical_cast<double>(tokens[1]);
     position.z = boost::lexical_cast<double>(tokens[2]);
@@ -1462,9 +1457,9 @@ void Geometry::parse(const ParseOptions &opts, XMLElement *e, const char *tagNam
         + (sphere ? 1 : 0);
 
     if(count < 1)
-        throw string("a geometry must be specified");
+        throw sim::exception("a geometry must be specified");
     if(count > 1)
-        throw string("more than one geometry has been specified");
+        throw sim::exception("more than one geometry has been specified");
 
     WRAP_EXCEPTIONS_END(Geometry)
 }
@@ -1545,7 +1540,7 @@ void HeightMapGeometry::parse(const ParseOptions &opts, XMLElement *e, const cha
     parseMany(opts, e, "texture", textures);
     parseMany(opts, e, "blend", blends);
     if(textures.size() - 1 != blends.size())
-        throw string("number of blends must be equal to the number of textures minus one");
+        throw sim::exception("number of blends must be equal to the number of textures minus one");
     useTerrainPaging = getSubValBoolOpt(opts, e, "use_terrain_paging");
 
     WRAP_EXCEPTIONS_END(HeightMapGeometry)
@@ -1653,7 +1648,7 @@ void PolylineGeometry::parse(const ParseOptions &opts, XMLElement *e, const char
 
     parseMany(opts, e, "point", points);
     if(points.size() == 0)
-        throw string("polyline must have at least one point");
+        throw sim::exception("polyline must have at least one point");
     height = getSubValDouble(opts, e, "height");
 
     WRAP_EXCEPTIONS_END(PolylineGeometry)
@@ -3230,7 +3225,7 @@ void StateDeletions::parse(const ParseOptions &opts, XMLElement *e, const char *
 
     parseMany(opts, e, "name", names);
     if(names.size() < 1)
-        throw string("deletions element should contain at least one name");
+        throw sim::exception("deletions element should contain at least one name");
 
     WRAP_EXCEPTIONS_END(StateDeletions)
 }

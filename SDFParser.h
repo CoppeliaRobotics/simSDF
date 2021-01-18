@@ -9,6 +9,8 @@
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
 
+#include "simPlusPlus/Lib.h"
+
 #include "tinyxml2.h"
 
 using namespace simExtSDF;
@@ -86,7 +88,7 @@ template<typename T>
 void parseMany(const ParseOptions &opts, XMLElement *parent, const char *tagName, vector<T>& vec, bool atLeastOne = false)
 {
     if(atLeastOne && !parent->FirstChildElement(tagName))
-        throw (boost::format("element %s must have at least one %s child element") % parent->Name() % tagName).str();
+        throw sim::exception("element %s must have at least one %s child element", parent->Name(), tagName);
 
     for(XMLElement *e = parent->FirstChildElement(tagName); e; e = e->NextSiblingElement(tagName))
     {
@@ -101,9 +103,9 @@ void parse1(const ParseOptions &opts, XMLElement *parent, const char *subElement
 {
     XMLElement *e = parent->FirstChildElement(subElementName);
     if(!e)
-        throw (boost::format("sub element %s not found") % subElementName).str();
+        throw sim::exception("sub element %s not found", subElementName);
     if(e->NextSiblingElement(subElementName))
-        throw (boost::format("sub element %s found more than once") % subElementName).str();
+        throw sim::exception("sub element %s found more than once", subElementName);
     t.parse(opts, e, subElementName);
 }
 

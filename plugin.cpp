@@ -97,7 +97,7 @@ public:
         else if(boost::filesystem::exists(path))
             return path;
         else
-            throw (boost::format("could not determine the filesystem location of URI file://%s") % path).str();
+            throw sim::exception("could not determine the filesystem location of URI file://%s", path);
     }
 
     string getModelResourceFullPath(string path, string sdfFile)
@@ -131,7 +131,7 @@ public:
                 }
                 catch(...)
                 {
-                    throw (boost::format("could not determine the filesystem location of URI model://%s") % path).str();
+                    throw sim::exception("could not determine the filesystem location of URI model://%s", path);
                 }
         }
     }
@@ -145,7 +145,7 @@ public:
         else if(boost::starts_with(uri, fileScheme))
             return getFileResourceFullPath(uri.substr(fileScheme.size()), sdfFile);
         else
-            throw (boost::format("URI '%s' does not start with '%s' or '%s'") % uri % modelScheme % fileScheme).str();
+            throw sim::exception("URI '%s' does not start with '%s' or '%s'", uri, modelScheme, fileScheme);
     }
 
     void setSimObjectName(const ImportOptions &opts, int objectHandle, string desiredName)
@@ -307,10 +307,10 @@ public:
     simInt importGeometry(const ImportOptions &opts, sdf::MeshGeometry &mesh, bool static_, bool respondable, double mass)
     {
         if(!opts.fileName)
-            throw std::string("ERROR: field 'fileName' must be set to the path of the SDF file");
+            throw sim::exception("field 'fileName' must be set to the path of the SDF file");
         string filename = getResourceFullPath(mesh.uri, *opts.fileName);
         if(!simDoesFileExist(filename.c_str()))
-            throw (boost::format("ERROR: mesh '%s' does not exist") % filename).str();
+            throw sim::exception("mesh '%s' does not exist", filename);
         string extension = filename.substr(filename.size() - 3, filename.size());
         boost::algorithm::to_lower(extension);
         int extensionNum = -1;
@@ -319,7 +319,7 @@ public:
         else if(extension == "3ds") extensionNum = 2;
         else if(extension == "stl") extensionNum = 4;
         else if(extension == "dae") extensionNum = 5;
-        else throw (boost::format("ERROR: the mesh extension '%s' is not currently supported") % extension).str();
+        else throw sim::exception("the mesh extension '%s' is not currently supported", extension);
         simInt handle = simImportShape(extensionNum, filename.c_str(), 16+128, 0.0001f, 1.0f);
         if(mesh.scale)
         {
@@ -333,17 +333,17 @@ public:
 
     simInt importGeometry(const ImportOptions &opts, sdf::ImageGeometry &image, bool static_, bool respondable, double mass)
     {
-        throw string("image geometry not currently supported");
+        throw sim::exception("image geometry not currently supported");
     }
 
     simInt importGeometry(const ImportOptions &opts, sdf::PlaneGeometry &plane, bool static_, bool respondable, double mass)
     {
-        throw string("plane geometry not currently supported");
+        throw sim::exception("plane geometry not currently supported");
     }
 
     simInt importGeometry(const ImportOptions &opts, sdf::PolylineGeometry &polyline, bool static_, bool respondable, double mass)
     {
-        throw string("polyline geometry not currently supported");
+        throw sim::exception("polyline geometry not currently supported");
     }
 
     simInt importGeometry(const ImportOptions &opts, sdf::Geometry &geometry, bool static_, bool respondable, double mass)
@@ -631,7 +631,7 @@ public:
         //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
         //else if(sensor.type == "wireless_transmitter")
         //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
-        else throw (boost::format("the sensor type '%s' is not currently supported") % sensor.type).str();
+        else throw sim::exception("the sensor type '%s' is not currently supported", sensor.type);
 
         // for sensors with missing implementation, we create just a dummy
         if(handle == -1)
@@ -816,7 +816,7 @@ public:
 
         if(!joint.axis || joint.axis2)
         {
-            throw string("ERROR: joint must have exactly one axis");
+            throw sim::exception("joint must have exactly one axis");
         }
 
         const sdf::Axis &axis = *joint.axis;
@@ -869,7 +869,7 @@ public:
         }
         else
         {
-            throw (boost::format("Joint type '%s' is not supported") % joint.type).str();
+            throw sim::exception("joint type '%s' is not supported", joint.type);
         }
 
         if(handle == -1)
