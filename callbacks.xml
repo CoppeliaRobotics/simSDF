@@ -9,36 +9,7 @@
             <param name="fileName" type="string">
                 <description>SDF file path</description>
             </param>
-            <param name="ignoreMissingValues" type="bool" default="false">
-                <description></description>
-            </param>
-            <param name="hideCollisionLinks" type="bool" default="true">
-                <description></description>
-            </param>
-            <param name="hideJoints" type="bool" default="true">
-                <description></description>
-            </param>
-            <param name="convexDecompose" type="bool" default="true">
-                <description></description>
-            </param>
-            <param name="showConvexDecompositionDlg" type="bool" default="false">
-                <description></description>
-            </param>
-            <param name="createVisualIfNone" type="bool" default="true">
-                <description></description>
-            </param>
-            <param name="centerModel" type="bool" default="true">
-                <description></description>
-            </param>
-            <param name="prepareModel" type="bool" default="true">
-                <description></description>
-            </param>
-            <param name="noSelfCollision" type="bool" default="true">
-                <description></description>
-            </param>
-            <param name="positionCtrl" type="bool" default="true">
-                <description></description>
-            </param>
+            <param name="options" type="ImportOptions" default="{}" />
         </params>
         <return>
         </return>
@@ -53,4 +24,39 @@
         <return>
         </return>
     </command>
+    <struct name="ImportOptions">
+        <param name="fileName" type="string" nullable="true" default="nil">
+            <description></description>
+        </param>
+        <param name="ignoreMissingValues" type="bool" default="false">
+            <description></description>
+        </param>
+        <param name="hideCollisionLinks" type="bool" default="true">
+            <description></description>
+        </param>
+        <param name="hideJoints" type="bool" default="true">
+            <description></description>
+        </param>
+        <param name="convexDecompose" type="bool" default="true">
+            <description></description>
+        </param>
+        <param name="showConvexDecompositionDlg" type="bool" default="false">
+            <description></description>
+        </param>
+        <param name="createVisualIfNone" type="bool" default="true">
+            <description></description>
+        </param>
+        <param name="centerModel" type="bool" default="true">
+            <description></description>
+        </param>
+        <param name="prepareModel" type="bool" default="true">
+            <description></description>
+        </param>
+        <param name="noSelfCollision" type="bool" default="true">
+            <description></description>
+        </param>
+        <param name="positionCtrl" type="bool" default="true">
+            <description></description>
+        </param>
+    </struct>
 </plugin>

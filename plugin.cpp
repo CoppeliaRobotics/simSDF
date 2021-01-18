@@ -15,18 +15,12 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 
-#include <QThread>
-
 #include "simPlusPlus/Plugin.h"
 #include "config.h"
 #include "plugin.h"
-#include "SDFDialog.h"
-#include "ImportOptions.h"
 #include "tinyxml2.h"
 #include "SDFParser.h"
 #include "stubs.h"
-#include "UIFunctions.h"
-#include "UIProxy.h"
 #include "MyMath.h"
 
 // stream facilities:
@@ -67,56 +61,11 @@ class Plugin : public sim::Plugin
 public:
     void onStart()
     {
-        if(simGetBooleanParameter(sim_boolparam_headless) > 0)
-            throw std::runtime_error("doesn't work in headless mode");
-
         if(!registerScriptStuff())
             throw std::runtime_error("failed to register script stuff");
 
         setExtVersion("SDF Importer Plugin");
         setBuildDate(BUILD_DATE);
-
-        QWidget *mainWindow = (QWidget *)simGetMainWindow(1);
-        sdfDialog = new SDFDialog(mainWindow);
-        simAddModuleMenuEntry("", 1, &menuItemHandle);
-        simSetModuleMenuItemState(menuItemHandle, 1, "SDF import...");
-
-        UIProxy::getInstance(); // construct UIProxy here (UI thread)
-    }
-
-    void onEnd()
-    {
-        if(sdfDialog)
-            delete sdfDialog;
-
-        UIFunctions::destroyInstance();
-        UIProxy::destroyInstance();
-
-        UI_THREAD = NULL;
-        SIM_THREAD = NULL;
-    }
-
-    void onInstancePass(const sim::InstancePassFlags &flags, bool first)
-    {
-        if(first)
-        {
-            UIFunctions::getInstance(); // construct UIFunctions here (SIM thread)
-        }
-    }
-
-    void onMenuItemSelected(int itemHandle, int itemState)
-    {
-        if(itemHandle == menuItemHandle)
-        {
-            // 'SDF Import...' was selected
-            simChar* pathAndFile = simFileDialog(sim_filedlg_type_load, "SDF PLUGIN LOADER", "", "", "SDF Files", "sdf");
-            if(pathAndFile != NULL)
-            {
-                std::string f(pathAndFile);
-                simReleaseBuffer(pathAndFile);
-                sdfDialog->showDialogForFile(f);
-            }
-        }
     }
 
     void alternateRespondableMasks(int objHandle, bool bitSet = false)
@@ -357,7 +306,9 @@ public:
 
     simInt importGeometry(const ImportOptions &opts, sdf::MeshGeometry &mesh, bool static_, bool respondable, double mass)
     {
-        string filename = getResourceFullPath(mesh.uri, opts.fileName);
+        if(!opts.fileName)
+            throw std::string("ERROR: field 'fileName' must be set to the path of the SDF file");
+        string filename = getResourceFullPath(mesh.uri, *opts.fileName);
         if(!simDoesFileExist(filename.c_str()))
             throw (boost::format("ERROR: mesh '%s' does not exist") % filename).str();
         string extension = filename.substr(filename.size() - 3, filename.size());
@@ -1101,15 +1052,36 @@ public:
 
     void import(import_in *in, import_out *out)
     {
-        ImportOptions importOpts;
-        importOpts.copyFrom(in);
-        sim::addLog(sim_verbosity_debug, "ImportOptions: " + importOpts.str());
+        auto b2s = [=](const bool &b) -> std::string { return b ? "true" : "false"; };
+        sim::addLog(sim_verbosity_debug, "ImportOptions: ignoreMissingValues: %s",
+                b2s(in->options.ignoreMissingValues));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: hideCollisionLinks: %s",
+                b2s(in->options.hideCollisionLinks));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: hideJoints: %s",
+                b2s(in->options.hideJoints));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: convexDecompose: %s",
+                b2s(in->options.convexDecompose));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: showConvexDecompositionDlg: %s",
+                b2s(in->options.showConvexDecompositionDlg));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: createVisualIfNone: %s",
+                b2s(in->options.createVisualIfNone));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: centerModel: %s",
+                b2s(in->options.centerModel));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: prepareModel: %s",
+                b2s(in->options.prepareModel));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: noSelfCollision: %s",
+                b2s(in->options.noSelfCollision));
+        sim::addLog(sim_verbosity_debug, "ImportOptions: positionCtrl: %s",
+                b2s(in->options.positionCtrl));
+
+        in->options.fileName = in->fileName;
+
         sdf::SDF sdf;
         sdf::ParseOptions parseOpts;
-        parseOpts.ignoreMissingValues = importOpts.ignoreMissingValues;
+        parseOpts.ignoreMissingValues = in->options.ignoreMissingValues;
         sdf.parse(parseOpts, in->fileName);
         sim::addLog(sim_verbosity_debug, "parsed SDF successfully");
-        importSDF(importOpts, sdf);
+        importSDF(in->options, sdf);
     }
 
     void dump(dump_in *in, dump_out *out)
@@ -1122,10 +1094,6 @@ public:
         sim::addLog(sim_verbosity_debug, "parsed SDF successfully");
         sdf.dump(dumpOpts, std::cout);
     }
-
-private:
-    SDFDialog *sdfDialog = NULL;
-    int menuItemHandle = -1;
 };
 
 SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)
