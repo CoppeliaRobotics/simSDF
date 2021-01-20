@@ -23,7 +23,12 @@ function updateOptions(ui,id,val)
     end
 end
 
-function sysCall_init()
+function sysCall_init(manualStart)
+    -- this add-on does not auto-start:
+    if not manualStart then
+        return {cmd='cleanup'}
+    end
+
     closeDialog()
 
     optionsInfo={
@@ -72,7 +77,7 @@ end
 
 function sysCall_nonSimulation()
     if done then
-        return sim.syscb_cleanup
+        return {cmd='cleanup'}
     end
 end
 

@@ -48,4 +48,4 @@ set(SOURCES
 )
 coppeliasim_add_plugin(simExtSDF SOURCES ${SOURCES})
 target_link_libraries(simExtSDF Boost::boost Boost::filesystem)
-coppeliasim_add_addon(simAddOnScript-sdfImporter.lua)
+coppeliasim_add_addon(simAddOnSDFImporter.lua)
