@@ -23,12 +23,11 @@ function updateOptions(ui,id,val)
     end
 end
 
-function sysCall_init(manualStart)
-    -- this add-on does not auto-start:
-    if not manualStart then
-        return {cmd='cleanup'}
-    end
+function sysCall_info()
+    return {autoStart=false}
+end
 
+function sysCall_init()
     closeDialog()
 
     optionsInfo={
