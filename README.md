@@ -4,7 +4,7 @@ Can import [SDF 1.6](http://sdformat.org/spec?ver=1.6) files. Some feature are n
 
 ### Compiling
 
-1. Install required packages for [libPlugin](https://github.com/CoppeliaRobotics/libPlugin): see libPlugin's [README](external/libPlugin/README.md)
+1. Install required packages for [libPlugin](https://github.com/CoppeliaRobotics/libPlugin): see libPlugin's README
 2. Download and install Qt (same version as CoppeliaSim, i.e. 5.5.0)
 3. Checkout and compile
 ```
