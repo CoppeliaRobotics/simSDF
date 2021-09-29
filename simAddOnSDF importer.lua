@@ -24,7 +24,7 @@ function updateOptions(ui,id,val)
 end
 
 function sysCall_info()
-    return {autoStart=false}
+    return {autoStart=false,menu='Importers//SDF importer'}
 end
 
 function sysCall_init()
