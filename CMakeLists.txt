@@ -37,14 +37,10 @@ set(SOURCES
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/3Vector.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/3X3Matrix.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/4Vector.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/4X4FullMatrix.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/4X4Matrix.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/6Vector.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/6X6Matrix.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/7Vector.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/MMatrix.cpp
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/MyMath.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/Vector.cpp
 )
 coppeliasim_add_plugin(simExtSDF SOURCES ${SOURCES})
 target_link_libraries(simExtSDF Boost::boost Boost::filesystem)
