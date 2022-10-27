@@ -226,7 +226,7 @@ public:
         {
             sdf::Vector &p = pose->position;
             sdf::Orientation &o = pose->orientation;
-            v.X.set(p.x, p.y, p.z);
+            v.X.setData(p.x, p.y, p.z);
             C4Vector roll, pitch, yaw;
             roll.setEulerAngles(C3Vector(o.roll, 0.0f, 0.0f));
             pitch.setEulerAngles(C3Vector(0.0f, o.pitch, 0.0f));
