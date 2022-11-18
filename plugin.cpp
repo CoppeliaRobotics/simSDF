@@ -45,7 +45,7 @@ using std::set;
 
 #define simMultiplyObjectMatrix(obj,pose) \
 { \
-    simFloat m1[12], m2[12], m3[12]; \
+    float m1[12], m2[12], m3[12]; \
     simGetObjectMatrix(obj, -1, m1); \
     C4X4Matrix m = pose.getMatrix(); \
     m2[ 0] = m.M(0,0); m2[ 1] = m.M(0,1); m2[ 2] = m.M(0,2); m2[ 3] = m.X(0); \
@@ -242,69 +242,69 @@ public:
         sim::addLog(sim_verbosity_debug, "ERROR: importing worlds not implemented yet");
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::EmptyGeometry &empty, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::EmptyGeometry &empty, bool static_, bool respondable, double mass)
     {
         return simCreateDummy(0, NULL);
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::BoxGeometry &box, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::BoxGeometry &box, bool static_, bool respondable, double mass)
     {
-        simInt primitiveType = 0;
-        simInt options = 0
+        int primitiveType = 0;
+        int options = 0
             + 1 // backface culling
             + 2 // show edges
             + (respondable ? 8 : 0)
             + (static_ ? 16 : 0) // static shape?
             ;
-        simFloat sizes[3] = {box.size.x, box.size.y, box.size.z};
+        float sizes[3] = {box.size.x, box.size.y, box.size.z};
         return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::SphereGeometry &sphere, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::SphereGeometry &sphere, bool static_, bool respondable, double mass)
     {
-        simInt primitiveType = 1;
-        simInt options = 0
+        int primitiveType = 1;
+        int options = 0
             + 1 // backface culling
             + 2 // show edges
             + (respondable ? 8 : 0)
             + (static_ ? 16 : 0) // static shape?
             ;
-        simFloat sizes[3];
+        float sizes[3];
         sizes[0] = sizes[1] = sizes[2] = 2 * sphere.radius;
         return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::CylinderGeometry &cylinder, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::CylinderGeometry &cylinder, bool static_, bool respondable, double mass)
     {
-        simInt primitiveType = 2;
-        simInt options = 0
+        int primitiveType = 2;
+        int options = 0
             + 1 // backface culling
             + 2 // show edges
             + (respondable ? 8 : 0)
             + (static_ ? 16 : 0) // static shape?
             ;
-        simFloat sizes[3];
+        float sizes[3];
         sizes[0] = sizes[1] = 2 * cylinder.radius;
         sizes[2] = cylinder.length;
         return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::HeightMapGeometry &heightmap, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::HeightMapGeometry &heightmap, bool static_, bool respondable, double mass)
     {
-        simInt options = 0
+        int options = 0
             + 1 // backface culling
             + 2 // overlay mesh visible
             + (respondable ? 0 : 8)
             ;
-        simFloat shadingAngle = 45;
-        simInt xPointCount = 0;
-        simInt yPointCount = 0;
-        simFloat xSize = 0;
-        simFloat *heights = 0;
+        float shadingAngle = 45;
+        int xPointCount = 0;
+        int yPointCount = 0;
+        float xSize = 0;
+        float *heights = 0;
         return simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::MeshGeometry &mesh, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::MeshGeometry &mesh, bool static_, bool respondable, double mass)
     {
         if(!opts.fileName)
             throw sim::exception("field 'fileName' must be set to the path of the SDF file");
@@ -320,7 +320,7 @@ public:
         else if(extension == "stl") extensionNum = 4;
         else if(extension == "dae") extensionNum = 5;
         else throw sim::exception("the mesh extension '%s' is not currently supported", extension);
-        simInt handle = simImportShape(extensionNum, filename.c_str(), 16+128, 0.0001f, 1.0f);
+        int handle = simImportShape(extensionNum, filename.c_str(), 16+128, 0.0001f, 1.0f);
         if(mesh.scale)
         {
             float scalingFactors[3] = {mesh.scale->x, mesh.scale->y, mesh.scale->z};
@@ -331,24 +331,24 @@ public:
         return handle;
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::ImageGeometry &image, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::ImageGeometry &image, bool static_, bool respondable, double mass)
     {
         throw sim::exception("image geometry not currently supported");
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::PlaneGeometry &plane, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::PlaneGeometry &plane, bool static_, bool respondable, double mass)
     {
         throw sim::exception("plane geometry not currently supported");
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::PolylineGeometry &polyline, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::PolylineGeometry &polyline, bool static_, bool respondable, double mass)
     {
         throw sim::exception("polyline geometry not currently supported");
     }
 
-    simInt importGeometry(const ImportOptions &opts, sdf::Geometry &geometry, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, sdf::Geometry &geometry, bool static_, bool respondable, double mass)
     {
-        simInt handle = -1;
+        int handle = -1;
 
         if(geometry.empty)
             return importGeometry(opts, *geometry.empty, static_, respondable, mass);
@@ -372,14 +372,14 @@ public:
         return handle;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::AltimeterSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::AltimeterSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::CameraSensor &camera)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::CameraSensor &camera)
     {
-        simInt options = 0
+        int options = 0
             + 1*1   // the sensor will be explicitely handled
             + 0*2   // the sensor will be in perspective operation mode
             + 0*4   // the sensor volume will not be shown when not detecting anything
@@ -389,13 +389,13 @@ public:
             + 0*64  // the sensor will not render any fog
             + 0*128 // the sensor will use a specific color for default background (i.e. "null" pixels)
             ;
-        simInt intParams[4] = {
+        int intParams[4] = {
             int(camera.image.width), // sensor resolution x
             int(camera.image.height), // sensor resolution y
             0, // reserved. Set to 0
             0 // reserver. Set to 0
         };
-        simFloat floatParams[11] = {
+        float floatParams[11] = {
             camera.clip.near_, // near clipping plane
             camera.clip.far_, // far clipping plane
             camera.horizontalFOV, // view angle / ortho view size
@@ -411,26 +411,26 @@ public:
         return simCreateVisionSensor(options, intParams, floatParams, NULL);
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::ContactSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::ContactSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::GPSSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::GPSSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::IMUSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::IMUSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::LogicalCameraSensor &lc)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::LogicalCameraSensor &lc)
     {
-        simInt sensorType = sim_proximitysensor_pyramid_subtype;
-        simInt subType = sim_objectspecialproperty_detectable_all;
-        simInt options = 0
+        int sensorType = sim_proximitysensor_pyramid_subtype;
+        int subType = sim_objectspecialproperty_detectable_all;
+        int options = 0
             + 1*1   // the sensor will be explicitely handled
             + 0*2   // the detection volumes are not shown when detecting something
             + 0*4   // the detection volumes are not shown when not detecting anything
@@ -442,7 +442,7 @@ public:
             + 0*256 // smallest distance threshold will be active
             + 0*512 // randomized detection (only with ray-type proximity sensors)
             ;
-        simInt intParams[8] = {
+        int intParams[8] = {
             0, // face count (volume description)
             0, // face count far (volume description)
             0, // subdivisions (volume description)
@@ -452,7 +452,7 @@ public:
             0, // reserved. Set to 0
             0  // reserved. Set to 0
         };
-        simFloat floatParams[15] = {
+        float floatParams[15] = {
             lc.near_, // offset (volume description)
             lc.far_-lc.near_, // range (volume description)
             2*lc.near_*tan(lc.horizontalFOV/2), // x size (volume description)
@@ -472,19 +472,19 @@ public:
         return simCreateProximitySensor(sensorType, subType, options, intParams, floatParams, NULL);
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::MagnetometerSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::MagnetometerSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::RaySensor &ray)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::RaySensor &ray)
     {
         if(!ray.scan.vertical && ray.scan.horizontal.samples == 1)
         {
             // single ray -> use proximity sensor
-            simInt sensorType = sim_proximitysensor_pyramid_subtype;
-            simInt subType = sim_objectspecialproperty_detectable_all;
-            simInt options = 0
+            int sensorType = sim_proximitysensor_pyramid_subtype;
+            int subType = sim_objectspecialproperty_detectable_all;
+            int options = 0
                 + 1*1   // the sensor will be explicitely handled
                 + 0*2   // the detection volumes are not shown when detecting something
                 + 0*4   // the detection volumes are not shown when not detecting anything
@@ -496,7 +496,7 @@ public:
                 + 0*256 // smallest distance threshold will be active
                 + 0*512 // randomized detection (only with ray-type proximity sensors)
                 ;
-            simInt intParams[8] = {
+            int intParams[8] = {
                 0, // face count (volume description)
                 0, // face count far (volume description)
                 0, // subdivisions (volume description)
@@ -506,7 +506,7 @@ public:
                 0, // reserved. Set to 0
                 0  // reserved. Set to 0
             };
-            simFloat floatParams[15] = {
+            float floatParams[15] = {
                 0.1, // offset (volume description)
                 0.4, // range (volume description)
                 0.2, // x size (volume description)
@@ -528,7 +528,7 @@ public:
         else
         {
             // use a vision sensor, which is faster
-            simInt options = 0
+            int options = 0
                 + 1*1   // the sensor will be explicitely handled
                 + 0*2   // the sensor will be in perspective operation mode
                 + 0*4   // the sensor volume will not be shown when not detecting anything
@@ -538,7 +538,7 @@ public:
                 + 0*64  // the sensor will not render any fog
                 + 0*128 // the sensor will use a specific color for default background (i.e. "null" pixels)
                 ;
-            simInt intParams[4] = {
+            int intParams[4] = {
                 // FIXME: this is wrong, as it does not take into account nonlinearity of spherical coordinates:
                 ray.scan.horizontal.samples, // sensor resolution x
                 ray.scan.vertical ? ray.scan.vertical->samples : 1, // sensor resolution y
@@ -551,7 +551,7 @@ public:
                 double vfov = ray.scan.vertical->maxAngle - ray.scan.vertical->minAngle;
                 if(vfov > fov) fov = vfov;
             }
-            simFloat floatParams[11] = {
+            float floatParams[11] = {
                 ray.range.min, // near clipping plane
                 ray.range.max, // far clipping plane
                 fov, // view angle / ortho view size
@@ -568,34 +568,34 @@ public:
         }
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::RFIDTagSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::RFIDTagSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::RFIDSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::RFIDSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::SonarSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::SonarSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::TransceiverSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::TransceiverSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::ForceTorqueSensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::ForceTorqueSensor &sensor)
     {
         return -1;
     }
 
-    simInt importSensor(const ImportOptions &opts, simInt parentHandle, C7Vector parentPose, sdf::Sensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::Sensor &sensor)
     {
-        simInt handle = -1;
+        int handle = -1;
 
         if(sensor.type == "altimeter")
             handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
@@ -649,7 +649,7 @@ public:
         return handle;
     }
 
-    void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &link, simInt parentJointHandle)
+    void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &link, int parentJointHandle)
     {
         sim::addLog(sim_verbosity_debug, "Importing link '" + link.name + "' of model '" + model.name + "'...");
 
@@ -664,10 +664,10 @@ public:
             mass = *link.inertial->mass;
         }
 
-        vector<simInt> shapeHandlesColl;
+        vector<int> shapeHandlesColl;
         BOOST_FOREACH(sdf::LinkCollision &collision, link.collisions)
         {
-            simInt shapeHandle = importGeometry(opts, collision.geometry, false, true, mass);
+            int shapeHandle = importGeometry(opts, collision.geometry, false, true, mass);
             if(shapeHandle == -1) continue;
             shapeHandlesColl.push_back(shapeHandle);
             C7Vector collPose = linkPose * getPose(opts, collision.pose);
@@ -679,7 +679,7 @@ public:
                 if(collision.surface->friction)
                 {
                     sdf::SurfaceFriction &f = *collision.surface->friction;
-                    simFloat friction = 0.0;
+                    float friction = 0.0;
                     bool set = false;
                     if(f.ode && f.ode->mu)
                     {
@@ -719,7 +719,7 @@ public:
                 }
             }
         }
-        simInt shapeHandleColl = -1;
+        int shapeHandleColl = -1;
         if(shapeHandlesColl.size() == 0)
         {
             sdf::BoxGeometry box;
@@ -752,20 +752,10 @@ public:
                 i.ixz, i.iyz, i.izz
             };
             
-#if SIM_PROGRAM_VERSION_NB_FULL<4010002
-            // simSetShapeMassAndInertia is deprecated
-            C4X4Matrix t((linkPose*getPose(opts, link.inertial->pose)).getMatrix());
-            float m[12] = {
-                t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
-                t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
-                t.M(2,0), t.M(2,1), t.M(2,2), t.X(2)
-            };
-            simSetShapeMassAndInertia(shapeHandleColl, mass, inertia, C3Vector::zeroVector.data, m);
-#else
             float _mtr[12];
             simGetObjectMatrix(shapeHandleColl,-1,_mtr); 
             C4X4Matrix mtr;
-            mtr.copyFromInterface(_mtr);
+            mtr.setData(_mtr);
             C4X4Matrix t(mtr.getInverse()*(linkPose*getPose(opts, link.inertial->pose)).getMatrix());
             float m[12] = {
                 t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
@@ -774,7 +764,6 @@ public:
             };
             simSetShapeMass(shapeHandleColl,mass);
             simSetShapeInertia(shapeHandleColl,inertia,m);
-#endif
         }
         if(link.inertial && (!link.kinematic || *link.kinematic == false))
             simSetObjectInt32Parameter(shapeHandleColl, sim_shapeintparam_static, 0);
@@ -793,7 +782,7 @@ public:
 
         BOOST_FOREACH(sdf::LinkVisual &visual, link.visuals)
         {
-            simInt shapeHandle = importGeometry(opts, visual.geometry, true, false, 0);
+            int shapeHandle = importGeometry(opts, visual.geometry, true, false, 0);
             if(shapeHandle == -1) continue;
             C7Vector visPose = linkPose * getPose(opts, visual.pose);
             sim::addLog(sim_verbosity_debug, "visual %s pose: %s", visual.name, visPose);
@@ -804,15 +793,15 @@ public:
 
         BOOST_FOREACH(sdf::Sensor &sensor, link.sensors)
         {
-            simInt sensorHandle = importSensor(opts, shapeHandleColl, linkPose, sensor);
+            int sensorHandle = importSensor(opts, shapeHandleColl, linkPose, sensor);
         }
     }
 
-    simInt importModelJoint(const ImportOptions &opts, sdf::Model &model, sdf::Joint &joint, simInt parentLinkHandle)
+    int importModelJoint(const ImportOptions &opts, sdf::Model &model, sdf::Joint &joint, int parentLinkHandle)
     {
         sim::addLog(sim_verbosity_debug, "Importing joint '%s' of model '%s'...", joint.name, model.name);
 
-        simInt handle = -1;
+        int handle = -1;
 
         if(!joint.axis || joint.axis2)
         {
@@ -823,7 +812,7 @@ public:
 
         if(joint.type == "revolute" || joint.type == "prismatic")
         {
-            simInt subType =
+            int subType =
                 joint.type == "revolute" ? sim_joint_revolute_subtype :
                 joint.type == "prismatic" ? sim_joint_prismatic_subtype :
                 -1;
@@ -887,7 +876,7 @@ public:
         return handle;
     }
 
-    void adjustJointPose(const ImportOptions &opts, sdf::Model &model, sdf::Joint *joint, simInt childLinkHandle)
+    void adjustJointPose(const ImportOptions &opts, sdf::Model &model, sdf::Joint *joint, int childLinkHandle)
     {
         const sdf::Axis &axis = *joint->axis;
 
