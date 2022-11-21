@@ -45,7 +45,7 @@ using std::set;
 
 #define simMultiplyObjectMatrix(obj,pose) \
 { \
-    float m1[12], m2[12], m3[12]; \
+    floatDouble m1[12], m2[12], m3[12]; \
     simGetObjectMatrix(obj, -1, m1); \
     C4X4Matrix m = pose.getMatrix(); \
     m2[ 0] = m.M(0,0); m2[ 1] = m.M(0,1); m2[ 2] = m.M(0,2); m2[ 3] = m.X(0); \
@@ -164,7 +164,7 @@ public:
             objName = baseName + boost::lexical_cast<std::string>(suffix++);
     }
 
-    int scaleShape(int shapeHandle, float scalingFactors[3])
+    int scaleShape(int shapeHandle, floatDouble scalingFactors[3])
     {
         // in future there will be a non-iso scaling function for objects in CoppeliaSim, but until then...
         if(scalingFactors[0] * scalingFactors[1] * scalingFactors[2] > 0.99999f && scalingFactors[0] > 0.0f && scalingFactors[1] > 0.0f)
@@ -176,7 +176,7 @@ public:
         if(fabs(scalingFactors[2]) < 0.00001f)
             scalingFactors[2] = 0.00001f * scalingFactors[2] / fabs(scalingFactors[2]);
         int newShapeHandle = shapeHandle;
-        float* vertices;
+        floatDouble* vertices;
         int verticesSize;
         int* indices;
         int indicesSize;
@@ -256,7 +256,7 @@ public:
             + (respondable ? 8 : 0)
             + (static_ ? 16 : 0) // static shape?
             ;
-        float sizes[3] = {box.size.x, box.size.y, box.size.z};
+        floatDouble sizes[3] = {box.size.x, box.size.y, box.size.z};
         return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
     }
 
@@ -269,7 +269,7 @@ public:
             + (respondable ? 8 : 0)
             + (static_ ? 16 : 0) // static shape?
             ;
-        float sizes[3];
+        floatDouble sizes[3];
         sizes[0] = sizes[1] = sizes[2] = 2 * sphere.radius;
         return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
     }
@@ -283,7 +283,7 @@ public:
             + (respondable ? 8 : 0)
             + (static_ ? 16 : 0) // static shape?
             ;
-        float sizes[3];
+        floatDouble sizes[3];
         sizes[0] = sizes[1] = 2 * cylinder.radius;
         sizes[2] = cylinder.length;
         return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
@@ -296,11 +296,11 @@ public:
             + 2 // overlay mesh visible
             + (respondable ? 0 : 8)
             ;
-        float shadingAngle = 45;
+        floatDouble shadingAngle = 45;
         int xPointCount = 0;
         int yPointCount = 0;
-        float xSize = 0;
-        float *heights = 0;
+        floatDouble xSize = 0;
+        floatDouble *heights = 0;
         return simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
     }
 
@@ -323,7 +323,7 @@ public:
         int handle = simImportShape(extensionNum, filename.c_str(), 16+128, 0.0001f, 1.0f);
         if(mesh.scale)
         {
-            float scalingFactors[3] = {mesh.scale->x, mesh.scale->y, mesh.scale->z};
+            floatDouble scalingFactors[3] = {mesh.scale->x, mesh.scale->y, mesh.scale->z};
             handle = scaleShape(handle, scalingFactors);
         }
         // edges can make things very ugly if the mesh is not nice:
@@ -395,7 +395,7 @@ public:
             0, // reserved. Set to 0
             0 // reserver. Set to 0
         };
-        float floatParams[11] = {
+        floatDouble floatParams[11] = {
             camera.clip.near_, // near clipping plane
             camera.clip.far_, // far clipping plane
             camera.horizontalFOV, // view angle / ortho view size
@@ -452,7 +452,7 @@ public:
             0, // reserved. Set to 0
             0  // reserved. Set to 0
         };
-        float floatParams[15] = {
+        floatDouble floatParams[15] = {
             lc.near_, // offset (volume description)
             lc.far_-lc.near_, // range (volume description)
             2*lc.near_*tan(lc.horizontalFOV/2), // x size (volume description)
@@ -506,7 +506,7 @@ public:
                 0, // reserved. Set to 0
                 0  // reserved. Set to 0
             };
-            float floatParams[15] = {
+            floatDouble floatParams[15] = {
                 0.1, // offset (volume description)
                 0.4, // range (volume description)
                 0.2, // x size (volume description)
@@ -551,7 +551,7 @@ public:
                 double vfov = ray.scan.vertical->maxAngle - ray.scan.vertical->minAngle;
                 if(vfov > fov) fov = vfov;
             }
-            float floatParams[11] = {
+            floatDouble floatParams[11] = {
                 ray.range.min, // near clipping plane
                 ray.range.max, // far clipping plane
                 fov, // view angle / ortho view size
@@ -679,7 +679,7 @@ public:
                 if(collision.surface->friction)
                 {
                     sdf::SurfaceFriction &f = *collision.surface->friction;
-                    float friction = 0.0;
+                    floatDouble friction = 0.0;
                     bool set = false;
                     if(f.ode && f.ode->mu)
                     {
@@ -746,18 +746,18 @@ public:
         if(link.inertial && link.inertial->inertia)
         {
             sdf::InertiaMatrix &i = *link.inertial->inertia;
-            float inertia[9] = {
+            floatDouble inertia[9] = {
                 i.ixx, i.ixy, i.ixz,
                 i.ixy, i.iyy, i.iyz,
                 i.ixz, i.iyz, i.izz
             };
-            
-            float _mtr[12];
-            simGetObjectMatrix(shapeHandleColl,-1,_mtr); 
+
+            floatDouble _mtr[12];
+            simGetObjectMatrix(shapeHandleColl,-1,_mtr);
             C4X4Matrix mtr;
             mtr.setData(_mtr);
             C4X4Matrix t(mtr.getInverse()*(linkPose*getPose(opts, link.inertial->pose)).getMatrix());
-            float m[12] = {
+            floatDouble m[12] = {
                 t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
                 t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
                 t.M(2,0), t.M(2,1), t.M(2,2), t.X(2)
@@ -822,7 +822,7 @@ public:
             {
                 const sdf::AxisLimits &limits = *axis.limit;
 
-                float interval[2] = {limits.lower, limits.upper - limits.lower};
+                floatDouble interval[2] = {limits.lower, limits.upper - limits.lower};
                 simSetJointInterval(handle, 0, interval);
 
                 if(limits.effort)
@@ -853,7 +853,7 @@ public:
         else if(joint.type == "fixed")
         {
             int intParams[5]={1,4,4,0,0};
-            float floatParams[5]={0.02f,1.0f,1.0f,0.0f,0.0f};
+            floatDouble floatParams[5]={0.02f,1.0f,1.0f,0.0f,0.0f};
             handle = simCreateForceSensor(0, intParams, floatParams, NULL);
         }
         else
@@ -888,7 +888,7 @@ public:
         jointAxisMatrix.setIdentity();
         C3Vector axisVec(axis.xyz.x, axis.xyz.y, axis.xyz.z);
         C3Vector rotAxis;
-        float rotAngle=0.0f;
+        floatDouble rotAngle=0.0f;
         if(axisVec(2) < 1.0f)
         {
             if(axisVec(2) <= -1.0f)
@@ -900,8 +900,8 @@ public:
             rotAxis(2) = 0.0f;
             rotAxis.normalize();
             C7Vector m(jointAxisMatrix);
-            float alpha = -atan2(rotAxis(1), rotAxis(0));
-            float beta = atan2(-sqrt(rotAxis(0) * rotAxis(0) + rotAxis(1) * rotAxis(1)), rotAxis(2));
+            floatDouble alpha = -atan2(rotAxis(1), rotAxis(0));
+            floatDouble beta = atan2(-sqrt(rotAxis(0) * rotAxis(0) + rotAxis(1) * rotAxis(1)), rotAxis(2));
             C7Vector r;
             r.X.clear();
             r.Q.setEulerAngles(0.0f, 0.0f, alpha);
