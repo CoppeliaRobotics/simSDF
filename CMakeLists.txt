@@ -43,5 +43,6 @@ set(SOURCES
     ${COPPELIASIM_ROOT_DIR}/programming/simMath/MyMath.cpp
 )
 coppeliasim_add_plugin(simExtSDF SOURCES ${SOURCES})
+target_compile_definitions(simExtSDF PRIVATE SIM_MATH_DOUBLE)
 target_link_libraries(simExtSDF Boost::boost Boost::filesystem)
 coppeliasim_add_addon("simAddOnSDF importer.lua")
