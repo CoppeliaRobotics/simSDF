@@ -76,10 +76,10 @@ public:
         if(simGetObjectType(objHandle) == sim_object_shape_type)
         {
             int p;
-            simGetObjectIntParameter(objHandle, sim_shapeintparam_respondable, &p);
+            simGetObjectInt32Param(objHandle, sim_shapeintparam_respondable, &p);
             if(p)
             {
-                simSetObjectIntParameter(objHandle, sim_shapeintparam_respondable_mask, bitSet ? 0xff01 : 0xff02);
+                simSetObjectInt32Param(objHandle, sim_shapeintparam_respondable_mask, bitSet ? 0xff01 : 0xff02);
                 bitSet = !bitSet;
             }
         }
@@ -163,8 +163,9 @@ public:
         }
         string objName(baseName);
         int suffix=2;
-        while(simSetObjectName(objectHandle, objName.c_str())==-1)
-            objName = baseName + boost::lexical_cast<std::string>(suffix++);
+        simSetObjectAlias(objectHandle,objName.c_str(),0);
+        //while(simSetObjectName(objectHandle, objName.c_str())==-1)
+        //    objName = baseName + boost::lexical_cast<std::string>(suffix++);
     }
 
     int scaleShape(int shapeHandle, double scalingFactors[3])
@@ -213,7 +214,7 @@ public:
                 }
             }
             // Remove the old shape and create a new one with the scaled data:
-            simRemoveObject(shapeHandle);
+            simRemoveObjects(&shapeHandle,1);
             newShapeHandle = simCreateMeshShape(2, 20.0f * piValue / 180.0f, vertices, verticesSize, indices, indicesSize, NULL);
             simReleaseBuffer((char*)vertices);
             simReleaseBuffer((char*)indices);
@@ -252,44 +253,41 @@ public:
 
     int importGeometry(const ImportOptions &opts, sdf::BoxGeometry &box, bool static_, bool respondable, double mass)
     {
-        int primitiveType = 0;
-        int options = 0
-            + 1 // backface culling
-            + 2 // show edges
-            + (respondable ? 8 : 0)
-            + (static_ ? 16 : 0) // static shape?
-            ;
         double sizes[3] = {box.size.x, box.size.y, box.size.z};
-        return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
+        int retVal=simCreatePrimitiveShape(sim_primitiveshape_cuboid,sizes,1);
+        simSetShapeMass(retVal,mass);
+        if (respondable)
+            simSetObjectInt32Param(retVal,sim_shapeintparam_respondable,1);
+        if (!static_)
+            simSetObjectInt32Param(retVal,sim_shapeintparam_static,0);
+        return retVal;
     }
 
     int importGeometry(const ImportOptions &opts, sdf::SphereGeometry &sphere, bool static_, bool respondable, double mass)
     {
-        int primitiveType = 1;
-        int options = 0
-            + 1 // backface culling
-            + 2 // show edges
-            + (respondable ? 8 : 0)
-            + (static_ ? 16 : 0) // static shape?
-            ;
         double sizes[3];
         sizes[0] = sizes[1] = sizes[2] = 2 * sphere.radius;
-        return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
+        int retVal=simCreatePrimitiveShape(sim_primitiveshape_spheroid,sizes,1);
+        simSetShapeMass(retVal,mass);
+        if (respondable)
+            simSetObjectInt32Param(retVal,sim_shapeintparam_respondable,1);
+        if (!static_)
+            simSetObjectInt32Param(retVal,sim_shapeintparam_static,0);
+        return retVal;
     }
 
     int importGeometry(const ImportOptions &opts, sdf::CylinderGeometry &cylinder, bool static_, bool respondable, double mass)
     {
-        int primitiveType = 2;
-        int options = 0
-            + 1 // backface culling
-            + 2 // show edges
-            + (respondable ? 8 : 0)
-            + (static_ ? 16 : 0) // static shape?
-            ;
         double sizes[3];
         sizes[0] = sizes[1] = 2 * cylinder.radius;
         sizes[2] = cylinder.length;
-        return simCreatePureShape(primitiveType, options, sizes, mass, NULL);
+        int retVal=simCreatePrimitiveShape(sim_primitiveshape_cylinder,sizes,1);
+        simSetShapeMass(retVal,mass);
+        if (respondable)
+            simSetObjectInt32Param(retVal,sim_shapeintparam_respondable,1);
+        if (!static_)
+            simSetObjectInt32Param(retVal,sim_shapeintparam_static,0);
+        return retVal;
     }
 
     int importGeometry(const ImportOptions &opts, sdf::HeightMapGeometry &heightmap, bool static_, bool respondable, double mass)
@@ -330,7 +328,7 @@ public:
             handle = scaleShape(handle, scalingFactors);
         }
         // edges can make things very ugly if the mesh is not nice:
-        simSetObjectIntParameter(handle, sim_shapeintparam_edge_visibility, 0);
+        simSetObjectInt32Param(handle, sim_shapeintparam_edge_visibility, 0);
         return handle;
     }
 
@@ -696,13 +694,13 @@ public:
                     }
                     if(set)
                     {
-                        simSetEngineFloatParameter(sim_bullet_body_oldfriction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParameter(sim_bullet_body_friction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParameter(sim_ode_body_friction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParameter(sim_vortex_body_primlinearaxisfriction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParameter(sim_vortex_body_seclinearaxisfriction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParameter(sim_newton_body_staticfriction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParameter(sim_newton_body_kineticfriction, shapeHandle, NULL, friction);
+                        simSetEngineFloatParam(sim_bullet_body_oldfriction, shapeHandle, NULL, friction);
+                        simSetEngineFloatParam(sim_bullet_body_friction, shapeHandle, NULL, friction);
+                        simSetEngineFloatParam(sim_ode_body_friction, shapeHandle, NULL, friction);
+                        simSetEngineFloatParam(sim_vortex_body_primlinearaxisfriction, shapeHandle, NULL, friction);
+                        simSetEngineFloatParam(sim_vortex_body_seclinearaxisfriction, shapeHandle, NULL, friction);
+                        simSetEngineFloatParam(sim_newton_body_staticfriction, shapeHandle, NULL, friction);
+                        simSetEngineFloatParam(sim_newton_body_kineticfriction, shapeHandle, NULL, friction);
                     }
                 }
                 if(collision.surface->bounce)
@@ -711,13 +709,13 @@ public:
                     if(b.restitutionCoefficient)
                     {
                         simSetShapeMaterial(shapeHandle, -1);
-                        simSetEngineFloatParameter(sim_bullet_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
-                        simSetEngineFloatParameter(sim_vortex_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
-                        simSetEngineFloatParameter(sim_newton_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                        simSetEngineFloatParam(sim_bullet_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                        simSetEngineFloatParam(sim_vortex_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                        simSetEngineFloatParam(sim_newton_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
                     }
                     if(b.threshold)
                     {
-                        simSetEngineFloatParameter(sim_vortex_body_restitutionthreshold, shapeHandle, NULL, *b.restitutionCoefficient);
+                        simSetEngineFloatParam(sim_vortex_body_restitutionthreshold, shapeHandle, NULL, *b.restitutionCoefficient);
                     }
                 }
             }
@@ -769,9 +767,9 @@ public:
             simSetShapeInertia(shapeHandleColl,inertia,m);
         }
         if(link.inertial && (!link.kinematic || *link.kinematic == false))
-            simSetObjectInt32Parameter(shapeHandleColl, sim_shapeintparam_static, 0);
+            simSetObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 0);
         else
-            simSetObjectInt32Parameter(shapeHandleColl, sim_shapeintparam_static, 1);
+            simSetObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 1);
 
         if(parentJointHandle != -1)
         {
@@ -780,7 +778,7 @@ public:
 
         if(opts.hideCollisionLinks)
         {
-            simSetObjectIntParameter(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
+            simSetObjectInt32Param(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
         }
 
         BOOST_FOREACH(sdf::LinkVisual &visual, link.visuals)
@@ -830,23 +828,23 @@ public:
 
                 if(limits.effort)
                 {
-                    simSetJointForce(handle, *limits.effort);
+                    simSetJointTargetForce(handle, *limits.effort, false);
                 }
 
                 if(limits.velocity)
                 {
-                    simSetObjectFloatParameter(handle, sim_jointfloatparam_upper_limit, *limits.velocity);
+                    simSetObjectFloatParam(handle, sim_jointfloatparam_upper_limit, *limits.velocity);
                 }
             }
 
             if(opts.positionCtrl)
             {
-                simSetObjectIntParameter(handle, sim_jointintparam_motor_enabled, 1);
+                simSetObjectInt32Param(handle, sim_jointintparam_motor_enabled, 1);
             }
 
             if(opts.hideJoints)
             {
-                simSetObjectIntParameter(handle, sim_objintparam_visibility_layer, 512); // layer 10
+                simSetObjectInt32Param(handle, sim_objintparam_visibility_layer, 512); // layer 10
             }
         }
         else if(joint.type == "ball")
