@@ -20,7 +20,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
     ${LIBPLUGIN_DIR}/cmake)
-find_package(CoppeliaSim 4.1.0.0 REQUIRED)
+find_package(CoppeliaSim 4.5.0.0 REQUIRED)
 
 include_directories(${COPPELIASIM_ROOT_DIR}/programming/simMath)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
