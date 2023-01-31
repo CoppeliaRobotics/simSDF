@@ -48,15 +48,15 @@ using std::set;
 
 #define simMultiplyObjectMatrix(obj,pose) \
 { \
-    double m1[12], m2[12], m3[12]; \
-    simGetObjectMatrix(obj, -1, m1); \
+    std::array<double, 12> m1, m2, m3; \
+    m1 = sim::getObjectMatrix(obj, -1); \
     C4X4Matrix m = pose.getMatrix(); \
     m2[ 0] = m.M(0,0); m2[ 1] = m.M(0,1); m2[ 2] = m.M(0,2); m2[ 3] = m.X(0); \
     m2[ 4] = m.M(1,0); m2[ 5] = m.M(1,1); m2[ 6] = m.M(1,2); m2[ 7] = m.X(1); \
     m2[ 8] = m.M(2,0); m2[ 9] = m.M(2,1); m2[10] = m.M(2,2); m2[11] = m.X(2); \
-    simMultiplyMatrices(m2, m1, m3); \
-    simSetObjectMatrix(obj, -1, m3); \
-    simSetObjectProperty(obj, simGetObjectProperty(obj) | sim_objectproperty_selectmodelbaseinstead); \
+    m3 = sim::multiplyMatrices(m2, m1); \
+    sim::setObjectMatrix(obj, -1, m3); \
+    sim::setObjectProperty(obj, sim::getObjectProperty(obj) | sim_objectproperty_selectmodelbaseinstead); \
 }
 
 class Plugin : public sim::Plugin
@@ -73,19 +73,17 @@ public:
 
     void alternateRespondableMasks(int objHandle, bool bitSet = false)
     {
-        if(simGetObjectType(objHandle) == sim_object_shape_type)
+        if(sim::getObjectType(objHandle) == sim_object_shape_type)
         {
-            int p;
-            simGetObjectInt32Param(objHandle, sim_shapeintparam_respondable, &p);
+            int p = sim::getObjectInt32Param(objHandle, sim_shapeintparam_respondable);
             if(p)
             {
-                simSetObjectInt32Param(objHandle, sim_shapeintparam_respondable_mask, bitSet ? 0xff01 : 0xff02);
+                sim::setObjectInt32Param(objHandle, sim_shapeintparam_respondable_mask, bitSet ? 0xff01 : 0xff02);
                 bitSet = !bitSet;
             }
         }
-        for(int index = 0, childHandle; ; index++)
+        for(int childHandle : sim::getObjectChildren(objHandle))
         {
-            if((childHandle = simGetObjectChild(objHandle, index)) == -1) break;
             alternateRespondableMasks(childHandle, bitSet);
         }
     }
@@ -162,8 +160,8 @@ public:
                 baseName[i] = '_';
         }
         string objName(baseName);
-        int suffix=2;
-        simSetObjectAlias(objectHandle,objName.c_str(),0);
+        int suffix = 2;
+        sim::setObjectAlias(objectHandle, objName, 0);
         //while(simSetObjectName(objectHandle, objName.c_str())==-1)
         //    objName = baseName + boost::lexical_cast<std::string>(suffix++);
     }
@@ -184,41 +182,39 @@ public:
         int verticesSize;
         int* indices;
         int indicesSize;
-        if(simGetShapeMesh(shapeHandle, &vertices, &verticesSize, &indices, &indicesSize, NULL) != -1)
+        sim::getShapeMesh(shapeHandle, &vertices, &verticesSize, &indices, &indicesSize);
+        // Scale the vertices:
+        C7Vector tr;
+        sim::getObjectPosition(shapeHandle, -1, tr.X.data);
+        C3Vector euler;
+        sim::getObjectOrientation(shapeHandle, -1, euler.data);
+        tr.Q.setEulerAngles(euler);
+        for(int i = 0; i < verticesSize / 3; i++)
         {
-            // Scale the vertices:
-            C7Vector tr;
-            simGetObjectPosition(shapeHandle, -1, tr.X.data);
-            C3Vector euler;
-            simGetObjectOrientation(shapeHandle, -1, euler.data);
-            tr.Q.setEulerAngles(euler);
-            for(int i = 0; i < verticesSize / 3; i++)
-            {
-                C3Vector v(vertices + 3 * i);
-                v *= tr;
-                v(0) *= scalingFactors[0];
-                v(1) *= scalingFactors[1];
-                v(2) *= scalingFactors[2];
-                vertices[3 * i + 0] = v(0);
-                vertices[3 * i + 1] = v(1);
-                vertices[3 * i + 2] = v(2);
-            }
-            // Flip the triangles (if needed)
-            if(scalingFactors[0] * scalingFactors[1] * scalingFactors[2] < 0.0f)
-            {
-                for(int i = 0; i < indicesSize / 3; i++)
-                {
-                    int tmp = indices[3 * i + 0];
-                    indices[3 * i + 0] = indices[3 * i + 1];
-                    indices[3 * i + 1] = tmp;
-                }
-            }
-            // Remove the old shape and create a new one with the scaled data:
-            simRemoveObjects(&shapeHandle,1);
-            newShapeHandle = simCreateMeshShape(2, 20.0f * piValue / 180.0f, vertices, verticesSize, indices, indicesSize, NULL);
-            simReleaseBuffer((char*)vertices);
-            simReleaseBuffer((char*)indices);
+            C3Vector v(vertices + 3 * i);
+            v *= tr;
+            v(0) *= scalingFactors[0];
+            v(1) *= scalingFactors[1];
+            v(2) *= scalingFactors[2];
+            vertices[3 * i + 0] = v(0);
+            vertices[3 * i + 1] = v(1);
+            vertices[3 * i + 2] = v(2);
         }
+        // Flip the triangles (if needed)
+        if(scalingFactors[0] * scalingFactors[1] * scalingFactors[2] < 0.0f)
+        {
+            for(int i = 0; i < indicesSize / 3; i++)
+            {
+                int tmp = indices[3 * i + 0];
+                indices[3 * i + 0] = indices[3 * i + 1];
+                indices[3 * i + 1] = tmp;
+            }
+        }
+        // Remove the old shape and create a new one with the scaled data:
+        sim::removeObjects({shapeHandle});
+        newShapeHandle = sim::createMeshShape(2, 20.0f * piValue / 180.0f, vertices, verticesSize, indices, indicesSize);
+        sim::releaseBuffer(vertices);
+        sim::releaseBuffer(indices);
         return newShapeHandle;
     }
 
@@ -248,18 +244,18 @@ public:
 
     int importGeometry(const ImportOptions &opts, sdf::EmptyGeometry &empty, bool static_, bool respondable, double mass)
     {
-        return simCreateDummy(0, NULL);
+        return sim::createDummy(0);
     }
 
     int importGeometry(const ImportOptions &opts, sdf::BoxGeometry &box, bool static_, bool respondable, double mass)
     {
         double sizes[3] = {box.size.x, box.size.y, box.size.z};
-        int retVal=simCreatePrimitiveShape(sim_primitiveshape_cuboid,sizes,1);
-        simSetShapeMass(retVal,mass);
-        if (respondable)
-            simSetObjectInt32Param(retVal,sim_shapeintparam_respondable,1);
-        if (!static_)
-            simSetObjectInt32Param(retVal,sim_shapeintparam_static,0);
+        int retVal = sim::createPrimitiveShape(sim_primitiveshape_cuboid, sizes, 1);
+        sim::setShapeMass(retVal, mass);
+        if(respondable)
+            sim::setObjectInt32Param(retVal, sim_shapeintparam_respondable, 1);
+        if(!static_)
+            sim::setObjectInt32Param(retVal, sim_shapeintparam_static, 0);
         return retVal;
     }
 
@@ -267,12 +263,12 @@ public:
     {
         double sizes[3];
         sizes[0] = sizes[1] = sizes[2] = 2 * sphere.radius;
-        int retVal=simCreatePrimitiveShape(sim_primitiveshape_spheroid,sizes,1);
-        simSetShapeMass(retVal,mass);
-        if (respondable)
-            simSetObjectInt32Param(retVal,sim_shapeintparam_respondable,1);
-        if (!static_)
-            simSetObjectInt32Param(retVal,sim_shapeintparam_static,0);
+        int retVal = sim::createPrimitiveShape(sim_primitiveshape_spheroid, sizes, 1);
+        sim::setShapeMass(retVal, mass);
+        if(respondable)
+            sim::setObjectInt32Param(retVal, sim_shapeintparam_respondable, 1);
+        if(!static_)
+            sim::setObjectInt32Param(retVal, sim_shapeintparam_static, 0);
         return retVal;
     }
 
@@ -281,12 +277,12 @@ public:
         double sizes[3];
         sizes[0] = sizes[1] = 2 * cylinder.radius;
         sizes[2] = cylinder.length;
-        int retVal=simCreatePrimitiveShape(sim_primitiveshape_cylinder,sizes,1);
-        simSetShapeMass(retVal,mass);
-        if (respondable)
-            simSetObjectInt32Param(retVal,sim_shapeintparam_respondable,1);
-        if (!static_)
-            simSetObjectInt32Param(retVal,sim_shapeintparam_static,0);
+        int retVal = sim::createPrimitiveShape(sim_primitiveshape_cylinder, sizes, 1);
+        sim::setShapeMass(retVal, mass);
+        if(respondable)
+            sim::setObjectInt32Param(retVal, sim_shapeintparam_respondable, 1);
+        if(!static_)
+            sim::setObjectInt32Param(retVal, sim_shapeintparam_static, 0);
         return retVal;
     }
 
@@ -302,7 +298,7 @@ public:
         int yPointCount = 0;
         double xSize = 0;
         double *heights = 0;
-        return simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
+        return sim::createHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
     }
 
     int importGeometry(const ImportOptions &opts, sdf::MeshGeometry &mesh, bool static_, bool respondable, double mass)
@@ -310,10 +306,11 @@ public:
         if(!opts.fileName)
             throw sim::exception("field 'fileName' must be set to the path of the SDF file");
         string filename = getResourceFullPath(mesh.uri, *opts.fileName);
-        if(!simDoesFileExist(filename.c_str()))
+        if(!sim::doesFileExist(filename))
             throw sim::exception("mesh '%s' does not exist", filename);
         string extension = filename.substr(filename.size() - 3, filename.size());
         boost::algorithm::to_lower(extension);
+        /*
         int extensionNum = -1;
         if(extension == "obj") extensionNum = 0;
         else if(extension == "dxf") extensionNum = 1;
@@ -321,14 +318,15 @@ public:
         else if(extension == "stl") extensionNum = 4;
         else if(extension == "dae") extensionNum = 5;
         else throw sim::exception("the mesh extension '%s' is not currently supported", extension);
-        int handle = simImportShape(extensionNum, filename.c_str(), 16+128, 0.0001f, 1.0f);
+        */
+        int handle = sim::importShape(filename, 16+128, 1.0f);
         if(mesh.scale)
         {
             double scalingFactors[3] = {mesh.scale->x, mesh.scale->y, mesh.scale->z};
             handle = scaleShape(handle, scalingFactors);
         }
         // edges can make things very ugly if the mesh is not nice:
-        simSetObjectInt32Param(handle, sim_shapeintparam_edge_visibility, 0);
+        sim::setObjectInt32Param(handle, sim_shapeintparam_edge_visibility, 0);
         return handle;
     }
 
@@ -409,7 +407,7 @@ public:
             0.0f, // reserved. Set to 0.0
             0.0f // reserved. Set to 0.0
         };
-        return simCreateVisionSensor(options, intParams, floatParams, NULL);
+        return sim::createVisionSensor(options, intParams, floatParams);
     }
 
     int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::ContactSensor &sensor)
@@ -430,7 +428,7 @@ public:
     int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::LogicalCameraSensor &lc)
     {
         int sensorType = sim_proximitysensor_pyramid_subtype;
-        int subType = sim_objectspecialproperty_detectable_all;
+        //int subType = sim_objectspecialproperty_detectable_all;
         int options = 0
             + 1*1   // the sensor will be explicitely handled
             + 0*2   // the detection volumes are not shown when detecting something
@@ -470,7 +468,7 @@ public:
             0, // reserved. Set to 0.0
             0  // reserved. Set to 0.0
         };
-        return simCreateProximitySensor(sensorType, subType, options, intParams, floatParams, NULL);
+        return sim::createProximitySensor(sensorType, options, intParams, floatParams);
     }
 
     int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::MagnetometerSensor &sensor)
@@ -484,7 +482,7 @@ public:
         {
             // single ray -> use proximity sensor
             int sensorType = sim_proximitysensor_pyramid_subtype;
-            int subType = sim_objectspecialproperty_detectable_all;
+            //int subType = sim_objectspecialproperty_detectable_all;
             int options = 0
                 + 1*1   // the sensor will be explicitely handled
                 + 0*2   // the detection volumes are not shown when detecting something
@@ -524,7 +522,7 @@ public:
                 0, // reserved. Set to 0.0
                 0  // reserved. Set to 0.0
             };
-            return simCreateProximitySensor(sensorType, subType, options, intParams, floatParams, NULL);
+            return sim::createProximitySensor(sensorType, options, intParams, floatParams);
         }
         else
         {
@@ -565,7 +563,7 @@ public:
                 0.0f, // reserved. Set to 0.0
                 0.0f // reserved. Set to 0.0
             };
-            return simCreateVisionSensor(options, intParams, floatParams, NULL);
+            return sim::createVisionSensor(options, intParams, floatParams);
         }
     }
 
@@ -637,7 +635,7 @@ public:
         // for sensors with missing implementation, we create just a dummy
         if(handle == -1)
         {
-            handle = simCreateDummy(0, NULL);
+            handle = sim::createDummy(0);
         }
 
         setSimObjectName(opts, handle, sensor.name);
@@ -645,7 +643,7 @@ public:
         C7Vector pose = parentPose * getPose(opts, sensor.pose);
         simMultiplyObjectMatrix(handle, pose);
 
-        simSetObjectParent(handle, parentHandle, true);
+        sim::setObjectParent(handle, parentHandle, true);
 
         return handle;
     }
@@ -676,7 +674,7 @@ public:
             simMultiplyObjectMatrix(shapeHandle, collPose);
             if(collision.surface)
             {
-                simSetShapeMaterial(shapeHandle, -1);
+                sim::setShapeMaterial(shapeHandle, -1);
                 if(collision.surface->friction)
                 {
                     sdf::SurfaceFriction &f = *collision.surface->friction;
@@ -694,13 +692,13 @@ public:
                     }
                     if(set)
                     {
-                        simSetEngineFloatParam(sim_bullet_body_oldfriction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParam(sim_bullet_body_friction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParam(sim_ode_body_friction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParam(sim_vortex_body_primlinearaxisfriction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParam(sim_vortex_body_seclinearaxisfriction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParam(sim_newton_body_staticfriction, shapeHandle, NULL, friction);
-                        simSetEngineFloatParam(sim_newton_body_kineticfriction, shapeHandle, NULL, friction);
+                        sim::setEngineFloatParam(sim_bullet_body_oldfriction, shapeHandle, NULL, friction);
+                        sim::setEngineFloatParam(sim_bullet_body_friction, shapeHandle, NULL, friction);
+                        sim::setEngineFloatParam(sim_ode_body_friction, shapeHandle, NULL, friction);
+                        sim::setEngineFloatParam(sim_vortex_body_primlinearaxisfriction, shapeHandle, NULL, friction);
+                        sim::setEngineFloatParam(sim_vortex_body_seclinearaxisfriction, shapeHandle, NULL, friction);
+                        sim::setEngineFloatParam(sim_newton_body_staticfriction, shapeHandle, NULL, friction);
+                        sim::setEngineFloatParam(sim_newton_body_kineticfriction, shapeHandle, NULL, friction);
                     }
                 }
                 if(collision.surface->bounce)
@@ -708,14 +706,14 @@ public:
                     sdf::SurfaceBounce &b = *collision.surface->bounce;
                     if(b.restitutionCoefficient)
                     {
-                        simSetShapeMaterial(shapeHandle, -1);
-                        simSetEngineFloatParam(sim_bullet_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
-                        simSetEngineFloatParam(sim_vortex_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
-                        simSetEngineFloatParam(sim_newton_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                        sim::setShapeMaterial(shapeHandle, -1);
+                        sim::setEngineFloatParam(sim_bullet_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                        sim::setEngineFloatParam(sim_vortex_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
+                        sim::setEngineFloatParam(sim_newton_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
                     }
                     if(b.threshold)
                     {
-                        simSetEngineFloatParam(sim_vortex_body_restitutionthreshold, shapeHandle, NULL, *b.restitutionCoefficient);
+                        sim::setEngineFloatParam(sim_vortex_body_restitutionthreshold, shapeHandle, NULL, *b.restitutionCoefficient);
                     }
                 }
             }
@@ -737,7 +735,7 @@ public:
         }
         else if(shapeHandlesColl.size() > 1)
         {
-            shapeHandleColl = simGroupShapes(&shapeHandlesColl[0], shapeHandlesColl.size());
+            shapeHandleColl = sim::groupShapes(shapeHandlesColl);
         }
         link.simHandle = shapeHandleColl;
         if(model.simHandle == -1)
@@ -754,31 +752,31 @@ public:
             };
 
             double _mtr[12];
-            simGetObjectMatrix(shapeHandleColl,-1,_mtr);
+            sim::getObjectMatrix(shapeHandleColl, -1, _mtr);
             C4X4Matrix mtr;
             mtr.setData(_mtr);
-            C4X4Matrix t(mtr.getInverse()*(linkPose*getPose(opts, link.inertial->pose)).getMatrix());
+            C4X4Matrix t(mtr.getInverse() * (linkPose * getPose(opts, link.inertial->pose)).getMatrix());
             double m[12] = {
                 t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
                 t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
                 t.M(2,0), t.M(2,1), t.M(2,2), t.X(2)
             };
-            simSetShapeMass(shapeHandleColl,mass);
-            simSetShapeInertia(shapeHandleColl,inertia,m);
+            sim::setShapeMass(shapeHandleColl, mass);
+            sim::setShapeInertia(shapeHandleColl, inertia, m);
         }
         if(link.inertial && (!link.kinematic || *link.kinematic == false))
-            simSetObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 0);
+            sim::setObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 0);
         else
-            simSetObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 1);
+            sim::setObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 1);
 
         if(parentJointHandle != -1)
         {
-            //simSetObjectParent(shapeHandleColl, parentJointHandle, true);
+            //sim::setObjectParent(shapeHandleColl, parentJointHandle, true);
         }
 
         if(opts.hideCollisionLinks)
         {
-            simSetObjectInt32Param(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
+            sim::setObjectInt32Param(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
         }
 
         BOOST_FOREACH(sdf::LinkVisual &visual, link.visuals)
@@ -788,7 +786,7 @@ public:
             C7Vector visPose = linkPose * getPose(opts, visual.pose);
             sim::addLog(sim_verbosity_debug, "visual %s pose: %s", visual.name, visPose);
             simMultiplyObjectMatrix(shapeHandle, visPose);
-            simSetObjectParent(shapeHandle, shapeHandleColl, true);
+            sim::setObjectParent(shapeHandle, shapeHandleColl, true);
             setSimObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
         }
 
@@ -817,45 +815,45 @@ public:
                 joint.type == "revolute" ? sim_joint_revolute_subtype :
                 joint.type == "prismatic" ? sim_joint_prismatic_subtype :
                 -1;
-            handle = simCreateJoint(subType, sim_jointmode_force, 2, NULL, NULL, NULL);
+            handle = sim::createJoint(subType, sim_jointmode_force, 2, nullptr);
 
             if(axis.limit)
             {
                 const sdf::AxisLimits &limits = *axis.limit;
 
                 double interval[2] = {limits.lower, limits.upper - limits.lower};
-                simSetJointInterval(handle, 0, interval);
+                sim::setJointInterval(handle, 0, interval);
 
                 if(limits.effort)
                 {
-                    simSetJointTargetForce(handle, *limits.effort, false);
+                    sim::setJointTargetForce(handle, *limits.effort, false);
                 }
 
                 if(limits.velocity)
                 {
-                    simSetObjectFloatParam(handle, sim_jointfloatparam_upper_limit, *limits.velocity);
+                    sim::setObjectFloatParam(handle, sim_jointfloatparam_upper_limit, *limits.velocity);
                 }
             }
 
             if(opts.positionCtrl)
             {
-                simSetObjectInt32Param(handle, sim_jointintparam_motor_enabled, 1);
+                sim::setObjectInt32Param(handle, sim_jointintparam_motor_enabled, 1);
             }
 
             if(opts.hideJoints)
             {
-                simSetObjectInt32Param(handle, sim_objintparam_visibility_layer, 512); // layer 10
+                sim::setObjectInt32Param(handle, sim_objintparam_visibility_layer, 512); // layer 10
             }
         }
         else if(joint.type == "ball")
         {
-            handle = simCreateJoint(sim_joint_spherical_subtype, sim_jointmode_force, 2, NULL, NULL, NULL);
+            handle = sim::createJoint(sim_joint_spherical_subtype, sim_jointmode_force, 2, nullptr);
         }
         else if(joint.type == "fixed")
         {
-            int intParams[5]={1,4,4,0,0};
-            double floatParams[5]={0.02f,1.0f,1.0f,0.0f,0.0f};
-            handle = simCreateForceSensor(0, intParams, floatParams, NULL);
+            int intParams[5] = {1, 4, 4, 0, 0};
+            double floatParams[5] = {0.02, 1.0, 1.0, 0.0, 0.0};
+            handle = sim::createForceSensor(0, intParams, floatParams);
         }
         else
         {
@@ -869,7 +867,7 @@ public:
 
         if(parentLinkHandle != -1)
         {
-            //simSetObjectParent(handle, parentLinkHandle, true);
+            //sim::setObjectParent(handle, parentLinkHandle, true);
         }
 
         setSimObjectName(opts, handle, joint.name);
@@ -937,8 +935,8 @@ public:
         }
 
         C7Vector t = m.getTransformation();
-        simSetObjectPosition(joint->simHandle, -1, t.X.data);
-        simSetObjectOrientation(joint->simHandle, -1, t.Q.getEulerAngles().data);
+        sim::setObjectPosition(joint->simHandle, -1, t.X.data);
+        sim::setObjectOrientation(joint->simHandle, -1, t.Q.getEulerAngles().data);
     }
 
     void visitLink(const ImportOptions &opts, sdf::Model &model, sdf::Link *link)
@@ -950,8 +948,8 @@ public:
             importModelJoint(opts, model, *joint, link->simHandle);
             importModelLink(opts, model, *childLink, joint->simHandle);
             adjustJointPose(opts, model, joint, childLink->simHandle);
-            simSetObjectParent(joint->simHandle, link->simHandle, true);
-            simSetObjectParent(childLink->simHandle, joint->simHandle, true);
+            sim::setObjectParent(joint->simHandle, link->simHandle, true);
+            sim::setObjectParent(childLink->simHandle, joint->simHandle, true);
             visitLink(opts, model, childLink);
         }
     }
@@ -986,11 +984,11 @@ public:
             if(topLevel)
             {
                 // mark it as model base
-                simSetModelProperty(link.simHandle,
-                        simGetModelProperty(link.simHandle)
+                sim::setModelProperty(link.simHandle,
+                        sim::getModelProperty(link.simHandle)
                         & ~sim_modelproperty_not_model);
-                simSetObjectProperty(link.simHandle,
-                        simGetObjectProperty(link.simHandle)
+                sim::setObjectProperty(link.simHandle,
+                        sim::getObjectProperty(link.simHandle)
                         & ~sim_objectproperty_selectmodelbaseinstead);
             }
 
