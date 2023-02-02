@@ -22,7 +22,7 @@ list(APPEND CMAKE_MODULE_PATH
     ${LIBPLUGIN_DIR}/cmake)
 find_package(CoppeliaSim 4.5.0.0 REQUIRED)
 
-include_directories(${COPPELIASIM_ROOT_DIR}/programming/simMath)
+include_directories(${COPPELIASIM_INCLUDE_DIR}/simMath)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 
@@ -34,13 +34,13 @@ set(SOURCES
     SDFParser.cpp
     tinyxml2.cpp
     plugin.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/3Vector.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/3X3Matrix.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/4Vector.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/4X4Matrix.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/7Vector.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/MMatrix.cpp
-    ${COPPELIASIM_ROOT_DIR}/programming/simMath/MyMath.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/3Vector.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/3X3Matrix.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/4Vector.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/4X4Matrix.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/7Vector.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/MMatrix.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/MyMath.cpp
 )
 coppeliasim_add_plugin(simExtSDF SOURCES ${SOURCES})
 target_compile_definitions(simExtSDF PRIVATE SIM_MATH_DOUBLE)
