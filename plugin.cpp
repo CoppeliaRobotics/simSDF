@@ -21,10 +21,10 @@
 #include "tinyxml2.h"
 #include "SDFParser.h"
 #include "stubs.h"
-#include "3Vector.h"
-#include "4Vector.h"
-#include "7Vector.h"
-#include "4X4Matrix.h"
+#include <simMath/3Vector.h>
+#include <simMath/4Vector.h>
+#include <simMath/7Vector.h>
+#include <simMath/4X4Matrix.h>
 
 // stream facilities:
 

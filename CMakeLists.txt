@@ -22,7 +22,6 @@ list(APPEND CMAKE_MODULE_PATH
     ${LIBPLUGIN_DIR}/cmake)
 find_package(CoppeliaSim 4.5.0.0 REQUIRED)
 
-include_directories(${COPPELIASIM_INCLUDE_DIR}/simMath)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 
