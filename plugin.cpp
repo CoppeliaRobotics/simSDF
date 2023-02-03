@@ -15,7 +15,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 
-#include "simPlusPlus/Plugin.h"
+#include <simPlusPlus/Plugin.h>
 #include "config.h"
 #include "plugin.h"
 #include "tinyxml2.h"
