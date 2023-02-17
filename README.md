@@ -4,7 +4,7 @@ Can import [SDF 1.6](http://sdformat.org/spec?ver=1.6) files. Some feature are n
 
 ### Compiling
 
-1. Install required packages for [libPlugin](https://github.com/CoppeliaRobotics/libPlugin): see libPlugin's README
+1. Install required packages for simStubsGen: see simStubsGen's [README](https://github.com/CoppeliaRobotics/include/blob/master/simStubsGen/README.md)
 2. Checkout, compile and install into CoppeliaSim:
 ```sh
 $ git clone https://github.com/CoppeliaRobotics/simExtSDF.git
