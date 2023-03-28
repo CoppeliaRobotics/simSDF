@@ -38,8 +38,8 @@ set(SOURCES
     ${COPPELIASIM_INCLUDE_DIR}/simMath/4Vector.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/4X4Matrix.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/7Vector.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/MMatrix.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/MyMath.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/mXnMatrix.cpp
+    ${COPPELIASIM_INCLUDE_DIR}/simMath/mathFuncs.cpp
 )
 coppeliasim_add_plugin(simExtSDF SOURCES ${SOURCES})
 target_compile_definitions(simExtSDF PRIVATE SIM_MATH_DOUBLE)
