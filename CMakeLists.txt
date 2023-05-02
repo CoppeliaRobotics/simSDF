@@ -9,6 +9,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(Boost COMPONENTS filesystem REQUIRED)
+find_package(gz-math7 REQUIRED)
+find_package(sdformat13 REQUIRED)
 
 if(NOT COPPELIASIM_INCLUDE_DIR)
     if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
@@ -30,8 +32,6 @@ coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAK
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 set(SOURCES
-    SDFParser.cpp
-    tinyxml2.cpp
     plugin.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/3Vector.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/3X3Matrix.cpp
@@ -44,4 +44,6 @@ set(SOURCES
 coppeliasim_add_plugin(simExtSDF SOURCES ${SOURCES})
 target_compile_definitions(simExtSDF PRIVATE SIM_MATH_DOUBLE)
 target_link_libraries(simExtSDF Boost::boost Boost::filesystem)
+target_link_libraries(simExtSDF gz-math7::gz-math7)
+target_link_libraries(simExtSDF sdformat13::sdformat13)
 coppeliasim_add_addon("simAddOnSDF importer.lua")
