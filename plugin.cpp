@@ -18,8 +18,8 @@
 #include <simPlusPlus/Plugin.h>
 #include "config.h"
 #include "plugin.h"
-#include "tinyxml2.h"
-#include "SDFParser.h"
+#include <gz/math/Pose3.hh>
+#include <gz/sdformat13/sdformat.hh>
 #include "stubs.h"
 #include <simMath/3Vector.h>
 #include <simMath/4Vector.h>
@@ -43,8 +43,10 @@ std::ostream &operator<<(std::ostream &os, const C7Vector& o)
     return os << "C7Vector(" << o.X << ", " << o.Q << ")";
 }
 
-using namespace tinyxml2;
 using std::set;
+using std::map;
+using std::vector;
+using std::string;
 
 #define simMultiplyObjectMatrix(obj,pose) \
 { \
@@ -69,6 +71,39 @@ public:
 
         setExtVersion("SDF Importer Plugin");
         setBuildDate(BUILD_DATE);
+    }
+
+    set<const sdf::Joint*> getChildJoints(const sdf::Link *link, const sdf::Model *model)
+    {
+        set<const sdf::Joint*> ret;
+        for(int i = 0; i < model->JointCount(); i++)
+        {
+            const sdf::Joint *joint = model->JointByIndex(i);
+            if(joint->ParentName() == link->Name())
+                ret.insert(joint);
+        }
+        return ret;
+    }
+
+    const sdf::Joint * getParentJoint(const sdf::Link *link, const sdf::Model *model)
+    {
+        for(int i = 0; i < model->JointCount(); i++)
+        {
+            const sdf::Joint *joint = model->JointByIndex(i);
+            if(joint->ChildName() == link->Name())
+                return joint;
+        }
+        return nullptr;
+    }
+
+    const sdf::Link * getParentLink(const sdf::Joint *joint, const sdf::Model *model)
+    {
+        return model->LinkByName(joint->ParentName());
+    }
+
+    const sdf::Link * getChildLink(const sdf::Joint *joint, const sdf::Model *model)
+    {
+        return model->LinkByName(joint->ChildName());
     }
 
     void alternateRespondableMasks(int objHandle, bool bitSet = false)
@@ -218,38 +253,36 @@ public:
         return newShapeHandle;
     }
 
-    C7Vector getPose(const ImportOptions &opts, optional<sdf::Pose>& pose)
+    C7Vector getPose(const ImportOptions &opts, const gz::math::Pose3d& pose)
     {
         C7Vector v;
         v.setIdentity();
-        if(pose)
-        {
-            sdf::Vector &p = pose->position;
-            sdf::Orientation &o = pose->orientation;
-            v.X.setData(p.x, p.y, p.z);
-            C4Vector roll, pitch, yaw;
-            roll.setEulerAngles(C3Vector(o.roll, 0.0f, 0.0f));
-            pitch.setEulerAngles(C3Vector(0.0f, o.pitch, 0.0f));
-            yaw.setEulerAngles(C3Vector(0.0f, 0.0f, o.yaw));
-            v.Q = yaw * pitch * roll;
-        }
+        const gz::math::Vector3d &p = pose.Pos();
+        const gz::math::Quaterniond &q = pose.Rot();
+        v.X.data[0] = p.X();
+        v.X.data[1] = p.Y();
+        v.X.data[2] = p.Z();
+        v.Q.data[0] = q.W();
+        v.Q.data[1] = q.X();
+        v.Q.data[2] = q.Y();
+        v.Q.data[3] = q.Z();
         return v;
     }
 
-    void importWorld(const ImportOptions &opts, sdf::World &world)
+    void importWorld(const ImportOptions &opts, const sdf::World *world)
     {
-        sim::addLog(sim_verbosity_debug, "Importing world '" + world.name + "'...");
-        sim::addLog(sim_verbosity_debug, "ERROR: importing worlds not implemented yet");
+        sim::addLog(sim_verbosity_debug, "Importing world '" + world->Name() + "'...");
+        sim::addLog(sim_verbosity_errors, "Importing worlds not implemented yet");
     }
 
-    int importGeometry(const ImportOptions &opts, sdf::EmptyGeometry &empty, bool static_, bool respondable, double mass)
+    int importEmptyGeometry(const ImportOptions &opts, bool static_, bool respondable, double mass)
     {
         return sim::createDummy(0);
     }
 
-    int importGeometry(const ImportOptions &opts, sdf::BoxGeometry &box, bool static_, bool respondable, double mass)
+    int importBoxGeometry(const ImportOptions &opts, const sdf::Box *box, bool static_, bool respondable, double mass)
     {
-        double sizes[3] = {box.size.x, box.size.y, box.size.z};
+        double sizes[3] = {box->Size().X(), box->Size().Y(), box->Size().Z()};
         int retVal = sim::createPrimitiveShape(sim_primitiveshape_cuboid, sizes, 1);
         sim::setShapeMass(retVal, mass);
         if(respondable)
@@ -259,10 +292,10 @@ public:
         return retVal;
     }
 
-    int importGeometry(const ImportOptions &opts, sdf::SphereGeometry &sphere, bool static_, bool respondable, double mass)
+    int importSphereGeometry(const ImportOptions &opts, const sdf::Sphere *sphere, bool static_, bool respondable, double mass)
     {
         double sizes[3];
-        sizes[0] = sizes[1] = sizes[2] = 2 * sphere.radius;
+        sizes[0] = sizes[1] = sizes[2] = 2 * sphere->Radius();
         int retVal = sim::createPrimitiveShape(sim_primitiveshape_spheroid, sizes, 1);
         sim::setShapeMass(retVal, mass);
         if(respondable)
@@ -272,11 +305,11 @@ public:
         return retVal;
     }
 
-    int importGeometry(const ImportOptions &opts, sdf::CylinderGeometry &cylinder, bool static_, bool respondable, double mass)
+    int importCylinderGeometry(const ImportOptions &opts, const sdf::Cylinder *cylinder, bool static_, bool respondable, double mass)
     {
         double sizes[3];
-        sizes[0] = sizes[1] = 2 * cylinder.radius;
-        sizes[2] = cylinder.length;
+        sizes[0] = sizes[1] = 2 * cylinder->Radius();
+        sizes[2] = cylinder->Length();
         int retVal = sim::createPrimitiveShape(sim_primitiveshape_cylinder, sizes, 1);
         sim::setShapeMass(retVal, mass);
         if(respondable)
@@ -286,7 +319,7 @@ public:
         return retVal;
     }
 
-    int importGeometry(const ImportOptions &opts, sdf::HeightMapGeometry &heightmap, bool static_, bool respondable, double mass)
+    int importHeightmapGeometry(const ImportOptions &opts, const sdf::Heightmap *heightmap, bool static_, bool respondable, double mass)
     {
         int options = 0
             + 1 // backface culling
@@ -301,11 +334,11 @@ public:
         return sim::createHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
     }
 
-    int importGeometry(const ImportOptions &opts, sdf::MeshGeometry &mesh, bool static_, bool respondable, double mass)
+    int importMeshGeometry(const ImportOptions &opts, const sdf::Mesh *mesh, bool static_, bool respondable, double mass)
     {
         if(!opts.fileName)
             throw sim::exception("field 'fileName' must be set to the path of the SDF file");
-        string filename = getResourceFullPath(mesh.uri, *opts.fileName);
+        string filename = getResourceFullPath(mesh->Uri(), *opts.fileName);
         if(!sim::doesFileExist(filename))
             throw sim::exception("mesh '%s' does not exist", filename);
         string extension = filename.substr(filename.size() - 3, filename.size());
@@ -320,63 +353,37 @@ public:
         else throw sim::exception("the mesh extension '%s' is not currently supported", extension);
         */
         int handle = sim::importShape(filename, 16+128, 1.0f);
-        if(mesh.scale)
-        {
-            double scalingFactors[3] = {mesh.scale->x, mesh.scale->y, mesh.scale->z};
+        double scalingFactors[3] = {mesh->Scale().X(), mesh->Scale().Y(), mesh->Scale().Z()};
+        if(fabs(1 - scalingFactors[0]) > 1e-6 || fabs(1 - scalingFactors[1]) > 1e-6 || fabs(1 - scalingFactors[2]) > 1e-6)
             handle = scaleShape(handle, scalingFactors);
-        }
         // edges can make things very ugly if the mesh is not nice:
         sim::setObjectInt32Param(handle, sim_shapeintparam_edge_visibility, 0);
         return handle;
     }
 
-    int importGeometry(const ImportOptions &opts, sdf::ImageGeometry &image, bool static_, bool respondable, double mass)
-    {
-        throw sim::exception("image geometry not currently supported");
-    }
-
-    int importGeometry(const ImportOptions &opts, sdf::PlaneGeometry &plane, bool static_, bool respondable, double mass)
-    {
-        throw sim::exception("plane geometry not currently supported");
-    }
-
-    int importGeometry(const ImportOptions &opts, sdf::PolylineGeometry &polyline, bool static_, bool respondable, double mass)
-    {
-        throw sim::exception("polyline geometry not currently supported");
-    }
-
-    int importGeometry(const ImportOptions &opts, sdf::Geometry &geometry, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, const sdf::Geometry *geometry, bool static_, bool respondable, double mass)
     {
         int handle = -1;
 
-        if(geometry.empty)
-            return importGeometry(opts, *geometry.empty, static_, respondable, mass);
-        else if(geometry.box)
-            return importGeometry(opts, *geometry.box, static_, respondable, mass);
-        else if(geometry.sphere)
-            return importGeometry(opts, *geometry.sphere, static_, respondable, mass);
-        else if(geometry.cylinder)
-            return importGeometry(opts, *geometry.cylinder, static_, respondable, mass);
-        else if(geometry.heightmap)
-            return importGeometry(opts, *geometry.heightmap, static_, respondable, mass);
-        else if(geometry.mesh)
-            return importGeometry(opts, *geometry.mesh, static_, respondable, mass);
-        else if(geometry.image)
-            return importGeometry(opts, *geometry.image, static_, respondable, mass);
-        else if(geometry.plane)
-            return importGeometry(opts, *geometry.plane, static_, respondable, mass);
-        else if(geometry.polyline)
-            return importGeometry(opts, *geometry.polyline, static_, respondable, mass);
+        if(geometry->Type() == sdf::GeometryType::EMPTY)
+            return importEmptyGeometry(opts, static_, respondable, mass);
+        else if(geometry->Type() == sdf::GeometryType::BOX)
+            return importBoxGeometry(opts, geometry->BoxShape(), static_, respondable, mass);
+        else if(geometry->Type() == sdf::GeometryType::SPHERE)
+            return importSphereGeometry(opts, geometry->SphereShape(), static_, respondable, mass);
+        else if(geometry->Type() == sdf::GeometryType::CYLINDER)
+            return importCylinderGeometry(opts, geometry->CylinderShape(), static_, respondable, mass);
+        else if(geometry->Type() == sdf::GeometryType::HEIGHTMAP)
+            return importHeightmapGeometry(opts, geometry->HeightmapShape(), static_, respondable, mass);
+        else if(geometry->Type() == sdf::GeometryType::MESH)
+            return importMeshGeometry(opts, geometry->MeshShape(), static_, respondable, mass);
+        else
+            throw sim::exception("the geometry type \"%s\" is not currently supported", geometry->Element()->GetAttribute("type")->GetAsString());
 
         return handle;
     }
 
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::AltimeterSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::CameraSensor &camera)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, const sdf::Camera *camera)
     {
         int options = 0
             + 1*1   // the sensor will be explicitely handled
@@ -389,15 +396,15 @@ public:
             + 0*128 // the sensor will use a specific color for default background (i.e. "null" pixels)
             ;
         int intParams[4] = {
-            int(camera.image.width), // sensor resolution x
-            int(camera.image.height), // sensor resolution y
+            int(camera->ImageWidth()), // sensor resolution x
+            int(camera->ImageHeight()), // sensor resolution y
             0, // reserved. Set to 0
             0 // reserver. Set to 0
         };
         double floatParams[11] = {
-            camera.clip.near_, // near clipping plane
-            camera.clip.far_, // far clipping plane
-            camera.horizontalFOV, // view angle / ortho view size
+            camera->NearClip(), // near clipping plane
+            camera->FarClip(), // far clipping plane
+            camera->HorizontalFov().Radian(), // view angle / ortho view size
             0.2f, // sensor size x
             0.2f, // sensor size y
             0.4f, // sensor size z
@@ -410,22 +417,8 @@ public:
         return sim::createVisionSensor(options, intParams, floatParams);
     }
 
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::ContactSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::GPSSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::IMUSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::LogicalCameraSensor &lc)
+#if 0
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, const sdf::LogicalCamera *lc)
     {
         int sensorType = sim_proximitysensor_pyramid_subtype;
         //int subType = sim_objectspecialproperty_detectable_all;
@@ -470,13 +463,10 @@ public:
         };
         return sim::createProximitySensor(sensorType, options, intParams, floatParams);
     }
+#endif
 
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::MagnetometerSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::RaySensor &ray)
+#if 0
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, const sdf::Ray *ray)
     {
         if(!ray.scan.vertical && ray.scan.horizontal.samples == 1)
         {
@@ -566,71 +556,19 @@ public:
             return sim::createVisionSensor(options, intParams, floatParams);
         }
     }
+#endif
 
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::RFIDTagSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::RFIDSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::SonarSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::TransceiverSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::ForceTorqueSensor &sensor)
-    {
-        return -1;
-    }
-
-    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, sdf::Sensor &sensor)
+    int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, const sdf::Sensor *sensor)
     {
         int handle = -1;
 
-        if(sensor.type == "altimeter")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
-        else if(sensor.type == "camera")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.camera);
-        else if(sensor.type == "contact")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.contact);
-        //else if(sensor.type == "depth")
-        //    handle = importSensor(opts, parentHandle, parentPose, *sensor.depth);
-        else if(sensor.type == "force_torque")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.forceTorque);
-        else if(sensor.type == "gps")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.gps);
-        //else if(sensor.type == "gpu_ray")
-        //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
-        else if(sensor.type == "imu")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.imu);
-        else if(sensor.type == "logical_camera")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.logicalCamera);
-        else if(sensor.type == "magnetometer")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.magnetometer);
-        //else if(sensor.type == "multicamera")
-        //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
-        else if(sensor.type == "ray")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.ray);
-        else if(sensor.type == "rfid")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.rfid);
-        else if(sensor.type == "rfidtag")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.rfidTag);
-        else if(sensor.type == "sonar")
-            handle = importSensor(opts, parentHandle, parentPose, *sensor.sonar);
-        //else if(sensor.type == "wireless_receiver")
-        //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
-        //else if(sensor.type == "wireless_transmitter")
-        //    handle = importSensor(opts, parentHandle, parentPose, *sensor.altimeter);
-        else throw sim::exception("the sensor type '%s' is not currently supported", sensor.type);
+        if(sensor->Type() == sdf::SensorType::CAMERA)
+            handle = importSensor(opts, parentHandle, parentPose, sensor->CameraSensor());
+        //else if(sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
+        //    handle = importSensor(opts, parentHandle, parentPose, sensor->LogicalCameraSensor());
+        //else if(sensor->Type() == sdf::SensorType::RAY)
+        //    handle = importSensor(opts, parentHandle, parentPose, sensor->RaySensor());
+        else throw sim::exception("the sensor type \"%s\" is not currently supported", sensor->Element()->GetAttribute("type")->GetAsString());
 
         // for sensors with missing implementation, we create just a dummy
         if(handle == -1)
@@ -638,9 +576,9 @@ public:
             handle = sim::createDummy(0);
         }
 
-        setSimObjectName(opts, handle, sensor.name);
+        setSimObjectName(opts, handle, sensor->Name());
 
-        C7Vector pose = parentPose * getPose(opts, sensor.pose);
+        C7Vector pose = parentPose * getPose(opts, sensor->RawPose());
         simMultiplyObjectMatrix(handle, pose);
 
         sim::setObjectParent(handle, parentHandle, true);
@@ -648,46 +586,43 @@ public:
         return handle;
     }
 
-    void importModelLink(const ImportOptions &opts, sdf::Model &model, sdf::Link &link, int parentJointHandle)
+    void importModelLink(const ImportOptions &opts, const sdf::Model *model, const sdf::Link *link, int parentJointHandle)
     {
-        sim::addLog(sim_verbosity_debug, "Importing link '" + link.name + "' of model '" + model.name + "'...");
+        sim::addLog(sim_verbosity_debug, "Importing link '" + link->Name() + "' of model '" + model->Name() + "'...");
 
-        C7Vector modelPose = getPose(opts, model.pose);
-        C7Vector linkPose = modelPose * getPose(opts, link.pose);
+        C7Vector modelPose = getPose(opts, model->RawPose());
+        C7Vector linkPose = modelPose * getPose(opts, link->RawPose());
         sim::addLog(sim_verbosity_debug, "modelPose: %s", modelPose);
         sim::addLog(sim_verbosity_debug, "linkPose: %s", linkPose);
 
         double mass = 0;
-        if(link.inertial && link.inertial->mass)
-        {
-            mass = *link.inertial->mass;
-        }
+        //if(link.inertial && link.inertial->mass)
+        //{
+        //    mass = *link.inertial->mass;
+        //}
 
         vector<int> shapeHandlesColl;
-        BOOST_FOREACH(sdf::LinkCollision &collision, link.collisions)
+        for(int i = 0; i < link->CollisionCount(); i++)
         {
-            int shapeHandle = importGeometry(opts, collision.geometry, false, true, mass);
+            const sdf::Collision *collision = link->CollisionByIndex(i);
+            int shapeHandle = importGeometry(opts, collision->Geom(), false, true, mass);
             if(shapeHandle == -1) continue;
             shapeHandlesColl.push_back(shapeHandle);
-            C7Vector collPose = linkPose * getPose(opts, collision.pose);
-            sim::addLog(sim_verbosity_debug, "collision %s pose %s", collision.name, collPose);
+            C7Vector collPose = linkPose * getPose(opts, collision->RawPose());
+            sim::addLog(sim_verbosity_debug, "collision %s pose %s", collision->Name(), collPose);
             simMultiplyObjectMatrix(shapeHandle, collPose);
-            if(collision.surface)
+            if(collision->Surface())
             {
+                const sdf::Surface *surface = collision->Surface();
                 sim::setShapeMaterial(shapeHandle, -1);
-                if(collision.surface->friction)
+                if(surface->Friction())
                 {
-                    sdf::SurfaceFriction &f = *collision.surface->friction;
+                    const sdf::Friction *f = surface->Friction();
                     double friction = 0.0;
                     bool set = false;
-                    if(f.ode && f.ode->mu)
+                    if(f->ODE())
                     {
-                        friction = 0.5 * (*f.ode->mu + (f.ode->mu2 ? *f.ode->mu2 : *f.ode->mu));
-                        set = true;
-                    }
-                    if(f.bullet && f.bullet->friction)
-                    {
-                        friction = 0.5 * (*f.bullet->friction + (f.bullet->friction2 ? *f.bullet->friction2 : *f.bullet->friction));
+                        friction = 0.5 * (f->ODE()->Mu() + f->ODE()->Mu2());
                         set = true;
                     }
                     if(set)
@@ -701,33 +636,16 @@ public:
                         sim::setEngineFloatParam(sim_newton_body_kineticfriction, shapeHandle, NULL, friction);
                     }
                 }
-                if(collision.surface->bounce)
-                {
-                    sdf::SurfaceBounce &b = *collision.surface->bounce;
-                    if(b.restitutionCoefficient)
-                    {
-                        sim::setShapeMaterial(shapeHandle, -1);
-                        sim::setEngineFloatParam(sim_bullet_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
-                        sim::setEngineFloatParam(sim_vortex_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
-                        sim::setEngineFloatParam(sim_newton_body_restitution, shapeHandle, NULL, *b.restitutionCoefficient);
-                    }
-                    if(b.threshold)
-                    {
-                        sim::setEngineFloatParam(sim_vortex_body_restitutionthreshold, shapeHandle, NULL, *b.restitutionCoefficient);
-                    }
-                }
             }
         }
         int shapeHandleColl = -1;
         if(shapeHandlesColl.size() == 0)
         {
-            sdf::BoxGeometry box;
+            sdf::Box box;
+            box.SetSize(gz::math::Vector3d(0.01, 0.01, 0.01));
             sdf::Geometry g;
-            g.box = sdf::BoxGeometry();
-            g.box->size.x = 0.01;
-            g.box->size.y = 0.01;
-            g.box->size.z = 0.01;
-            shapeHandleColl = importGeometry(opts, g, false, false, mass);
+            g.SetBoxShape(box);
+            shapeHandleColl = importGeometry(opts, &g, false, false, mass);
         }
         else if(shapeHandlesColl.size() == 1)
         {
@@ -737,36 +655,36 @@ public:
         {
             shapeHandleColl = sim::groupShapes(shapeHandlesColl);
         }
-        link.simHandle = shapeHandleColl;
-        if(model.simHandle == -1)
-            model.simHandle = link.simHandle;
-        setSimObjectName(opts, shapeHandleColl, (boost::format("%s_collision") % link.name).str());
+        linkHandle[link] = shapeHandleColl;
+        if(!modelHandle[model])
+            modelHandle[model] = linkHandle[link];
+        setSimObjectName(opts, shapeHandleColl, (boost::format("%s_collision") % link->Name()).str());
 
-        if(link.inertial && link.inertial->inertia)
-        {
-            sdf::InertiaMatrix &i = *link.inertial->inertia;
-            double inertia[9] = {
-                i.ixx, i.ixy, i.ixz,
-                i.ixy, i.iyy, i.iyz,
-                i.ixz, i.iyz, i.izz
-            };
-
-            double _mtr[12];
-            sim::getObjectMatrix(shapeHandleColl, -1, _mtr);
-            C4X4Matrix mtr;
-            mtr.setData(_mtr);
-            C4X4Matrix t(mtr.getInverse() * (linkPose * getPose(opts, link.inertial->pose)).getMatrix());
-            double m[12] = {
-                t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
-                t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
-                t.M(2,0), t.M(2,1), t.M(2,2), t.X(2)
-            };
-            sim::setShapeMass(shapeHandleColl, mass);
-            sim::setShapeInertia(shapeHandleColl, inertia, m);
-        }
-        if(link.inertial && (!link.kinematic || *link.kinematic == false))
-            sim::setObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 0);
-        else
+        //if(link.inertial && link.inertial->inertia)
+        //{
+        //    sdf::InertiaMatrix &i = *link.inertial->inertia;
+        //    double inertia[9] = {
+        //        i.ixx, i.ixy, i.ixz,
+        //        i.ixy, i.iyy, i.iyz,
+        //        i.ixz, i.iyz, i.izz
+        //    };
+        //
+        //    double _mtr[12];
+        //    sim::getObjectMatrix(shapeHandleColl, -1, _mtr);
+        //    C4X4Matrix mtr;
+        //    mtr.setData(_mtr);
+        //    C4X4Matrix t(mtr.getInverse() * (linkPose * getPose(opts, link.inertial->pose)).getMatrix());
+        //    double m[12] = {
+        //        t.M(0,0), t.M(0,1), t.M(0,2), t.X(0),
+        //        t.M(1,0), t.M(1,1), t.M(1,2), t.X(1),
+        //        t.M(2,0), t.M(2,1), t.M(2,2), t.X(2)
+        //    };
+        //    sim::setShapeMass(shapeHandleColl, mass);
+        //    sim::setShapeInertia(shapeHandleColl, inertia, m);
+        //}
+        //if(link.inertial && (!link.kinematic || *link.kinematic == false))
+        //    sim::setObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 0);
+        //else
             sim::setObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 1);
 
         if(parentJointHandle != -1)
@@ -779,60 +697,56 @@ public:
             sim::setObjectInt32Param(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
         }
 
-        BOOST_FOREACH(sdf::LinkVisual &visual, link.visuals)
+        for(int i = 0; i < link->VisualCount(); i++)
         {
-            int shapeHandle = importGeometry(opts, visual.geometry, true, false, 0);
+            const sdf::Visual *visual = link->VisualByIndex(i);
+            int shapeHandle = importGeometry(opts, visual->Geom(), true, false, 0);
             if(shapeHandle == -1) continue;
-            C7Vector visPose = linkPose * getPose(opts, visual.pose);
-            sim::addLog(sim_verbosity_debug, "visual %s pose: %s", visual.name, visPose);
+            C7Vector visPose = linkPose * getPose(opts, visual->RawPose());
+            sim::addLog(sim_verbosity_debug, "visual %s pose: %s", visual->Name(), visPose);
             simMultiplyObjectMatrix(shapeHandle, visPose);
             sim::setObjectParent(shapeHandle, shapeHandleColl, true);
-            setSimObjectName(opts, shapeHandle, (boost::format("%s_%s") % link.name % visual.name).str());
+            setSimObjectName(opts, shapeHandle, (boost::format("%s_%s") % link->Name() % visual->Name()).str());
         }
 
-        BOOST_FOREACH(sdf::Sensor &sensor, link.sensors)
+        for(int i = 0; i < link->SensorCount(); i++)
         {
+            const sdf::Sensor *sensor = link->SensorByIndex(i);
             int sensorHandle = importSensor(opts, shapeHandleColl, linkPose, sensor);
         }
     }
 
-    int importModelJoint(const ImportOptions &opts, sdf::Model &model, sdf::Joint &joint, int parentLinkHandle)
+    int importModelJoint(const ImportOptions &opts, const sdf::Model *model, const sdf::Joint *joint, int parentLinkHandle)
     {
-        sim::addLog(sim_verbosity_debug, "Importing joint '%s' of model '%s'...", joint.name, model.name);
+        sim::addLog(sim_verbosity_debug, "Importing joint '%s' of model '%s'...", joint->Name(), model->Name());
 
         int handle = -1;
 
-        if(!joint.axis || joint.axis2)
+        if(!joint->Axis())
         {
-            throw sim::exception("joint must have exactly one axis");
+            throw sim::exception("joint must have an axis");
         }
 
-        const sdf::Axis &axis = *joint.axis;
+        const sdf::JointAxis *axis = joint->Axis();
 
-        if(joint.type == "revolute" || joint.type == "prismatic")
+        if(joint->Type() == sdf::JointType::REVOLUTE || joint->Type() == sdf::JointType::CONTINUOUS || joint->Type() == sdf::JointType::PRISMATIC || joint->Type() == sdf::JointType::SCREW)
         {
-            int subType =
-                joint.type == "revolute" ? sim_joint_revolute_subtype :
-                joint.type == "prismatic" ? sim_joint_prismatic_subtype :
-                -1;
+            int subType = -1;
+            if(joint->Type() == sdf::JointType::REVOLUTE || joint->Type() == sdf::JointType::CONTINUOUS)
+                subType = sim_joint_revolute_subtype;
+            else if(joint->Type() == sdf::JointType::PRISMATIC || joint->Type() == sdf::JointType::SCREW)
+                subType = sim_joint_prismatic_subtype;
+
             handle = sim::createJoint(subType, sim_jointmode_force, 2, nullptr);
 
-            if(axis.limit)
+            if(joint->Type() != sdf::JointType::CONTINUOUS)
             {
-                const sdf::AxisLimits &limits = *axis.limit;
-
-                double interval[2] = {limits.lower, limits.upper - limits.lower};
+                double interval[2] = {axis->Lower(), axis->Upper() - axis->Lower()};
                 sim::setJointInterval(handle, 0, interval);
 
-                if(limits.effort)
-                {
-                    sim::setJointTargetForce(handle, *limits.effort, false);
-                }
+                sim::setJointTargetForce(handle, axis->Effort(), false);
 
-                if(limits.velocity)
-                {
-                    sim::setObjectFloatParam(handle, sim_jointfloatparam_upper_limit, *limits.velocity);
-                }
+                sim::setObjectFloatParam(handle, sim_jointfloatparam_upper_limit, axis->MaxVelocity());
             }
 
             if(opts.positionCtrl)
@@ -845,11 +759,11 @@ public:
                 sim::setObjectInt32Param(handle, sim_objintparam_visibility_layer, 512); // layer 10
             }
         }
-        else if(joint.type == "ball")
+        else if(joint->Type() == sdf::JointType::BALL)
         {
             handle = sim::createJoint(sim_joint_spherical_subtype, sim_jointmode_force, 2, nullptr);
         }
-        else if(joint.type == "fixed")
+        else if(joint->Type() == sdf::JointType::FIXED)
         {
             int intParams[5] = {1, 4, 4, 0, 0};
             double floatParams[5] = {0.02, 1.0, 1.0, 0.0, 0.0};
@@ -857,35 +771,35 @@ public:
         }
         else
         {
-            throw sim::exception("joint type '%s' is not supported", joint.type);
+            throw sim::exception("joint type \"%s\" is not supported", joint->Element()->GetAttribute("type")->GetAsString());
         }
 
         if(handle == -1)
             return handle;
 
-        joint.simHandle = handle;
+        jointHandle[joint] = handle;
 
         if(parentLinkHandle != -1)
         {
             //sim::setObjectParent(handle, parentLinkHandle, true);
         }
 
-        setSimObjectName(opts, handle, joint.name);
+        setSimObjectName(opts, handle, joint->Name());
 
         return handle;
     }
 
-    void adjustJointPose(const ImportOptions &opts, sdf::Model &model, sdf::Joint *joint, int childLinkHandle)
+    void adjustJointPose(const ImportOptions &opts, const sdf::Model *model, const sdf::Joint *joint, int childLinkHandle)
     {
-        const sdf::Axis &axis = *joint->axis;
+        const sdf::JointAxis *axis = joint->Axis();
 
-        C7Vector modelPose = getPose(opts, model.pose);
-        C7Vector jointPose = modelPose * getPose(opts, joint->pose);
+        C7Vector modelPose = getPose(opts, model->RawPose());
+        C7Vector jointPose = modelPose * getPose(opts, joint->RawPose());
 
         // compute joint axis orientation:
         C4X4Matrix jointAxisMatrix;
         jointAxisMatrix.setIdentity();
-        C3Vector axisVec(axis.xyz.x, axis.xyz.y, axis.xyz.z);
+        C3Vector axisVec(axis->Xyz().X(), axis->Xyz().Y(), axis->Xyz().Z());
         C3Vector rotAxis;
         double rotAngle=0.0f;
         if(axisVec(2) < 1.0f)
@@ -921,121 +835,106 @@ public:
         //
         // in any case, the joint frame corresponds with the child's frame.
 
-        sdf::Link *childLink = joint->getChildLink(model);
-        C7Vector childLinkPose = modelPose * getPose(opts, childLink->pose);
+        const sdf::Link *childLink = getChildLink(joint, model);
+        C7Vector childLinkPose = modelPose * getPose(opts, childLink->RawPose());
 
-        C4X4Matrix m1 = childLinkPose * getPose(opts, joint->pose).getMatrix() * jointAxisMatrix,
+        C4X4Matrix m1 = childLinkPose * getPose(opts, joint->RawPose()).getMatrix() * jointAxisMatrix,
                    m2 = modelPose * jointAxisMatrix;
 
         C4X4Matrix m = m1;
-        if(axis.useParentModelFrame)
+        if(axis->XyzExpressedIn() == "")
         {
             m = m2;
             m.X = m1.X;
         }
+        else throw "axis frame not implemented";
 
         C7Vector t = m.getTransformation();
-        sim::setObjectPosition(joint->simHandle, -1, t.X.data);
-        sim::setObjectOrientation(joint->simHandle, -1, t.Q.getEulerAngles().data);
+        sim::setObjectPosition(jointHandle[joint], -1, t.X.data);
+        sim::setObjectOrientation(jointHandle[joint], -1, t.Q.getEulerAngles().data);
     }
 
-    void visitLink(const ImportOptions &opts, sdf::Model &model, sdf::Link *link)
+    void visitLink(const ImportOptions &opts, const sdf::Model *model, const sdf::Link *link)
     {
-        set<sdf::Joint*> childJoints = link->getChildJoints(model);
-        BOOST_FOREACH(sdf::Joint *joint, childJoints)
+        for(const sdf::Joint *joint : getChildJoints(link, model))
         {
-            sdf::Link *childLink = joint->getChildLink(model);
-            importModelJoint(opts, model, *joint, link->simHandle);
-            importModelLink(opts, model, *childLink, joint->simHandle);
-            adjustJointPose(opts, model, joint, childLink->simHandle);
-            sim::setObjectParent(joint->simHandle, link->simHandle, true);
-            sim::setObjectParent(childLink->simHandle, joint->simHandle, true);
+            const sdf::Link *childLink = getChildLink(joint, model);
+            importModelJoint(opts, model, joint, linkHandle[link]);
+            importModelLink(opts, model, childLink, jointHandle[joint]);
+            adjustJointPose(opts, model, joint, linkHandle[childLink]);
+            sim::setObjectParent(jointHandle[joint], linkHandle[link], true);
+            sim::setObjectParent(linkHandle[childLink], jointHandle[joint], true);
             visitLink(opts, model, childLink);
         }
     }
 
-    void importModel(const ImportOptions &opts, sdf::Model &model, bool topLevel = true)
+    void importModel(const ImportOptions &opts, const sdf::Model *model, bool topLevel = true)
     {
-        sim::addLog(sim_verbosity_debug, "Importing model '" + model.name + "'...");
+        sim::addLog(sim_verbosity_debug, "Importing model '" + model->Name() + "'...");
 
-        bool static_ = true;
-        if(model.static_ && *model.static_ == false)
-            static_ = false;
+        bool static_ = model->Static();
 
         // import model's links starting from top-level links (i.e. those without parent link)
-        BOOST_FOREACH(sdf::Link &link, model.links)
+        for(int i = 0; i < model->LinkCount(); i++)
         {
-            if(link.getParentJoint(model)) continue;
+            const sdf::Link *link = model->LinkByIndex(i);
+            if(getParentJoint(link, model)) continue;
             importModelLink(opts, model, link, -1);
-            visitLink(opts, model, &link);
+            visitLink(opts, model, link);
         }
 
-        BOOST_FOREACH(sdf::Model &x, model.submodels)
+        for(int i = 0; i < model->ModelCount(); i++)
         {
+            const sdf::Model *x = model->ModelByIndex(i);
             // FIXME: parent of the submodel?
             importModel(opts, x, false);
         }
 
-        BOOST_FOREACH(sdf::Link &link, model.links)
+        for(int i = 0; i < model->LinkCount(); i++)
         {
-            if(link.getParentJoint(model)) continue;
+            const sdf::Link *link = model->LinkByIndex(i);
+            if(getParentJoint(link, model)) continue;
 
             // here link has no parent (i.e. top-level for this model object)
             if(topLevel)
             {
                 // mark it as model base
-                sim::setModelProperty(link.simHandle,
-                        sim::getModelProperty(link.simHandle)
+                sim::setModelProperty(linkHandle[link],
+                        sim::getModelProperty(linkHandle[link])
                         & ~sim_modelproperty_not_model);
-                sim::setObjectProperty(link.simHandle,
-                        sim::getObjectProperty(link.simHandle)
+                sim::setObjectProperty(linkHandle[link],
+                        sim::getObjectProperty(linkHandle[link])
                         & ~sim_objectproperty_selectmodelbaseinstead);
             }
 
-            if(link.selfCollide && *link.selfCollide == true) continue;
-            if(model.selfCollide && *model.selfCollide == true) continue;
-            if(link.selfCollide || model.selfCollide || opts.noSelfCollision)
-                alternateRespondableMasks(link.simHandle);
+            if(!model->SelfCollide() || opts.noSelfCollision)
+                alternateRespondableMasks(linkHandle[link]);
         }
     }
 
-    void importActor(const ImportOptions &opts, sdf::Actor &actor)
+    void importActor(const ImportOptions &opts, const sdf::Actor *actor)
     {
-        sim::addLog(sim_verbosity_debug, "Importing actor '" + actor.name + "'...");
-        sim::addLog(sim_verbosity_debug, "ERROR: actors are not currently supported");
+        sim::addLog(sim_verbosity_debug, "Importing actor '" + actor->Name() + "'...");
+        sim::addLog(sim_verbosity_errors, "Importing actors not currently supported");
     }
 
-    void importLight(const ImportOptions &opts, sdf::Light &light)
+    void importLight(const ImportOptions &opts, const sdf::Light *light)
     {
-        sim::addLog(sim_verbosity_debug, "Importing light '" + light.name + "'...");
-        sim::addLog(sim_verbosity_debug, "ERROR: importing lights not currently supported");
+        sim::addLog(sim_verbosity_debug, "Importing light '" + light->Name() + "'...");
+        sim::addLog(sim_verbosity_errors, "Importing lights not currently supported");
     }
 
-    void importSDF(const ImportOptions &opts, sdf::SDF &sdf)
+    void importSDF(const ImportOptions &opts, const sdf::Root *root)
     {
-        sim::addLog(sim_verbosity_debug, "Importing SDF file (version " + sdf.version + ")...");
-#ifndef NDEBUG
-        sdf::DumpOptions dumpOpts;
-        std::stringstream ss;
-        sdf.dump(dumpOpts, ss);
-        sim::addLog(sim_verbosity_debug, "Options: %s", ss.str());
-#endif // NDEBUG
-        BOOST_FOREACH(sdf::World &x, sdf.worlds)
-        {
-            importWorld(opts, x);
-        }
-        BOOST_FOREACH(sdf::Model &x, sdf.models)
-        {
-            importModel(opts, x);
-        }
-        BOOST_FOREACH(sdf::Actor &x, sdf.actors)
-        {
-            importActor(opts, x);
-        }
-        BOOST_FOREACH(sdf::Light &x, sdf.lights)
-        {
-            importLight(opts, x);
-        }
+        sim::addLog(sim_verbosity_debug, "Importing SDF file (version " + root->Version() + ")...");
+        for(int i = 0; i < root->WorldCount(); i++)
+            importWorld(opts, root->WorldByIndex(i));
+        if(root->Model())
+            importModel(opts, root->Model());
+        if(root->Light())
+            importLight(opts, root->Light());
+        if(root->Actor())
+            importActor(opts, root->Actor());
     }
 
     void import(import_in *in, import_out *out)
@@ -1064,24 +963,35 @@ public:
 
         in->options.fileName = in->fileName;
 
-        sdf::SDF sdf;
-        sdf::ParseOptions parseOpts;
-        parseOpts.ignoreMissingValues = in->options.ignoreMissingValues;
-        sdf.parse(parseOpts, in->fileName);
-        sim::addLog(sim_verbosity_debug, "parsed SDF successfully");
-        importSDF(in->options, sdf);
+        sdf::Root root;
+        sdf::Errors errors = root.Load(in->fileName);
+        if(errors.empty())
+        {
+            sim::addLog(sim_verbosity_debug, "parsed SDF successfully");
+            importSDF(in->options, &root);
+        }
+        else
+        {
+            std::stringstream ss;
+            ss << "Errors encountered: \n";
+            for(auto const &e : errors)
+            {
+                sim::addLog(sim_verbosity_errors, e.Message());
+                ss << e << "\n";
+            }
+            throw ss.str();
+        }
     }
 
     void dump(dump_in *in, dump_out *out)
     {
-        sdf::DumpOptions dumpOpts;
-        sdf::SDF sdf;
-        sdf::ParseOptions parseOpts;
-        parseOpts.ignoreMissingValues = true;
-        sdf.parse(parseOpts, in->fileName);
-        sim::addLog(sim_verbosity_debug, "parsed SDF successfully");
-        sdf.dump(dumpOpts, std::cout);
+        throw "Not implemented in current version";
     }
+
+private:
+    map<const sdf::Model*,int> modelHandle;
+    map<const sdf::Link*,int> linkHandle;
+    map<const sdf::Joint*,int> jointHandle;
 };
 
 SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)
