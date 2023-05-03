@@ -614,7 +614,7 @@ public:
             if(collision->Surface())
             {
                 const sdf::Surface *surface = collision->Surface();
-                sim::setShapeMaterial(shapeHandle, -1);
+                //sim::setShapeMaterial(shapeHandle, -1);
                 if(surface->Friction())
                 {
                     const sdf::Friction *f = surface->Friction();
