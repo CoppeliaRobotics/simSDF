@@ -186,8 +186,12 @@ public:
             return getModelResourceFullPath(uri.substr(modelScheme.size()), sdfFile, model);
         else if(boost::starts_with(uri, fileScheme))
             return getFileResourceFullPath(uri.substr(fileScheme.size()), sdfFile, model);
-        else
-            throw sim::exception("URI '%s' does not start with '%s' or '%s'", uri, modelScheme, fileScheme);
+        else if(uri[0] == '/') // try to interpret as an absolute path
+            return getFileResourceFullPath(uri, sdfFile, model);
+        else // try to interpret as a model-relative path
+            return getModelResourceFullPath(model->Name() + "/" + uri, sdfFile, model);
+        //else
+        //    throw sim::exception("URI '%s' does not start with '%s' or '%s'", uri, modelScheme, fileScheme);
     }
 
     void setSimObjectName(const ImportOptions &opts, int objectHandle, string desiredName)
