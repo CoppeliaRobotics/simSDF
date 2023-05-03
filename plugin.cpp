@@ -356,6 +356,8 @@ public:
 
     int importMeshGeometry(const ImportOptions &opts, const sdf::Model *model, const sdf::Mesh *mesh, bool static_, bool respondable, double mass)
     {
+        if(mesh->Submesh() != "")
+            throw sim::exception("submesh loading is not supported");
         if(!opts.fileName)
             throw sim::exception("field 'fileName' must be set to the path of the SDF file");
         string filename = getResourceFullPath(mesh->Uri(), *opts.fileName, model);
