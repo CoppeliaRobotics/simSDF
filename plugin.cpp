@@ -123,7 +123,7 @@ public:
         }
     }
 
-    string getFileResourceFullPath(string path, string sdfFile)
+    string getFileResourceFullPath(string path, string sdfFile, const sdf::Model *model)
     {
         string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
         sim::addLog(sim_verbosity_debug, "sdfDir=" + sdfDir);
@@ -136,7 +136,7 @@ public:
             throw sim::exception("could not determine the filesystem location of URI file://%s", path);
     }
 
-    string getModelResourceFullPath(string path, string sdfFile)
+    string getModelResourceFullPath(string path, string sdfFile, const sdf::Model *model)
     {
         string sdfDir = sdfFile.substr(0, sdfFile.find_last_of('/'));
         string sdfDirName = sdfDir.substr(sdfDir.find_last_of('/') + 1);
@@ -146,7 +146,13 @@ public:
         string uriRest = path.substr(path.find_first_of('/'));
         sim::addLog(sim_verbosity_debug, "uriRoot=" + uriRoot + ", uriRest=" + uriRest);
 
-        if(sdfDirName == uriRoot)
+        if(
+                uriRoot == model->Name()
+                ||
+                // this was probably not correct,
+                // but kept for backwards-compatibility:
+                sdfDirName == uriRoot
+        )
         {
             string fullPath = sdfDir + uriRest;
             sim::addLog(sim_verbosity_debug, "fullPath=" + fullPath);
@@ -163,7 +169,7 @@ public:
                 return fullPath;
             else try
                 {
-                    return getFileResourceFullPath(path, sdfFile);
+                    return getFileResourceFullPath(path, sdfFile, model);
                 }
                 catch(...)
                 {
@@ -172,14 +178,14 @@ public:
         }
     }
 
-    string getResourceFullPath(string uri, string sdfFile)
+    string getResourceFullPath(string uri, string sdfFile, const sdf::Model *model)
     {
         const string modelScheme = "model://";
         const string fileScheme = "file://";
         if(boost::starts_with(uri, modelScheme))
-            return getModelResourceFullPath(uri.substr(modelScheme.size()), sdfFile);
+            return getModelResourceFullPath(uri.substr(modelScheme.size()), sdfFile, model);
         else if(boost::starts_with(uri, fileScheme))
-            return getFileResourceFullPath(uri.substr(fileScheme.size()), sdfFile);
+            return getFileResourceFullPath(uri.substr(fileScheme.size()), sdfFile, model);
         else
             throw sim::exception("URI '%s' does not start with '%s' or '%s'", uri, modelScheme, fileScheme);
     }
@@ -275,12 +281,12 @@ public:
         sim::addLog(sim_verbosity_errors, "Importing worlds not implemented yet");
     }
 
-    int importEmptyGeometry(const ImportOptions &opts, bool static_, bool respondable, double mass)
+    int importEmptyGeometry(const ImportOptions &opts, const sdf::Model *model, bool static_, bool respondable, double mass)
     {
         return sim::createDummy(0);
     }
 
-    int importBoxGeometry(const ImportOptions &opts, const sdf::Box *box, bool static_, bool respondable, double mass)
+    int importBoxGeometry(const ImportOptions &opts, const sdf::Model *model, const sdf::Box *box, bool static_, bool respondable, double mass)
     {
         double sizes[3] = {box->Size().X(), box->Size().Y(), box->Size().Z()};
         int retVal = sim::createPrimitiveShape(sim_primitiveshape_cuboid, sizes, 1);
@@ -292,7 +298,7 @@ public:
         return retVal;
     }
 
-    int importSphereGeometry(const ImportOptions &opts, const sdf::Sphere *sphere, bool static_, bool respondable, double mass)
+    int importSphereGeometry(const ImportOptions &opts, const sdf::Model *model, const sdf::Sphere *sphere, bool static_, bool respondable, double mass)
     {
         double sizes[3];
         sizes[0] = sizes[1] = sizes[2] = 2 * sphere->Radius();
@@ -305,7 +311,7 @@ public:
         return retVal;
     }
 
-    int importCylinderGeometry(const ImportOptions &opts, const sdf::Cylinder *cylinder, bool static_, bool respondable, double mass)
+    int importCylinderGeometry(const ImportOptions &opts, const sdf::Model *model, const sdf::Cylinder *cylinder, bool static_, bool respondable, double mass)
     {
         double sizes[3];
         sizes[0] = sizes[1] = 2 * cylinder->Radius();
@@ -319,7 +325,7 @@ public:
         return retVal;
     }
 
-    int importHeightmapGeometry(const ImportOptions &opts, const sdf::Heightmap *heightmap, bool static_, bool respondable, double mass)
+    int importHeightmapGeometry(const ImportOptions &opts, const sdf::Model *model, const sdf::Heightmap *heightmap, bool static_, bool respondable, double mass)
     {
         int options = 0
             + 1 // backface culling
@@ -334,11 +340,11 @@ public:
         return sim::createHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights);
     }
 
-    int importMeshGeometry(const ImportOptions &opts, const sdf::Mesh *mesh, bool static_, bool respondable, double mass)
+    int importMeshGeometry(const ImportOptions &opts, const sdf::Model *model, const sdf::Mesh *mesh, bool static_, bool respondable, double mass)
     {
         if(!opts.fileName)
             throw sim::exception("field 'fileName' must be set to the path of the SDF file");
-        string filename = getResourceFullPath(mesh->Uri(), *opts.fileName);
+        string filename = getResourceFullPath(mesh->Uri(), *opts.fileName, model);
         if(!sim::doesFileExist(filename))
             throw sim::exception("mesh '%s' does not exist", filename);
         string extension = filename.substr(filename.size() - 3, filename.size());
@@ -361,22 +367,22 @@ public:
         return handle;
     }
 
-    int importGeometry(const ImportOptions &opts, const sdf::Geometry *geometry, bool static_, bool respondable, double mass)
+    int importGeometry(const ImportOptions &opts, const sdf::Model *model, const sdf::Geometry *geometry, bool static_, bool respondable, double mass)
     {
         int handle = -1;
 
         if(geometry->Type() == sdf::GeometryType::EMPTY)
-            return importEmptyGeometry(opts, static_, respondable, mass);
+            return importEmptyGeometry(opts, model, static_, respondable, mass);
         else if(geometry->Type() == sdf::GeometryType::BOX)
-            return importBoxGeometry(opts, geometry->BoxShape(), static_, respondable, mass);
+            return importBoxGeometry(opts, model, geometry->BoxShape(), static_, respondable, mass);
         else if(geometry->Type() == sdf::GeometryType::SPHERE)
-            return importSphereGeometry(opts, geometry->SphereShape(), static_, respondable, mass);
+            return importSphereGeometry(opts, model, geometry->SphereShape(), static_, respondable, mass);
         else if(geometry->Type() == sdf::GeometryType::CYLINDER)
-            return importCylinderGeometry(opts, geometry->CylinderShape(), static_, respondable, mass);
+            return importCylinderGeometry(opts, model, geometry->CylinderShape(), static_, respondable, mass);
         else if(geometry->Type() == sdf::GeometryType::HEIGHTMAP)
-            return importHeightmapGeometry(opts, geometry->HeightmapShape(), static_, respondable, mass);
+            return importHeightmapGeometry(opts, model, geometry->HeightmapShape(), static_, respondable, mass);
         else if(geometry->Type() == sdf::GeometryType::MESH)
-            return importMeshGeometry(opts, geometry->MeshShape(), static_, respondable, mass);
+            return importMeshGeometry(opts, model, geometry->MeshShape(), static_, respondable, mass);
         else
             throw sim::exception("the geometry type \"%s\" is not currently supported", geometry->Element()->GetAttribute("type")->GetAsString());
 
@@ -605,7 +611,7 @@ public:
         for(int i = 0; i < link->CollisionCount(); i++)
         {
             const sdf::Collision *collision = link->CollisionByIndex(i);
-            int shapeHandle = importGeometry(opts, collision->Geom(), false, true, mass);
+            int shapeHandle = importGeometry(opts, model, collision->Geom(), false, true, mass);
             if(shapeHandle == -1) continue;
             shapeHandlesColl.push_back(shapeHandle);
             C7Vector collPose = linkPose * getPose(opts, collision->RawPose());
@@ -645,7 +651,7 @@ public:
             box.SetSize(gz::math::Vector3d(0.01, 0.01, 0.01));
             sdf::Geometry g;
             g.SetBoxShape(box);
-            shapeHandleColl = importGeometry(opts, &g, false, false, mass);
+            shapeHandleColl = importGeometry(opts, model, &g, false, false, mass);
         }
         else if(shapeHandlesColl.size() == 1)
         {
@@ -700,7 +706,7 @@ public:
         for(int i = 0; i < link->VisualCount(); i++)
         {
             const sdf::Visual *visual = link->VisualByIndex(i);
-            int shapeHandle = importGeometry(opts, visual->Geom(), true, false, 0);
+            int shapeHandle = importGeometry(opts, model, visual->Geom(), true, false, 0);
             if(shapeHandle == -1) continue;
             C7Vector visPose = linkPose * getPose(opts, visual->RawPose());
             sim::addLog(sim_verbosity_debug, "visual %s pose: %s", visual->Name(), visPose);
