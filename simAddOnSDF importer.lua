@@ -1,3 +1,6 @@
+simSDF=require'simSDF'
+simUI=require'simUI'
+
 function importSDF()
     local success,err=pcall(function() simSDF.import(options.fileName,options) end)
     if err then

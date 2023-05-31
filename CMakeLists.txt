@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(simExtSDF)
+project(simSDF)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MACOSX_RPATH 1)
@@ -41,9 +41,9 @@ set(SOURCES
     ${COPPELIASIM_INCLUDE_DIR}/simMath/mXnMatrix.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/mathFuncs.cpp
 )
-coppeliasim_add_plugin(simExtSDF SOURCES ${SOURCES})
-target_compile_definitions(simExtSDF PRIVATE SIM_MATH_DOUBLE)
-target_link_libraries(simExtSDF Boost::boost Boost::filesystem)
-target_link_libraries(simExtSDF gz-math7::gz-math7)
-target_link_libraries(simExtSDF sdformat13::sdformat13)
+coppeliasim_add_plugin(simSDF SOURCES ${SOURCES})
+target_compile_definitions(simSDF PRIVATE SIM_MATH_DOUBLE)
+target_link_libraries(simSDF Boost::boost Boost::filesystem)
+target_link_libraries(simSDF gz-math7::gz-math7)
+target_link_libraries(simSDF sdformat13::sdformat13)
 coppeliasim_add_addon("simAddOnSDF importer.lua")

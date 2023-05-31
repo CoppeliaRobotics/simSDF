@@ -64,7 +64,7 @@ using std::string;
 class Plugin : public sim::Plugin
 {
 public:
-    void onStart()
+    void onInit()
     {
         if(!registerScriptStuff())
             throw std::runtime_error("failed to register script stuff");
