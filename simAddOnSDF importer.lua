@@ -1,6 +1,3 @@
-simSDF=require'simSDF'
-simUI=require'simUI'
-
 function importSDF()
     local success,err=pcall(function() simSDF.import(options.fileName,options) end)
     if err then
@@ -31,6 +28,9 @@ function sysCall_info()
 end
 
 function sysCall_init()
+    simSDF=require'simSDF'
+    simUI=require'simUI'
+
     closeDialog()
 
     optionsInfo={
