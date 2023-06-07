@@ -1,3 +1,5 @@
+sim=require'sim'
+
 function importSDF()
     local success,err=pcall(function() simSDF.import(options.fileName,options) end)
     if err then
