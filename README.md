@@ -1,10 +1,8 @@
 # SDF plugin for CoppeliaSim
 
-SDF importer using libsdformat library.
+SDF importer using [libsdformat](http://sdformat.org) library.
 
 Some features are not implemented yet.
-
-Requires [sdformat13](http://sdformat.org) and [gz-math7](https://gazebosim.org/libs/math).
 
 ### Compiling
 
