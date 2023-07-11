@@ -17,9 +17,13 @@ if(USE_SYSTEM_GZLIBS)
 else()
     include(ExternalProject)
     set(GZLIBS_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gzlibs)
+    if(CMAKE_TOOLCHAIN_FILE)
+        set(EP_COMMON_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}")
+    endif()
     ExternalProject_Add(ext-gz-cmake
         URL https://github.com/gazebosim/gz-cmake/archive/refs/tags/gz-cmake3_3.0.0.tar.gz
         CMAKE_ARGS
+            ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
             -DCMAKE_PREFIX_PATH=${GZLIBS_INSTALL_PREFIX}
             -DBUILD_TESTING=OFF
@@ -29,6 +33,7 @@ else()
         DEPENDS ext-gz-cmake
         URL https://github.com/gazebosim/gz-tools/archive/refs/tags/gz-tools2_2.0.0.tar.gz
         CMAKE_ARGS
+            ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
             -DCMAKE_PREFIX_PATH=${GZLIBS_INSTALL_PREFIX}
             -DBUILD_TESTING=OFF
@@ -38,6 +43,7 @@ else()
         DEPENDS ext-gz-tools
         URL https://github.com/gazebosim/gz-utils/archive/refs/tags/gz-utils2_2.0.0.tar.gz
         CMAKE_ARGS
+            ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
             -DCMAKE_PREFIX_PATH=${GZLIBS_INSTALL_PREFIX}
             -DBUILD_TESTING=OFF
@@ -47,6 +53,7 @@ else()
         DEPENDS ext-gz-utils
         URL https://github.com/gazebosim/gz-math/archive/refs/tags/gz-math7_7.0.2.tar.gz
         CMAKE_ARGS
+            ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
             -DCMAKE_PREFIX_PATH=${GZLIBS_INSTALL_PREFIX}
             -DBUILD_TESTING=OFF
@@ -57,6 +64,7 @@ else()
         DEPENDS ext-gz-math
         URL https://github.com/gazebosim/sdformat/archive/refs/tags/sdformat13_13.0.1.tar.gz
         CMAKE_ARGS
+            ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
             -DCMAKE_PREFIX_PATH=${GZLIBS_INSTALL_PREFIX}
             -DBUILD_TESTING=OFF
