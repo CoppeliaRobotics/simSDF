@@ -18,7 +18,7 @@ else()
     include(ExternalProject)
     set(GZLIBS_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gzlibs)
     if(CMAKE_TOOLCHAIN_FILE)
-        set(EP_COMMON_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}")
+        set(EP_COMMON_CMAKE_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
     endif()
     ExternalProject_Add(ext-gz-cmake
         URL https://github.com/gazebosim/gz-cmake/archive/refs/tags/gz-cmake3_3.0.0.tar.gz
