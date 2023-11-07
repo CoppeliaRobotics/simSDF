@@ -961,6 +961,10 @@ public:
 
     void import(import_in *in, import_out *out)
     {
+        std::filesystem::path modelPath = in->fileName;
+        std::filesystem::path modelDirPath = modelPath.parent_path();
+        std::filesystem::path modelsDirPath = modelDirPath.parent_path() / "models";
+
         auto b2s = [=](const bool &b) -> std::string { return b ? "true" : "false"; };
         sim::addLog(sim_verbosity_debug, "ImportOptions: ignoreMissingValues: %s",
                 b2s(in->options.ignoreMissingValues));
@@ -986,6 +990,18 @@ public:
         in->options.fileName = in->fileName;
 
         sdf::Root root;
+        sdf::setFindCallback([=] (const std::string &s) -> std::string
+        {
+            if(s.compare(0, 8, "model://") == 0)
+            {
+                std::string modelName = s.substr(8);
+
+                auto p = modelsDirPath / modelName;
+                if(std::filesystem::exists(p) && std::filesystem::is_directory(p))
+                    return p.string();
+            }
+            return "";
+        });
         sdf::Errors errors = root.Load(in->fileName);
         if(errors.empty())
         {
