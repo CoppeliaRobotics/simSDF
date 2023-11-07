@@ -1017,7 +1017,7 @@ public:
                 sim::addLog(sim_verbosity_errors, e.Message());
                 ss << e << "\n";
             }
-            throw ss.str();
+            throw std::runtime_error(ss.str());
         }
     }
 
