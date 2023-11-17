@@ -118,8 +118,35 @@ else()
     add_dependencies(simSDF ext-sdformat)
     target_link_directories(simSDF PRIVATE ${GZLIBS_INSTALL_PREFIX}/lib)
     target_link_libraries(simSDF PRIVATE gz-utils2 gz-math7 sdformat13)
-    foreach(LIB gz-utils2.2 gz-utils2.2.0.0 gz-math7.7 gz-math7.7.0.2 sdformat13.13 sdformat13.13.0.1 gz-tools2-backward)
-        coppeliasim_add_library(${GZLIBS_INSTALL_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}${LIB}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(GZLIBS
+        "gz-utils2%2"
+        "gz-utils2%2.0.0"
+        "gz-math7%7"
+        "gz-math7%7.0.2"
+        "sdformat13%13"
+        "sdformat13%13.0.1"
+        "gz-tools2-backward%NONE"
+    )
+    foreach(lib_ver ${GZLIBS})
+        string(REPLACE "%" ";" lib_and_ver ${lib_ver})
+        list(GET lib_and_ver 0 lib)
+        list(GET lib_and_ver 1 ver)
+        if(ver STREQUAL NONE)
+            set(ver "")
+        else()
+            set(ver ".${ver}")
+        endif()
+        if(APPLE)
+            set(libname ${CMAKE_SHARED_LIBRARY_PREFIX}${lib}${ver}${CMAKE_SHARED_LIBRARY_SUFFIX})
+        elseif(UNIX)
+            set(libname ${CMAKE_SHARED_LIBRARY_PREFIX}${lib}${CMAKE_SHARED_LIBRARY_SUFFIX}${ver})
+        else()
+            message(WARNING "missing gzlibs install recipe for windows")
+            set(libname NONE)
+        endif()
+        if(NOT libname STREQUAL NONE)
+            coppeliasim_add_library(${GZLIBS_INSTALL_PREFIX}/lib/${libname})
+        endif()
     endforeach()
 endif()
 coppeliasim_add_addon("simAddOnSDF importer.lua")
