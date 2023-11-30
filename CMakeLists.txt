@@ -94,12 +94,12 @@ if(NOT USE_SYSTEM_GZLIBS)
     include_directories(${GZLIBS_INSTALL_PREFIX}/include/gz/sdformat13)
 endif()
 
-coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simSDF.lua)
+coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/sourceCode/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lua/simSDF.lua)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sourceCode/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 set(SOURCES
-    plugin.cpp
+    sourceCode/plugin.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/3Vector.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/3X3Matrix.cpp
     ${COPPELIASIM_INCLUDE_DIR}/simMath/4Vector.cpp
@@ -149,4 +149,4 @@ else()
         endif()
     endforeach()
 endif()
-coppeliasim_add_addon("simAddOnSDF importer.lua")
+coppeliasim_add_addon("addOns/simAddOnSDF importer.lua")
