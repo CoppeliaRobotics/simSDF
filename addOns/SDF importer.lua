@@ -65,8 +65,8 @@ function sysCall_init()
         positionCtrl = true,
     }
 
-    local scenePath = sim.getStringParameter(sim.stringparam_scene_path)
-    local fileName = sim.fileDialog(sim.filedlg_type_load, 'Import SDF...', scenePath, '', 'SDF file', 'sdf;world')
+    local scenePath = sim.getStringParam(sim.stringparam_scene_path)
+    local fileName = simUI.fileDialog(simUI.filedialog_type.load, 'Import SDF...', scenePath, '', 'SDF file', 'sdf;world')
 
     if fileName then
         done = false
