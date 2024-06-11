@@ -66,12 +66,12 @@ function sysCall_init()
     }
 
     local scenePath = sim.getStringParam(sim.stringparam_scene_path)
-    local fileName = (simUI.fileDialog(simUI.filedialog_type.load, 'Import SDF...', scenePath, '', 'SDF file', 'sdf;world'))[1]
+    local fileNames = simUI.fileDialog(simUI.filedialog_type.load, 'Import SDF...', scenePath, '', 'SDF file', 'sdf;world')
 
-    if fileName then
+    if #fileNames > 0 then
         done = false
-        options.fileName = fileName
-        local xml = '<ui modal="true" layout="vbox" title="Importing ' .. fileName ..
+        options.fileName = fileNames[1]
+        local xml = '<ui modal="true" layout="vbox" title="Importing ' .. options.fileName ..
                         '..." closeable="true" on-close="closeDialog">\n'
         for id, o in pairs(optionsInfo) do
             xml = xml .. '<checkbox id="' .. id .. '" checked="' ..
