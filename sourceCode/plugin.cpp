@@ -109,7 +109,7 @@ public:
 
     void alternateRespondableMasks(int objHandle, bool bitSet = false)
     {
-        if(sim::getObjectType(objHandle) == sim_object_shape_type)
+        if(sim::getObjectType(objHandle) == sim_sceneobject_shape)
         {
             int p = sim::getObjectInt32Param(objHandle, sim_shapeintparam_respondable);
             if(p)
@@ -443,7 +443,7 @@ public:
 #if 0
     int importSensor(const ImportOptions &opts, int parentHandle, C7Vector parentPose, const sdf::LogicalCamera *lc)
     {
-        int sensorType = sim_proximitysensor_pyramid_subtype;
+        int sensorType = sim_proximitysensor_pyramid;
         //int subType = sim_objectspecialproperty_detectable_all;
         int options = 0
             + 1*1   // the sensor will be explicitely handled
@@ -494,7 +494,7 @@ public:
         if(!ray.scan.vertical && ray.scan.horizontal.samples == 1)
         {
             // single ray -> use proximity sensor
-            int sensorType = sim_proximitysensor_pyramid_subtype;
+            int sensorType = sim_proximitysensor_pyramid;
             //int subType = sim_objectspecialproperty_detectable_all;
             int options = 0
                 + 1*1   // the sensor will be explicitely handled
@@ -756,9 +756,9 @@ public:
         {
             int subType = -1;
             if(joint->Type() == sdf::JointType::REVOLUTE || joint->Type() == sdf::JointType::CONTINUOUS)
-                subType = sim_joint_revolute_subtype;
+                subType = sim_joint_revolute;
             else if(joint->Type() == sdf::JointType::PRISMATIC || joint->Type() == sdf::JointType::SCREW)
-                subType = sim_joint_prismatic_subtype;
+                subType = sim_joint_prismatic;
 
             handle = sim::createJoint(subType, sim_jointmode_force, 2, nullptr);
 
@@ -784,7 +784,7 @@ public:
         }
         else if(joint->Type() == sdf::JointType::BALL)
         {
-            handle = sim::createJoint(sim_joint_spherical_subtype, sim_jointmode_force, 2, nullptr);
+            handle = sim::createJoint(sim_joint_spherical, sim_jointmode_force, 2, nullptr);
         }
         else if(joint->Type() == sdf::JointType::FIXED)
         {
