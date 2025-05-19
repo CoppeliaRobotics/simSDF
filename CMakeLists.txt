@@ -63,10 +63,11 @@ else()
     ExternalProject_Add(ext-sdformat
         DEPENDS ext-gz-math
         URL https://github.com/gazebosim/sdformat/archive/refs/tags/sdformat13_13.0.1.tar.gz
-        PATCH_COMMAND ${CMAKE_COMMAND} -E echo "Checking Ruby version..." &&
+        PATCH_COMMAND
+            ${CMAKE_COMMAND} -E echo "Checking Ruby version..." &&
             ruby -e "exit RUBY_VERSION.to_f > 2.0 ? 0 : 1" &&
             ${CMAKE_COMMAND} -E echo "Patching xmlschema.rb for Ruby > 2.0" &&
-            sed -i .bak -e s/File\\.exists[?]/File.exist?/g -e s/Dir\\.exists[?]/Dir.exist?/g ${CMAKE_CURRENT_BINARY_DIR}/ext-sdformat-prefix/src/ext-sdformat/tools/xmlschema.rb
+            ${CMAKE_COMMAND} -E env "SED_INPLACE_ARG=$<$<PLATFORM_ID:Darwin>:.bak>" sh -c "sed -i \$SED_INPLACE_ARG -e s/File\\.exists[?]/File.exist?/g -e s/Dir\\.exists[?]/Dir.exist?/g ${CMAKE_CURRENT_BINARY_DIR}/ext-sdformat-prefix/src/ext-sdformat/tools/xmlschema.rb"
         CMAKE_ARGS
             ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
