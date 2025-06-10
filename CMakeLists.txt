@@ -21,7 +21,7 @@ else()
         set(EP_COMMON_CMAKE_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
     endif()
     ExternalProject_Add(ext-gz-cmake
-        URL https://github.com/gazebosim/gz-cmake/archive/refs/tags/gz-cmake3_3.0.0.tar.gz
+        URL https://github.com/gazebosim/gz-cmake/archive/refs/tags/gz-cmake3_3.5.5.tar.gz
         CMAKE_ARGS
             ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
@@ -31,7 +31,7 @@ else()
     )
     ExternalProject_Add(ext-gz-tools
         DEPENDS ext-gz-cmake
-        URL https://github.com/gazebosim/gz-tools/archive/refs/tags/gz-tools2_2.0.0.tar.gz
+        URL https://github.com/gazebosim/gz-tools/archive/refs/tags/gz-tools2_2.0.2.tar.gz
         CMAKE_ARGS
             ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
@@ -41,7 +41,7 @@ else()
     )
     ExternalProject_Add(ext-gz-utils
         DEPENDS ext-gz-tools
-        URL https://github.com/gazebosim/gz-utils/archive/refs/tags/gz-utils2_2.0.0.tar.gz
+        URL https://github.com/gazebosim/gz-utils/archive/refs/tags/gz-utils2_2.2.1.tar.gz
         CMAKE_ARGS
             ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
@@ -51,7 +51,7 @@ else()
     )
     ExternalProject_Add(ext-gz-math
         DEPENDS ext-gz-utils
-        URL https://github.com/gazebosim/gz-math/archive/refs/tags/gz-math7_7.0.2.tar.gz
+        URL https://github.com/gazebosim/gz-math/archive/refs/tags/gz-math7_7.5.2.tar.gz
         CMAKE_ARGS
             ${EP_COMMON_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${GZLIBS_INSTALL_PREFIX}
@@ -62,7 +62,7 @@ else()
     )
     ExternalProject_Add(ext-sdformat
         DEPENDS ext-gz-math
-        URL https://github.com/gazebosim/sdformat/archive/refs/tags/sdformat13_13.0.1.tar.gz
+        URL https://github.com/gazebosim/sdformat/archive/refs/tags/sdformat13_13.9.0.tar.gz
         PATCH_COMMAND
             ${CMAKE_COMMAND} -E echo "Checking Ruby version..." &&
             ruby -e "exit RUBY_VERSION.to_f > 2.0 ? 0 : 1" &&
