@@ -10,7 +10,13 @@ endif()
 
 find_package(Boost COMPONENTS filesystem REQUIRED)
 
-set(USE_SYSTEM_GZLIBS OFF CACHE BOOL "Use system gz libs (gz-math, sdformat, etc...) instead of building them")
+if(APPLE)
+    # on mac gzlibs below fail to compile because of an issue with isfinite being messed up by macros
+    set(USE_SYSTEM_GZLIBS_DEFAULT ON)
+else()
+    set(USE_SYSTEM_GZLIBS_DEFAULT OFF)
+endif()
+set(USE_SYSTEM_GZLIBS ${USE_SYSTEM_GZLIBS_DEFAULT} CACHE BOOL "Use system gz libs (gz-math, sdformat, etc...) instead of building them")
 if(USE_SYSTEM_GZLIBS)
     find_package(gz-math7 REQUIRED)
     find_package(sdformat13 REQUIRED)
