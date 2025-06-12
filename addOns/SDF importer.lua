@@ -1,4 +1,6 @@
-sim = require 'sim'
+local sim = require 'sim'
+local simUI
+local simSDF
 
 function importSDF()
     local success, err = pcall(function()
