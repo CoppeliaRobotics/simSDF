@@ -131,11 +131,11 @@ else()
     target_link_libraries(simSDF PRIVATE gz-utils2 gz-math7 sdformat13)
     set(GZLIBS
         "gz-utils2%2"
-        "gz-utils2%2.0.0"
+        "gz-utils2%2.2.1"
         "gz-math7%7"
-        "gz-math7%7.0.2"
+        "gz-math7%7.5.2"
         "sdformat13%13"
-        "sdformat13%13.0.1"
+        "sdformat13%13.9.0"
         "gz-tools2-backward%NONE"
     )
     foreach(lib_ver ${GZLIBS})
