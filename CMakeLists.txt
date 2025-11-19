@@ -93,7 +93,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
     ${COPPELIASIM_INCLUDE_DIR}/cmake)
-find_package(CoppeliaSim 4.5.1.7 REQUIRED)
+find_package(CoppeliaSim 4.5.1.7 REQUIRED COMPONENTS simLib-1 simPlusPlus-1 simMath-1)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
@@ -109,17 +109,11 @@ coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAK
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sourceCode/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-set(SOURCES
+coppeliasim_add_plugin(
+    simSDF
+    SOURCES
     sourceCode/plugin.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/3Vector.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/3X3Matrix.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/4Vector.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/4X4Matrix.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/7Vector.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/mXnMatrix.cpp
-    ${COPPELIASIM_INCLUDE_DIR}/simMath/mathFuncs.cpp
 )
-coppeliasim_add_plugin(simSDF SOURCES ${SOURCES})
 target_compile_definitions(simSDF PRIVATE SIM_MATH_DOUBLE)
 target_link_libraries(simSDF PRIVATE Boost::boost Boost::filesystem)
 if(USE_SYSTEM_GZLIBS)
