@@ -20,7 +20,7 @@
 #include "config.h"
 #include "plugin.h"
 #include <gz/math/Pose3.hh>
-#include <gz/sdformat13/sdformat.hh>
+#include <gz/sdformat14/sdformat.hh>
 #include "stubs.h"
 #include <simMath/3Vector.h>
 #include <simMath/4Vector.h>

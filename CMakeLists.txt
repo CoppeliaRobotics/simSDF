@@ -19,7 +19,7 @@ endif()
 set(USE_SYSTEM_GZLIBS ${USE_SYSTEM_GZLIBS_DEFAULT} CACHE BOOL "Use system gz libs (gz-math, sdformat, etc...) instead of building them")
 if(USE_SYSTEM_GZLIBS)
     find_package(gz-math7 REQUIRED)
-    find_package(sdformat13 REQUIRED)
+    find_package(sdformat14 REQUIRED)
 else()
     include(ExternalProject)
     set(GZLIBS_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gzlibs)
@@ -68,7 +68,7 @@ else()
     )
     ExternalProject_Add(ext-sdformat
         DEPENDS ext-gz-math
-        URL https://github.com/gazebosim/sdformat/archive/refs/tags/sdformat13_13.9.0.tar.gz
+        URL https://github.com/gazebosim/sdformat/archive/refs/tags/sdformat14_14.9.0.tar.gz
         PATCH_COMMAND
             ${CMAKE_COMMAND} -E echo "Checking Ruby version..." &&
             ruby -e "exit RUBY_VERSION.to_f > 2.0 ? 0 : 1" &&
@@ -102,7 +102,7 @@ if(NOT USE_SYSTEM_GZLIBS)
     include_directories(${GZLIBS_INSTALL_PREFIX}/include/gz/cmake3)
     include_directories(${GZLIBS_INSTALL_PREFIX}/include/gz/math7)
     include_directories(${GZLIBS_INSTALL_PREFIX}/include/gz/utils2)
-    include_directories(${GZLIBS_INSTALL_PREFIX}/include/gz/sdformat13)
+    include_directories(${GZLIBS_INSTALL_PREFIX}/include/gz/sdformat14)
 endif()
 
 coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/sourceCode/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lua/simSDF.lua)
@@ -118,18 +118,18 @@ target_compile_definitions(simSDF PRIVATE SIM_MATH_DOUBLE)
 target_link_libraries(simSDF PRIVATE Boost::boost Boost::filesystem)
 if(USE_SYSTEM_GZLIBS)
     target_link_libraries(simSDF PRIVATE gz-math7::gz-math7)
-    target_link_libraries(simSDF PRIVATE sdformat13::sdformat13)
+    target_link_libraries(simSDF PRIVATE sdformat14::sdformat14)
 else()
     add_dependencies(simSDF ext-sdformat)
     target_link_directories(simSDF PRIVATE ${GZLIBS_INSTALL_PREFIX}/lib)
-    target_link_libraries(simSDF PRIVATE gz-utils2 gz-math7 sdformat13)
+    target_link_libraries(simSDF PRIVATE gz-utils2 gz-math7 sdformat14)
     set(GZLIBS
         "gz-utils2%2"
         "gz-utils2%2.2.1"
         "gz-math7%7"
         "gz-math7%7.5.2"
-        "sdformat13%13"
-        "sdformat13%13.9.0"
+        "sdformat14%14"
+        "sdformat14%14.9.0"
         "gz-tools2-backward%NONE"
     )
     foreach(lib_ver ${GZLIBS})
