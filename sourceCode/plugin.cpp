@@ -16,7 +16,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 
-#include <simPlusPlus/Plugin.h>
+#include <simPlusPlus-2/Plugin.h>
 #include "config.h"
 #include "plugin.h"
 #include <gz/math/Pose3.hh>
@@ -59,7 +59,7 @@ using std::string;
     m2[ 8] = m.M(2,0); m2[ 9] = m.M(2,1); m2[10] = m.M(2,2); m2[11] = m.X(2); \
     m3 = sim::multiplyMatrices(m2, m1); \
     sim::setObjectMatrix(obj, -1, m3); \
-    sim::setObjectProperty(obj, sim::getObjectProperty(obj) | sim_objectproperty_selectmodelbaseinstead); \
+    sim::setBoolProperty(obj, "selectModel", true); \
 }
 
 class Plugin : public sim::Plugin
@@ -109,16 +109,15 @@ public:
 
     void alternateRespondableMasks(int objHandle, bool bitSet = false)
     {
-        if(sim::getObjectType(objHandle) == sim_sceneobject_shape)
+        if(sim::getStringProperty(objHandle, "objectType") == "shape")
         {
-            int p = sim::getObjectInt32Param(objHandle, sim_shapeintparam_respondable);
-            if(p)
+            if(sim::getBoolProperty(objHandle, "respondable"))
             {
-                sim::setObjectInt32Param(objHandle, sim_shapeintparam_respondable_mask, bitSet ? 0xff01 : 0xff02);
+                sim::setIntProperty(objHandle, "respondableMask", bitSet ? 0xff01 : 0xff02);
                 bitSet = !bitSet;
             }
         }
-        for(int childHandle : sim::getObjectChildren(objHandle))
+        for(sim::handleproperty_t childHandle : sim::getHandleArrayProperty(objHandle, "children"))
         {
             alternateRespondableMasks(childHandle, bitSet);
         }
@@ -207,7 +206,7 @@ public:
 
     void setSimObjectName(const ImportOptions &opts, int objectHandle, string desiredName)
     {
-        // Objects in CoppeliaSim can only contain a-z, A-Z, 0-9, '_' or exaclty one '#' optionally followed by a number
+        // Objects in CoppeliaSim can only contain a-z, A-Z, 0-9, '_'
         string baseName(desiredName);
         for(int i = 0; i < baseName.size(); i++)
         {
@@ -217,7 +216,7 @@ public:
         }
         string objName(baseName);
         int suffix = 2;
-        sim::setObjectAlias(objectHandle, objName, 0);
+        sim::setStringProperty(objectHandle, "name", objName);
         //while(simSetObjectName(objectHandle, objName.c_str())==-1)
         //    objName = baseName + boost::lexical_cast<std::string>(suffix++);
     }
@@ -305,11 +304,9 @@ public:
     {
         double sizes[3] = {box->Size().X(), box->Size().Y(), box->Size().Z()};
         int retVal = sim::createPrimitiveShape(sim_primitiveshape_cuboid, sizes, 1);
-        sim::setShapeMass(retVal, mass);
-        if(respondable)
-            sim::setObjectInt32Param(retVal, sim_shapeintparam_respondable, 1);
-        if(!static_)
-            sim::setObjectInt32Param(retVal, sim_shapeintparam_static, 0);
+        sim::setFloatProperty(retVal, "mass", mass);
+        sim::setBoolProperty(retVal, "respondable", respondable);
+        sim::setBoolProperty(retVal, "dynamic", !static_);
         return retVal;
     }
 
@@ -318,11 +315,9 @@ public:
         double sizes[3];
         sizes[0] = sizes[1] = sizes[2] = 2 * sphere->Radius();
         int retVal = sim::createPrimitiveShape(sim_primitiveshape_spheroid, sizes, 1);
-        sim::setShapeMass(retVal, mass);
-        if(respondable)
-            sim::setObjectInt32Param(retVal, sim_shapeintparam_respondable, 1);
-        if(!static_)
-            sim::setObjectInt32Param(retVal, sim_shapeintparam_static, 0);
+        sim::setFloatProperty(retVal, "mass", mass);
+        sim::setBoolProperty(retVal, "respondable", respondable);
+        sim::setBoolProperty(retVal, "dynamic", !static_);
         return retVal;
     }
 
@@ -332,11 +327,9 @@ public:
         sizes[0] = sizes[1] = 2 * cylinder->Radius();
         sizes[2] = cylinder->Length();
         int retVal = sim::createPrimitiveShape(sim_primitiveshape_cylinder, sizes, 1);
-        sim::setShapeMass(retVal, mass);
-        if(respondable)
-            sim::setObjectInt32Param(retVal, sim_shapeintparam_respondable, 1);
-        if(!static_)
-            sim::setObjectInt32Param(retVal, sim_shapeintparam_static, 0);
+        sim::setFloatProperty(retVal, "mass", mass);
+        sim::setBoolProperty(retVal, "respondable", respondable);
+        sim::setBoolProperty(retVal, "dynamic", !static_);
         return retVal;
     }
 
@@ -380,7 +373,7 @@ public:
         if(fabs(1 - scalingFactors[0]) > 1e-6 || fabs(1 - scalingFactors[1]) > 1e-6 || fabs(1 - scalingFactors[2]) > 1e-6)
             handle = scaleShape(handle, scalingFactors);
         // edges can make things very ugly if the mesh is not nice:
-        sim::setObjectInt32Param(handle, sim_shapeintparam_edge_visibility, 0);
+        sim::setBoolProperty(handle, "applyShowEdges", false);
         return handle;
     }
 
@@ -650,13 +643,13 @@ public:
                     }
                     if(set)
                     {
-                        sim::setEngineFloatParam(sim_bullet_body_oldfriction, shapeHandle, NULL, friction);
-                        sim::setEngineFloatParam(sim_bullet_body_friction, shapeHandle, NULL, friction);
-                        sim::setEngineFloatParam(sim_ode_body_friction, shapeHandle, NULL, friction);
-                        sim::setEngineFloatParam(sim_vortex_body_primlinearaxisfriction, shapeHandle, NULL, friction);
-                        sim::setEngineFloatParam(sim_vortex_body_seclinearaxisfriction, shapeHandle, NULL, friction);
-                        sim::setEngineFloatParam(sim_newton_body_staticfriction, shapeHandle, NULL, friction);
-                        sim::setEngineFloatParam(sim_newton_body_kineticfriction, shapeHandle, NULL, friction);
+                        sim::setFloatProperty(shapeHandle, "bullet.frictionOld", friction);
+                        sim::setFloatProperty(shapeHandle, "bullet.friction", friction);
+                        sim::setFloatProperty(shapeHandle, "ode.friction", friction);
+                        sim::setFloatProperty(shapeHandle, "vortex.linearPrimaryAxisFrictionValue", friction);
+                        sim::setFloatProperty(shapeHandle, "vortex.linearSecondaryAxisFrictionValue", friction);
+                        sim::setFloatProperty(shapeHandle, "newton.staticFriction", friction);
+                        sim::setFloatProperty(shapeHandle, "newton.kineticFriction", friction);
                     }
                 }
             }
@@ -706,9 +699,9 @@ public:
         //    sim::setShapeInertia(shapeHandleColl, inertia, m);
         //}
         //if(link.inertial && (!link.kinematic || *link.kinematic == false))
-        //    sim::setObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 0);
+        //    sim::setBoolProperty(shapeHandleColl, "dynamic", true);
         //else
-            sim::setObjectInt32Param(shapeHandleColl, sim_shapeintparam_static, 1);
+            sim::setBoolProperty(shapeHandleColl, "dynamic", false);
 
         if(parentJointHandle != -1)
         {
@@ -717,7 +710,7 @@ public:
 
         if(opts.hideCollisionLinks)
         {
-            sim::setObjectInt32Param(shapeHandleColl, sim_objintparam_visibility_layer, 256); // assign collision to layer 9
+            sim::setIntProperty(shapeHandleColl, "layer", 256); // assign collision to layer 9
         }
 
         for(int i = 0; i < link->VisualCount(); i++)
@@ -769,17 +762,20 @@ public:
 
                 sim::setJointTargetForce(handle, axis->Effort(), false);
 
-                sim::setObjectFloatParam(handle, sim_jointfloatparam_upper_limit, axis->MaxVelocity());
+                auto l = sim::getFloatArrayProperty(handle, "maxVelAccelJerk");
+                l[1] = axis->MaxVelocity();
+                sim::setFloatArrayProperty(handle, "maxVelAccelJerk", l);
             }
 
             if(opts.positionCtrl)
             {
-                sim::setObjectInt32Param(handle, sim_jointintparam_motor_enabled, 1);
+                sim::setIntProperty(handle, "jointMode", sim_jointmode_dynamic);
+                sim::setIntProperty(handle, "dynCtrlMode", sim_jointdynctrl_position);
             }
 
             if(opts.hideJoints)
             {
-                sim::setObjectInt32Param(handle, sim_objintparam_visibility_layer, 512); // layer 10
+                sim::setIntProperty(handle, "layer", 512); // layer 10
             }
         }
         else if(joint->Type() == sdf::JointType::BALL)
@@ -921,13 +917,8 @@ public:
             // here link has no parent (i.e. top-level for this model object)
             if(topLevel)
             {
-                // mark it as model base
-                sim::setModelProperty(linkHandle[link],
-                        sim::getModelProperty(linkHandle[link])
-                        & ~sim_modelproperty_not_model);
-                sim::setObjectProperty(linkHandle[link],
-                        sim::getObjectProperty(linkHandle[link])
-                        & ~sim_objectproperty_selectmodelbaseinstead);
+                sim::setBoolProperty(linkHandle[link], "modelBase", true);
+                sim::setBoolProperty(linkHandle[link], "selectModel", false);
             }
 
             if(!model->SelfCollide() || opts.noSelfCollision)
