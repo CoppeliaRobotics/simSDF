@@ -69,9 +69,6 @@ public:
     {
         if(!registerScriptStuff())
             throw std::runtime_error("failed to register script stuff");
-
-        setExtVersion("SDF Importer Plugin");
-        setBuildDate(BUILD_DATE);
     }
 
     set<const sdf::Joint*> getChildJoints(const sdf::Link *link, const sdf::Model *model)
